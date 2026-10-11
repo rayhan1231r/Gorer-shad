@@ -1,0 +1,8 @@
+{
+  "name": "ঘরের স্বাদ (Ghorer Shad) — Homemade Food Ordering & Catering",
+  "description": "ঘরের স্বাদ — সব স্বাদের এক ঠিকানা। অর্ডার করুন খাঁটি ঘরোয়া বাঙালি খাবার, মাছ, মাংস, প্ল্যাটার এবং ক্যাটারিং সার্ভিস আড়াইহাজার, ঢাকা।",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,192 @@
+import React from 'react';
+import { Phone, MapPin, Clock, MessageSquare, Heart } from 'lucide-react';
+import { BusinessConfig } from '../../types/index.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
+
+interface FooterProps {
+  config: BusinessConfig;
+  onNavigate: (page: string) => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
+  const { language } = useLanguage();
+
+  return (
+    <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800 text-left">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
+          {/* Brand Column */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
+                স্বাদ
+              </div>
+              <div>
+                <span className="block text-xl font-bold text-white tracking-tight">
+                  {language === 'en' ? config.brandNameEn : config.brandNameBn}
+                </span>
+                <span className="block text-xs text-emerald-400 font-medium">
+                  {language === 'en' ? config.taglineEn : config.taglineBn}
+                </span>
+              </div>
+            </div>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              {language === 'en'
+                ? 'Your trusted destination in Araihazar for authentic homemade Bengali meals, fresh fish, desi meat, fast food, family combos, and catering services.'
+                : 'আড়াইহাজারের খাঁটি ঘরোয়া বাঙালি খাবার, তাজা মাছ, দেশি মাংস, ফাস্টফুড, ফ্যামিলি কম্বো ও ক্যাটারিং সার্ভিসের বিশ্বস্ত ঠিকানা। প্রতিটি খাবার অর্ডারের পর তাজা রান্না করা হয়।'}
+            </p>
+            <div className="text-xs text-slate-400">
+              {language === 'en' ? 'Proprietor:' : 'পরিচালনায়:'}{' '}
+              <span className="text-white font-medium">{config.contactPerson}</span>
+            </div>
+          </div>
+
+          {/* Contact Details */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+              {language === 'en' ? 'Contact & Address' : 'যোগাযোগ ও ঠিকানা'}
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>{config.fullAddressBn}</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                <a href={`tel:${config.phone}`} className="hover:text-white transition-colors">
+                  {config.phone}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                <a
+                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  WhatsApp: {config.whatsapp}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{config.openingHoursBn}</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Quick Links & Service Areas */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+              {language === 'en' ? 'Quick Links' : 'প্রয়োজনীয় তথ্য'}
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <button
+                  onClick={() => onNavigate('menu')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Full Food Menu' : 'খাবারের পূর্ণ মেনু'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('catering')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Catering & Bulk Orders' : 'ক্যাটারিং ও বাল্ক অর্ডার'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('track')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Order Tracking' : 'অর্ডার ট্র্যাকিং'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('faq')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Frequently Asked Questions' : 'সাধারণ জিজ্ঞাসা (FAQ)'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('about')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Our Story & Mission' : 'আমাদের গল্প ও লক্ষ্য'}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Delivery & Ordering Policy */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
+              {language === 'en' ? 'Policies & Terms' : 'পলিসি ও নিয়মাবলী'}
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <button
+                  onClick={() => onNavigate('delivery-policy')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Delivery Policy & Zones' : 'ডেলিভারি পলিসি ও এলাকা'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('refund-policy')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Cancellation & Refund Policy' : 'বাতিল ও রিফান্ড নীতি'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('privacy-policy')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Privacy Policy' : 'গোপনীয়তা নীতি (Privacy)'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('terms')}
+                  className="hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  {language === 'en' ? 'Terms of Service' : 'ব্যবহারের শর্তাবলী'}
+                </button>
+              </li>
+            </ul>
+            <div className="pt-2 text-xs text-slate-400 bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+              <span className="text-emerald-400 font-semibold block mb-1">
+                {language === 'en' ? 'Advance Order Policy:' : 'অগ্রিম অর্ডার পলিসি:'}
+              </span>
+              {language === 'en'
+                ? 'Please place orders 4-6 hours in advance to guarantee fresh, authentic home cooking.'
+                : 'টাটকা ও স্বাস্থ্যকর রান্নার নিশ্চয়তার জন্য কমপক্ষে ৪-৬ ঘন্টা পূর্বে অগ্রিম অর্ডার করুন।'}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <p>© 2026 {config.brandNameBn} ({config.brandNameEn}) — {language === 'en' ? 'All rights reserved.' : 'সর্বস্বত্ব সংরক্ষিত।'}</p>
+          <p className="flex items-center gap-1.5">
+            <span>
+              {language === 'en'
+                ? 'Cooked with passion from Araihazar, Dhaka'
+                : 'আড়াইহাজার, ঢাকা থেকে ভালোবাসা সহকারে প্রস্তুত'}
+            </span>
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};

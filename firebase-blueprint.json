@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role, contact info and order history",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 20 },
+        "role": { "type": "string", "enum": ["customer", "admin", "staff"] },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer food order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "orderNumber": { "type": "string", "maxLength": 32 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 20 },
+        "customerEmail": { "type": "string", "maxLength": 150 },
+        "deliveryAddress": { "type": "string", "maxLength": 300 },
+        "deliveryZoneId": { "type": "string", "maxLength": 50 },
+        "deliveryZoneName": { "type": "string", "maxLength": 100 },
+        "subtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "orderStatus": { "type": "string", "enum": ["placed", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "cancelled", "rejected"] },
+        "paymentMethod": { "type": "string", "enum": ["cod", "bkash", "nagad", "rocket", "bank"] },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid", "refunded"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["orderNumber", "customerName", "customerPhone", "deliveryAddress", "total", "orderStatus", "paymentMethod"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer food review and rating",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerLocation": { "type": "string", "maxLength": 100 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 500 },
+        "dishMentioned": { "type": "string", "maxLength": 100 },
+        "isApproved": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["customerName", "rating", "comment", "isApproved"]
+    },
+    "CateringInquiry": {
+      "title": "CateringInquiry",
+      "description": "Customer catering or bulk food request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 20 },
+        "customerEmail": { "type": "string", "maxLength": 150 },
+        "eventType": { "type": "string", "maxLength": 100 },
+        "guestCount": { "type": "number" },
+        "eventDate": { "type": "string", "maxLength": 50 },
+        "eventLocation": { "type": "string", "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending", "contacted", "confirmed", "cancelled"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["customerName", "customerPhone", "eventDate", "guestCount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Customer and admin user profile collection"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer food orders"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Customer verified food reviews"
+    },
+    "/catering/{inquiryId}": {
+      "schema": "CateringInquiry",
+      "description": "Customer catering inquiries and quotes"
+    }
+  }
+}
