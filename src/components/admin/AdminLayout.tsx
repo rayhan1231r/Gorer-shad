@@ -11,24 +11,44 @@ import {
   Settings,
   LogOut,
   ExternalLink,
-  Menu,
+  Menu as MenuIcon,
   X,
   User,
-  Mail
+  Mail,
+  CreditCard,
+  Truck,
+  Globe,
+  RefreshCw,
+  ShieldCheck,
+  Bell
 } from 'lucide-react';
-import { BusinessConfig, Category, FoodItem, Order, CateringInquiry, CustomerRecord, FinancialSummary, DeliveryZone, Coupon } from '../../types/index.ts';
+import {
+  BusinessConfig,
+  Category,
+  FoodItem,
+  Order,
+  CateringInquiry,
+  CustomerRecord,
+  FinancialSummary,
+  DeliveryZone,
+  Coupon,
+  PaymentMethodConfig
+} from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 import { DashboardOverview } from './DashboardOverview.tsx';
 import { OrderManagement } from './OrderManagement.tsx';
 import { KitchenDisplay } from './KitchenDisplay.tsx';
 import { MenuManagement } from './MenuManagement.tsx';
 import { CateringManagement } from './CateringManagement.tsx';
 import { DeliveryZoneManagement } from './DeliveryZoneManagement.tsx';
+import { PaymentManagement } from './PaymentManagement.tsx';
 import { CouponManagement } from './CouponManagement.tsx';
 import { CustomerManagement } from './CustomerManagement.tsx';
 import { FinanceReports } from './FinanceReports.tsx';
 import { SettingsManagement } from './SettingsManagement.tsx';
 import { SmtpSettings } from './SmtpSettings.tsx';
+import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AdminLayoutProps {
   config: BusinessConfig;
@@ -45,14 +65,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onLogout,
   adminUserName
 }) => {
+  const { language, toggleLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Live state
   const [orders, setOrders] = useState<Order[]>([]);
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [catering, setCatering] = useState<CateringInquiry[]>([]);
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
@@ -69,12 +92,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [expenses, setExpenses] = useState<{ id: string; date: string; title: string; category: string; amount: number }[]>([]);
 
   const fetchAllData = async () => {
+    setIsRefreshing(true);
     try {
-      const [ordList, foodList, catList, zoneList, cpnList, catInquiries, custList, rep] = await Promise.all([
+      const [ordList, foodList, catList, zoneList, pmList, cpnList, catInquiries, custList, rep] = await Promise.all([
         api.getOrders(),
         api.getFoods(),
         api.getCategories(),
         api.getDeliveryZones(),
+        api.getPaymentMethods(false),
         api.getCoupons(),
         api.getCateringInquiries(),
         api.getCustomers(),
@@ -85,6 +110,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       setFoods(foodList);
       setCategories(catList);
       setZones(zoneList);
+      setPaymentMethods(pmList);
       setCoupons(cpnList);
       setCatering(catInquiries);
       setCustomers(custList);
@@ -92,6 +118,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       setExpenses(rep.expenses);
     } catch (err) {
       console.error('Failed to load admin data:', err);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -100,69 +128,161 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   }, []);
 
   const navItems = [
-    { id: 'overview', label: 'ওভারভিউ ড্যাশবোর্ড', icon: LayoutDashboard },
-    { id: 'orders', label: 'অর্ডার ম্যানেজমেন্ট', icon: ShoppingBag, badge: orders.filter(o => o.orderStatus === 'placed').length },
-    { id: 'kitchen', label: 'কিচেন ডিসপ্লে (KDS)', icon: ChefHat, badge: orders.filter(o => o.orderStatus === 'preparing').length },
-    { id: 'menu', label: 'মেনু ও খাদ্যসামগ্রী', icon: UtensilsCrossed },
-    { id: 'catering', label: 'ক্যাটারিং অনুসন্ধান', icon: Users, badge: catering.filter(c => c.status === 'pending').length },
-    { id: 'zones', label: 'ডেলিভারি এলাকা ও ফি', icon: MapPin },
-    { id: 'coupons', label: 'কুপন ও অফার', icon: Tag },
-    { id: 'customers', label: 'গ্রাহক ডিরেক্টরি', icon: User },
-    { id: 'finance', label: 'আর্থিক হিসাব ও খরচ', icon: DollarSign },
-    { id: 'smtp', label: 'Email / SMTP সেটিংস', icon: Mail },
-    { id: 'settings', label: 'ব্যবসা ও ব্রান্ড সেটিংস', icon: Settings },
+    {
+      id: 'overview',
+      labelBn: 'ওভারভিউ ড্যাশবোর্ড',
+      labelEn: 'Dashboard Overview',
+      icon: LayoutDashboard
+    },
+    {
+      id: 'orders',
+      labelBn: 'অর্ডার ম্যানেজমেন্ট',
+      labelEn: 'Order Management',
+      icon: ShoppingBag,
+      badge: orders.filter(o => o.orderStatus === 'placed').length
+    },
+    {
+      id: 'kitchen',
+      labelBn: 'কিচেন ডিসপ্লে (KDS)',
+      labelEn: 'Kitchen Display (KDS)',
+      icon: ChefHat,
+      badge: orders.filter(o => o.orderStatus === 'preparing').length
+    },
+    {
+      id: 'menu',
+      labelBn: 'মেনু ও খাদ্যসামগ্রী',
+      labelEn: 'Menu & Dishes',
+      icon: UtensilsCrossed
+    },
+    {
+      id: 'payments',
+      labelBn: 'পেমেন্ট মাধ্যম ব্যবস্থাপনা',
+      labelEn: 'Payment Methods',
+      icon: CreditCard
+    },
+    {
+      id: 'zones',
+      labelBn: 'সারা বাংলাদেশ ডেলিভারি',
+      labelEn: 'Nationwide Delivery',
+      icon: Truck
+    },
+    {
+      id: 'catering',
+      labelBn: 'ক্যাটারিং অনুসন্ধান',
+      labelEn: 'Catering Inquiries',
+      icon: Users,
+      badge: catering.filter(c => c.status === 'pending').length
+    },
+    {
+      id: 'coupons',
+      labelBn: 'কুপন ও ডিসকাউন্ট',
+      labelEn: 'Coupons & Offers',
+      icon: Tag
+    },
+    {
+      id: 'customers',
+      labelBn: 'গ্রাহক ডিরেক্টরি',
+      labelEn: 'Customer Directory',
+      icon: User
+    },
+    {
+      id: 'finance',
+      labelBn: 'আর্থিক হিসাব ও খরচ',
+      labelEn: 'Finance & Expenses',
+      icon: DollarSign
+    },
+    {
+      id: 'smtp',
+      labelBn: 'Email / SMTP সেটিংস',
+      labelEn: 'Email / SMTP Setup',
+      icon: Mail
+    },
+    {
+      id: 'settings',
+      labelBn: 'ব্যবসা ও ব্রান্ড কনফিগ',
+      labelEn: 'Business Settings',
+      icon: Settings
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9F7] flex flex-col text-slate-800">
+    <div className="min-h-screen bg-[#F6F8F5] flex flex-col text-slate-800">
       {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40">
+      <header className="bg-white border-b border-emerald-100/80 sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Left: Mobile Toggle & Brand */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg"
+              className="lg:hidden p-2 text-slate-600 hover:text-emerald-800 rounded-xl hover:bg-emerald-50 transition-colors"
             >
-              <Menu className="w-5 h-5" />
+              <MenuIcon className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white font-bold flex items-center justify-center text-base">
-                স্বাদ
-              </div>
+              <BrandLogo size="sm" className="ring-2 ring-emerald-600/30 shadow-2xs" />
               <div>
-                <span className="font-bold text-slate-900 text-sm leading-tight block">
-                  {config.brandNameBn} অ্যাডমিন
-                </span>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  ব্যবসায়িক ম্যানেজমেন্ট পোর্টাল
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 text-sm leading-tight block">
+                    {language === 'en' ? config.brandNameEn : config.brandNameBn} {language === 'en' ? 'Admin Portal' : 'অ্যাডমিন'}
+                  </span>
+                  <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Verified
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium hidden sm:block">
+                  {language === 'en' ? 'Kitchen & Business Control System' : 'ব্যবসায়িক ম্যানেজমেন্ট পোর্টাল'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right: Actions, Language Toggle, and User Info */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Language Switch Button */}
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 transition-colors shadow-2xs"
+              title={language === 'en' ? 'বাংলা ভাষায় পরিবর্তন করুন' : 'Switch to English'}
+            >
+              <Globe className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{language === 'en' ? 'বাংলা' : 'English'}</span>
+            </button>
+
+            {/* Refresh Data Button */}
+            <button
+              onClick={fetchAllData}
+              disabled={isRefreshing}
+              className="p-2 text-slate-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors"
+              title={language === 'en' ? 'Refresh All Data' : 'তথ্য রিফ্রেশ করুন'}
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-700' : ''}`} />
+            </button>
+
+            {/* Back to Customer Website */}
             <button
               onClick={onExitAdmin}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors"
             >
-              <span>ওয়েবসাইটে ফিরুন</span>
+              <span>{language === 'en' ? 'View Store' : 'ওয়েবসাইটে ফিরুন'}</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
 
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-bold text-slate-800 block">
-                {config.contactPerson || adminUserName}
+            {/* Admin User Info */}
+            <div className="text-right hidden sm:block pl-2 border-l border-slate-100">
+              <span className="text-xs font-bold text-slate-800 block truncate max-w-[140px]">
+                {adminUserName || config.contactPerson}
               </span>
-              <span className="text-[10px] text-emerald-700 font-medium">
-                মালিক / প্রধান প্রশাসক
+              <span className="text-[10px] text-emerald-700 font-semibold block">
+                {language === 'en' ? 'Super Admin / Owner' : 'মালিক / প্রধান প্রশাসক'}
               </span>
             </div>
 
+            {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="p-2 text-slate-500 hover:text-rose-600 hover:bg-slate-50 rounded-lg transition-colors"
-              title="লগআউট"
+              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+              title={language === 'en' ? 'Log Out' : 'লগআউট'}
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -171,29 +291,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       </header>
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex gap-6">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 shrink-0 bg-white rounded-2xl border border-slate-200/80 p-3 shadow-xs h-fit sticky top-24">
-          <nav className="space-y-1">
+        <aside className="w-64 shrink-0 hidden lg:block text-left">
+          <div className="bg-white rounded-2xl border border-emerald-100/80 p-3 shadow-xs sticky top-22 space-y-1">
+            <div className="px-3 py-2 text-[11px] font-bold text-emerald-900/60 uppercase tracking-wider">
+              {language === 'en' ? 'Management Menu' : 'ম্যানেজমেন্ট মেনু'}
+            </div>
+
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const label = language === 'en' ? item.labelEn : item.labelBn;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-emerald-700 text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      : 'text-slate-600 hover:bg-emerald-50/60 hover:text-emerald-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{item.label}</span>
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <span>{label}</span>
                   </div>
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold tabular-nums ${
+                    <span className={`px-1.8 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
                       isActive ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
                     }`}>
                       {item.badge}
@@ -202,62 +327,111 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 </button>
               );
             })}
-          </nav>
+
+            {/* Quick Website Switch on Sidebar */}
+            <div className="pt-3 border-t border-slate-100 mt-2">
+              <button
+                onClick={onExitAdmin}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-emerald-700 hover:bg-slate-50 transition-colors"
+              >
+                <span>{language === 'en' ? 'Customer Website' : 'কাস্টমার ভিউ'}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </aside>
 
-        {/* Mobile Sidebar Modal */}
+        {/* Mobile Drawer Sidebar */}
         {mobileSidebarOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 flex lg:hidden">
-            <div className="bg-white w-72 h-full p-4 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="font-bold text-slate-900 text-sm">মেনু নেভিগেশন</span>
-                <button onClick={() => setMobileSidebarOpen(false)}>
-                  <X className="w-5 h-5 text-slate-500" />
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            <div
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs"
+              onClick={() => setMobileSidebarOpen(false)}
+            />
+            <div className="relative w-72 max-w-full bg-white h-full p-4 overflow-y-auto shadow-2xl flex flex-col justify-between text-left">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                  <div className="flex items-center gap-2">
+                    <BrandLogo size="xs" className="ring-1 ring-emerald-600/30 shadow-2xs" />
+                    <span className="font-bold text-slate-900 text-sm">
+                      {language === 'en' ? 'Admin Navigation' : 'অ্যাডমিন মেনু'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  {navItems.map(item => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    const label = language === 'en' ? item.labelEn : item.labelBn;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                          isActive
+                            ? 'bg-emerald-700 text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon className="w-4 h-4" />
+                          <span>{label}</span>
+                        </div>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                            isActive ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-2">
+                <button
+                  onClick={() => {
+                    toggleLanguage();
+                    setMobileSidebarOpen(false);
+                  }}
+                  className="w-full py-2 bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>{language === 'en' ? 'Switch to বাংলা' : 'Switch to English'}</span>
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="w-full py-2 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{language === 'en' ? 'Log Out' : 'লগআউট'}</span>
                 </button>
               </div>
-              <nav className="space-y-1">
-                {navItems.map(item => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        setMobileSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold ${
-                        isActive ? 'bg-emerald-700 text-white' : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Icon className="w-4 h-4" />
-                        <span>{item.label}</span>
-                      </div>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-800">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
             </div>
           </div>
         )}
 
-        {/* Content Area */}
+        {/* Content Pane */}
         <main className="flex-1 min-w-0">
           {activeTab === 'overview' && (
             <DashboardOverview
+              summary={financialSummary}
               orders={orders}
               foods={foods}
               catering={catering}
-              financialSummary={financialSummary}
-              config={config}
               onNavigateTab={tab => setActiveTab(tab)}
-              onSelectOrder={() => setActiveTab('orders')}
             />
           )}
 
@@ -285,10 +459,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             />
           )}
 
-          {activeTab === 'catering' && (
-            <CateringManagement
-              inquiries={catering}
-              config={config}
+          {activeTab === 'payments' && (
+            <PaymentManagement
+              paymentMethods={paymentMethods}
               onRefreshData={fetchAllData}
             />
           )}
@@ -296,6 +469,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {activeTab === 'zones' && (
             <DeliveryZoneManagement
               zones={zones}
+              onRefreshData={fetchAllData}
+            />
+          )}
+
+          {activeTab === 'catering' && (
+            <CateringManagement
+              inquiries={catering}
+              config={config}
               onRefreshData={fetchAllData}
             />
           )}
@@ -329,10 +510,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {activeTab === 'settings' && (
             <SettingsManagement
               config={config}
-              onRefreshConfig={() => {
-                fetchAllData();
-                onRefreshConfig();
-              }}
+              onRefreshConfig={onRefreshConfig}
             />
           )}
         </main>

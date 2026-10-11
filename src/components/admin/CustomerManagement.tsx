@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, Search, ShieldAlert, ShieldCheck, Phone, MapPin } from 'lucide-react';
 import { CustomerRecord } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface CustomerManagementProps {
   customers: CustomerRecord[];
@@ -9,6 +10,7 @@ interface CustomerManagementProps {
 }
 
 export const CustomerManagement: React.FC<CustomerManagementProps> = ({ customers, onRefreshData }) => {
+  const { language } = useLanguage();
   const [search, setSearch] = useState('');
 
   const filtered = customers.filter(c =>
@@ -18,7 +20,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({ customer
 
   const handleToggleBlock = async (phone: string, isBlocked: boolean) => {
     const reason = !isBlocked
-      ? window.prompt('গ্রাহককে ব্লক করার কারণ লিখুন (যেমন: ভুয়া অর্ডার, অশালীন আচরণ):')
+      ? window.prompt(language === 'en' ? 'Reason for blocking customer (e.g. fake order, abusive):' : 'গ্রাহককে ব্লক করার কারণ লিখুন (যেমন: ভুয়া অর্ডার, অশালীন আচরণ):')
       : undefined;
 
     if (!isBlocked && reason === null) return;
@@ -32,10 +34,10 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({ customer
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
-            গ্রাহক ডিরেক্টরি (Customer Directory)
+            {language === 'en' ? 'Customer Directory' : 'গ্রাহক ডিরেক্টরি (Customer Directory)'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            নিয়মিত গ্রাহক, অর্ডার হিস্ট্রি, সর্বমোট খরচ ও কাস্টমার স্ট্যাটাস।
+            {language === 'en' ? 'Track verified customer accounts, order frequency, total spending, and account status.' : 'নিয়মিত গ্রাহক, অর্ডার হিস্ট্রি, সর্বমোট খরচ ও কাস্টমার স্ট্যাটাস।'}
           </p>
         </div>
 
@@ -45,7 +47,7 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({ customer
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="নাম বা ফোন দিয়ে খুঁজুন..."
+            placeholder={language === 'en' ? "Search by name or phone..." : "নাম বা ফোন দিয়ে খুঁজুন..."}
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs bg-white"
           />
         </div>
@@ -55,12 +57,12 @@ export const CustomerManagement: React.FC<CustomerManagementProps> = ({ customer
         <table className="w-full text-xs text-left">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
             <tr>
-              <th className="py-3 px-4">গ্রাহকের নাম ও ফোন</th>
-              <th className="py-3 px-4">সর্বমোট অর্ডার</th>
-              <th className="py-3 px-4">মোট কেনাকাটা</th>
-              <th className="py-3 px-4">প্রধান ঠিকানা</th>
-              <th className="py-3 px-4">ট্যাগ / নোট</th>
-              <th className="py-3 px-4 text-right">স্ট্যাটাস ও অ্যাকশন</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Customer Name & Phone' : 'গ্রাহকের নাম ও ফোন'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Total Orders' : 'সর্বমোট অর্ডার'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Total Spent' : 'মোট কেনাকাটা'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Primary Address' : 'প্রধান ঠিকানা'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Tags / Notes' : 'ট্যাগ / নোট'}</th>
+              <th className="py-3 px-4 text-right">{language === 'en' ? 'Status & Action' : 'স্ট্যাটাস ও অ্যাকশন'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">

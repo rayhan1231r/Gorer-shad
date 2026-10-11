@@ -12,7 +12,8 @@ import {
   PaymentStatus,
   SmtpConfig,
   CustomerReview,
-  AppUser
+  AppUser,
+  PaymentMethodConfig
 } from '../types/index.ts';
 
 const API_BASE = '/api';
@@ -285,6 +286,41 @@ export const api = {
     });
     return res.json();
   },
+  async deleteDeliveryZone(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/delivery-zones/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
+
+  // Payment Methods
+  async getPaymentMethods(all = false): Promise<PaymentMethodConfig[]> {
+    const res = await fetch(`${API_BASE}/payment-methods${all ? '?all=true' : ''}`);
+    return res.json();
+  },
+  async savePaymentMethod(pm: PaymentMethodConfig): Promise<PaymentMethodConfig> {
+    const res = await fetch(`${API_BASE}/payment-methods`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(pm),
+    });
+    return res.json();
+  },
+  async deletePaymentMethod(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/payment-methods/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
+  async togglePaymentMethod(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/payment-methods/${id}/toggle`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
 
   // Coupons
   async getCoupons(): Promise<Coupon[]> {
@@ -424,17 +460,50 @@ export const api = {
     return res.json();
   },
 
-  // Admin login
-  async adminLogin(password: string): Promise<{ success: boolean; token?: string; user?: { role: string; name: string }; message?: string }> {
+  // Admin login with password
+  async adminLogin(password: string, email?: string): Promise<{ success: boolean; token?: string; user?: { role: string; name: string }; message?: string }> {
     const res = await fetch(`${API_BASE}/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, email }),
     });
     const data = await res.json();
     if (data.token) {
       setAuthToken(data.token);
     }
     return data;
+  },
+
+  // Server-side verification for Firebase Admin Authentication
+  async adminVerifyFirebase(user: { uid: string; email: string; displayName?: string; role?: string }): Promise<{
+    success: boolean;
+    verified: boolean;
+    token?: string;
+    user?: AppUser;
+    message?: string;
+  }> {
+    const res = await fetch(`${API_BASE}/admin/verify-firebase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user),
+    });
+    const data = await res.json();
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+    return data;
+  },
+
+  // Verify current token has admin/staff role
+  async verifyAdminRole(): Promise<{ success: boolean; verified: boolean; user?: AppUser }> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/verify-role`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) return { success: false, verified: false };
+      return res.json();
+    } catch {
+      return { success: false, verified: false };
+    }
   }
 };

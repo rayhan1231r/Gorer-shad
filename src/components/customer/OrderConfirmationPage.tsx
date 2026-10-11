@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Copy, Check, MessageSquare, Phone, ArrowRight, Clock, MapPin } from 'lucide-react';
 import { Order, BusinessConfig } from '../../types/index.ts';
+import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface OrderConfirmationPageProps {
   order: Order;
@@ -34,9 +35,13 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
       <div className="max-w-2xl mx-auto px-4 sm:px-6 text-left">
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
           {/* Header */}
-          <div className="text-center space-y-2 pb-6 border-b border-slate-100">
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CheckCircle className="w-8 h-8" />
+          <div className="text-center space-y-3 pb-6 border-b border-slate-100">
+            <div className="flex justify-center mb-1">
+              <BrandLogo size="xl" className="ring-4 ring-emerald-100 shadow-md" />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <span>অর্ডার সফলভাবে কনফার্ম হয়েছে</span>
             </div>
             <h2 className="text-2xl font-bold text-slate-900">
               অর্ডারটি সফলভাবে গৃহীত হয়েছে!

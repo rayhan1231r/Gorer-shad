@@ -1,15 +1,41 @@
 import React from 'react';
 import { X, Printer } from 'lucide-react';
 import { Order, BusinessConfig } from '../../types/index.ts';
+import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface PrintSlipModalProps {
   order: Order | null;
-  config: BusinessConfig;
+  config?: BusinessConfig;
   type: 'kitchen' | 'receipt';
   onClose: () => void;
 }
 
-export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({ order, config, type, onClose }) => {
+const DEFAULT_CONFIG: BusinessConfig = {
+  brandNameBn: "ঘরের স্বাদ",
+  brandNameEn: "Ghorer Shad",
+  taglineBn: "সব স্বাদের এক ঠিকানা",
+  taglineEn: "One destination for every authentic taste",
+  contactPerson: "Joynob Islam Kakoly",
+  phone: "01857-220603",
+  whatsapp: "+8801912838891",
+  email: "ghorershad.arai@gmail.com",
+  primaryLocation: "আড়াইহাজার, ঢাকা",
+  fullAddressBn: "আড়াইহাজার বাজার রোড, আড়াইহাজার, নারায়ণগঞ্জ / ঢাকা, বাংলাদেশ",
+  announcementBarBn: "",
+  isAnnouncementActive: false,
+  standardAdvanceHours: 4,
+  urgentAdvanceHours: 2,
+  advanceNoticeMessageBn: "",
+  openingHoursBn: "সকাল ৯:০০ - রাত ৯:০০ (প্রতিদিন)",
+  currency: "BDT",
+  currencySymbol: "৳",
+  bkashNumber: "01912-838891",
+  nagadNumber: "01857-220603",
+  rocketNumber: "01857-220603-9",
+  bankDetails: "Islami Bank Bangladesh Ltd"
+};
+
+export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({ order, config = DEFAULT_CONFIG, type, onClose }) => {
   if (!order) return null;
 
   const handlePrint = () => {
@@ -48,6 +74,9 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({ order, config, t
         <div className="flex-1 overflow-y-auto p-4 bg-white text-slate-900 font-mono text-xs space-y-4 print:p-0">
           {/* Header */}
           <div className="text-center border-b border-dashed border-slate-400 pb-3">
+            <div className="flex justify-center mb-2">
+              <BrandLogo size="lg" className="border border-slate-300 shadow-2xs" />
+            </div>
             <h2 className="text-lg font-bold font-sans tracking-tight">
               {config.brandNameBn}
             </h2>

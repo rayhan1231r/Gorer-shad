@@ -14,6 +14,7 @@ import {
 import { AppUser, Order } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
 import { signOutFirebase } from '../../services/firebase.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onTrackOrder,
   onOpenAdmin,
 }) => {
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'profile' | 'orders'>('orders');
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -94,9 +96,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <h3 className="text-base font-bold text-slate-900 truncate">
                 {user.name}
               </h3>
-              {user.role === 'admin' && (
+              {(user.role === 'admin' || user.role === 'staff') && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  অ্যাডমিন
+                  {user.role === 'admin'
+                    ? (language === 'en' ? 'Admin' : 'অ্যাডমিন')
+                    : (language === 'en' ? 'Staff' : 'স্টাফ')}
                 </span>
               )}
             </div>
@@ -104,16 +108,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               {user.email}
             </span>
           </div>
-          {user.role === 'admin' && onOpenAdmin && (
+          {(user.role === 'admin' || user.role === 'staff') && onOpenAdmin && (
             <button
               onClick={() => {
                 onClose();
                 onOpenAdmin();
               }}
               className="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs"
-              title="অ্যাডমিন প্যানেল খুলুন"
+              title={language === 'en' ? 'Open Admin Panel' : 'অ্যাডমিন প্যানেল খুলুন'}
             >
-              অ্যাডমিন প্যানেল
+              {language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
             </button>
           )}
           <button

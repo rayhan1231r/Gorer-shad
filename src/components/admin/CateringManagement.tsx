@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, Phone, Calendar, MapPin, DollarSign, CheckCircle, Edit3, MessageCircle, Clock } from 'lucide-react';
 import { CateringInquiry, BusinessConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface CateringManagementProps {
   inquiries: CateringInquiry[];
@@ -14,6 +15,7 @@ export const CateringManagement: React.FC<CateringManagementProps> = ({
   config,
   onRefreshData
 }) => {
+  const { language } = useLanguage();
   const [selectedInquiry, setSelectedInquiry] = useState<CateringInquiry | null>(null);
   const [quoteAmount, setQuoteAmount] = useState<number>(0);
   const [advanceRequired, setAdvanceRequired] = useState<number>(0);
@@ -60,17 +62,17 @@ export const CateringManagement: React.FC<CateringManagementProps> = ({
       <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
-            ক্যাটারিং ও বাল্ক অর্ডার অনুসন্ধান
+            {language === 'en' ? 'Catering & Bulk Order Inquiries' : 'ক্যাটারিং ও বাল্ক অর্ডার অনুসন্ধান'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            পারিবারিক অনুষ্ঠান, বিয়ে, মিলাদ ও অফিসের বড় খাবারের অনুরোধ ও কোটেশন।
+            {language === 'en' ? 'Review requests for family events, weddings, corporate feasts, and quotations.' : 'পারিবারিক অনুষ্ঠান, বিয়ে, মিলাদ ও অফিসের বড় খাবারের অনুরোধ ও কোটেশন।'}
           </p>
         </div>
         <button
           onClick={onRefreshData}
-          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer"
         >
-          রিফ্রেশ
+          {language === 'en' ? 'Refresh' : 'রিফ্রেশ'}
         </button>
       </div>
 
@@ -78,7 +80,7 @@ export const CateringManagement: React.FC<CateringManagementProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {inquiries.length === 0 ? (
           <div className="col-span-2 p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-            বর্তমানে কোনো ক্যাটারিং অনুরোধ জমা নেই
+            {language === 'en' ? 'No catering requests currently submitted' : 'বর্তমানে কোনো ক্যাটারিং অনুরোধ জমা নেই'}
           </div>
         ) : (
           inquiries.map(item => (

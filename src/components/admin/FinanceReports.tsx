@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, Plus, Receipt, Calendar } from 'lucide-react';
 import { FinancialSummary } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface FinanceReportsProps {
   summary: FinancialSummary;
@@ -10,6 +11,7 @@ interface FinanceReportsProps {
 }
 
 export const FinanceReports: React.FC<FinanceReportsProps> = ({ summary, expenses, onRefreshData }) => {
+  const { language } = useLanguage();
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [expTitle, setExpTitle] = useState('');
   const [expCategory, setExpCategory] = useState('Ingredients');
@@ -31,64 +33,64 @@ export const FinanceReports: React.FC<FinanceReportsProps> = ({ summary, expense
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
-            আর্থিক হিসাব ও লাভ-ক্ষতি রিপোর্ট (Financials)
+            {language === 'en' ? 'Financial Reports & Profit-Loss Analysis' : 'আর্থিক হিসাব ও লাভ-ক্ষতি রিপোর্ট (Financials)'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            মোট বিক্রয়, ডেলিভারি ফি, কুপন ছাড়, কাঁচামালের খরচ এবং আনুমানিক লাভ।
+            {language === 'en' ? 'Total sales revenue, delivery fees, discounts, direct expenses, and estimated net earnings.' : 'মোট বিক্রয়, ডেলিভারি ফি, কুপন ছাড়, কাঁচামালের খরচ এবং আনুমানিক লাভ।'}
           </p>
         </div>
 
         <button
           onClick={() => setShowAddExpense(true)}
-          className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+          className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>নতুন খরচ যোগ করুন</span>
+          <span>{language === 'en' ? 'Add New Expense' : 'নতুন খরচ যোগ করুন'}</span>
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">আজকের বিক্রয়</span>
+          <span className="text-xs text-slate-500 block">{language === 'en' ? "Today's Sales" : 'আজকের বিক্রয়'}</span>
           <span className="text-xl font-bold text-slate-900 tabular-nums">৳{summary.todaySales}</span>
-          <span className="text-[11px] text-slate-400 block">{summary.todayOrdersCount}টি অর্ডার</span>
+          <span className="text-[11px] text-slate-400 block">{language === 'en' ? `${summary.todayOrdersCount} orders` : `${summary.todayOrdersCount}টি অর্ডার`}</span>
         </div>
 
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">মোট সংগৃহীত রাজস্ব</span>
+          <span className="text-xs text-slate-500 block">{language === 'en' ? 'Total Gross Revenue' : 'মোট সংগৃহীত রাজস্ব'}</span>
           <span className="text-xl font-bold text-slate-900 tabular-nums">৳{summary.totalRevenue}</span>
-          <span className="text-[11px] text-emerald-700 font-medium block">ডেলিভারি ফি: ৳{summary.totalDeliveryFees}</span>
+          <span className="text-[11px] text-emerald-700 font-medium block">{language === 'en' ? `Delivery Fees: ৳${summary.totalDeliveryFees}` : `ডেলিভারি ফি: ৳${summary.totalDeliveryFees}`}</span>
         </div>
 
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">মোট ব্যবসায়িক খরচ</span>
+          <span className="text-xs text-slate-500 block">{language === 'en' ? 'Total Operating Expenses' : 'মোট ব্যবসায়িক খরচ'}</span>
           <span className="text-xl font-bold text-rose-700 tabular-nums">৳{summary.totalExpenses}</span>
-          <span className="text-[11px] text-slate-400 block">কাঁচামাল ও প্যাকেজিং</span>
+          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Ingredients & Packaging' : 'কাঁচামাল ও প্যাকেজিং'}</span>
         </div>
 
         <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 shadow-xs space-y-1">
-          <span className="text-xs text-emerald-800 font-semibold block">আনুমানিক নিট লাভ</span>
+          <span className="text-xs text-emerald-800 font-semibold block">{language === 'en' ? 'Estimated Net Profit' : 'আনুমানিক নিট লাভ'}</span>
           <span className="text-xl font-bold text-emerald-900 tabular-nums">৳{summary.estimatedNetProfit}</span>
-          <span className="text-[11px] text-emerald-700 block">ছাড়ের পর নীট আয়</span>
+          <span className="text-[11px] text-emerald-700 block">{language === 'en' ? 'Net income after discounts & costs' : 'ছাড়ের পর নীট আয়'}</span>
         </div>
       </div>
 
       {/* Expense History Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center justify-between">
-          <span>ব্যবসায়িক খরচের তালিকা</span>
-          <span className="text-xs text-slate-400 font-normal">মোট খরচ: ৳{summary.totalExpenses}</span>
+          <span>{language === 'en' ? 'Operating Expenses Ledger' : 'ব্যবসায়িক খরচের তালিকা'}</span>
+          <span className="text-xs text-slate-400 font-normal">{language === 'en' ? `Total Costs: ৳${summary.totalExpenses}` : `মোট খরচ: ৳${summary.totalExpenses}`}</span>
         </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
               <tr>
-                <th className="py-2.5 px-3">তারিখ</th>
-                <th className="py-2.5 px-3">খরচের বিবরণ</th>
-                <th className="py-2.5 px-3">ক্যাটাগরি</th>
-                <th className="py-2.5 px-3 text-right">পরিমাণ (৳)</th>
+                <th className="py-2.5 px-3">{language === 'en' ? 'Date' : 'তারিখ'}</th>
+                <th className="py-2.5 px-3">{language === 'en' ? 'Expense Title' : 'খরচের বিবরণ'}</th>
+                <th className="py-2.5 px-3">{language === 'en' ? 'Category' : 'ক্যাটাগরি'}</th>
+                <th className="py-2.5 px-3 text-right">{language === 'en' ? 'Amount (৳)' : 'পরিমাণ (৳)'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">

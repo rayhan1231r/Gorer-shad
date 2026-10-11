@@ -101,9 +101,15 @@ export default function App() {
     loadInitialData();
   }, []);
 
-  const handleAdminClick = () => {
+  const handleAdminClick = async () => {
     if (isAdminLoggedIn) {
-      setActivePage('admin');
+      const verify = await api.verifyAdminRole();
+      if (verify.verified) {
+        setActivePage('admin');
+      } else {
+        setIsAdminLoggedIn(false);
+        setIsAdminLoginOpen(true);
+      }
     } else {
       setIsAdminLoginOpen(true);
     }
@@ -141,7 +147,7 @@ export default function App() {
 
   const handleAuthSuccess = (user: AppUser) => {
     setCurrentUser(user);
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'staff') {
       setIsAdminLoggedIn(true);
       setAdminUserName(user.name);
     }
@@ -149,6 +155,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    setIsAdminLoggedIn(false);
     api.setToken('');
   };
 

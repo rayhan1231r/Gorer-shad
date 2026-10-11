@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Settings, Save, CheckCircle, Phone, MessageSquare, ShieldCheck, User } from 'lucide-react';
 import { BusinessConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface SettingsManagementProps {
   config: BusinessConfig;
@@ -9,6 +10,7 @@ interface SettingsManagementProps {
 }
 
 export const SettingsManagement: React.FC<SettingsManagementProps> = ({ config, onRefreshConfig }) => {
+  const { language } = useLanguage();
   const [formData, setFormData] = useState<BusinessConfig>({ ...config });
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
@@ -33,17 +35,17 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ config, 
       <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
-            ব্যবসা সেটিংস ও ব্র্যান্ড কনফিগারেশন
+            {language === 'en' ? 'Business Settings & Brand Configuration' : 'ব্যবসা সেটিংস ও ব্র্যান্ড কনফিগারেশন'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            মালিকের নাম, ফোন, হোয়াটসঅ্যাপ, অগ্রিম অর্ডারের সময়সীমা এবং পেমেন্ট নম্বর নিয়ন্ত্রণ করুন।
+            {language === 'en' ? 'Update owner contact, hotline, WhatsApp, advance ordering notice, and default accounts.' : 'মালিকের নাম, ফোন, হোয়াটসঅ্যাপ, অগ্রিম অর্ডারের সময়সীমা এবং পেমেন্ট নম্বর নিয়ন্ত্রণ করুন।'}
           </p>
         </div>
 
         {successMsg && (
           <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-semibold">
             <CheckCircle className="w-4 h-4" />
-            <span>সফলভাবে সংরক্ষিত হয়েছে!</span>
+            <span>{language === 'en' ? 'Successfully saved!' : 'সফলভাবে সংরক্ষিত হয়েছে!'}</span>
           </div>
         )}
       </div>

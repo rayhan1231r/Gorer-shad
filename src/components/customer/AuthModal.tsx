@@ -14,6 +14,7 @@ import {
 import { api } from '../../services/api.ts';
 import { signInWithGoogle } from '../../services/firebase.ts';
 import { AppUser } from '../../types/index.ts';
+import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -263,13 +264,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
 
         {/* Modal Header */}
-        <div className="text-center mb-6 space-y-1.5">
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
-            {mode === 'verify_otp' ? (
-              <ShieldCheck className="w-6 h-6 text-emerald-700" />
-            ) : (
-              <User className="w-6 h-6 text-emerald-700" />
-            )}
+        <div className="text-center mb-6 space-y-2">
+          <div className="flex justify-center">
+            <BrandLogo size="lg" className="ring-4 ring-emerald-100 shadow-sm" />
           </div>
           <h3 className="text-xl font-bold text-slate-900">
             {mode === 'login' && 'গ্রাহক অ্যাকাউন্টে লগইন'}

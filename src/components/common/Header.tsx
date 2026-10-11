@@ -3,6 +3,7 @@ import { ShoppingBag, Search, Phone, User, Menu as MenuIcon, X, ShieldAlert } fr
 import { useCart } from '../../context/CartContext.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { LanguageToggle } from './LanguageToggle.tsx';
+import { BrandLogo } from './BrandLogo.tsx';
 import { BusinessConfig, AppUser } from '../../types/index.ts';
 
 interface HeaderProps {
@@ -93,9 +94,11 @@ export const Header: React.FC<HeaderProps> = ({
               }}
               className="text-left group flex items-center gap-3 cursor-pointer"
             >
-              <div className="w-11 h-11 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                স্বাদ
-              </div>
+              <BrandLogo
+                size="md"
+                className="ring-2 ring-emerald-600/20 shadow-xs group-hover:scale-105 transition-transform"
+                alt={language === 'en' ? config.brandNameEn : config.brandNameBn}
+              />
               <div>
                 <span className="block text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight group-hover:text-emerald-700 transition-colors">
                   {language === 'en' ? config.brandNameEn : config.brandNameBn}

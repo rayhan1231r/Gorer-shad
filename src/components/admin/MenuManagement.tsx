@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Image, Check, X, UploadCloud, Eye, Sparkles } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Image as ImageIcon,
+  Check,
+  X,
+  UploadCloud,
+  Search,
+  Filter,
+  Sparkles,
+  UtensilsCrossed,
+  Clock,
+  Flame,
+  Layers,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
 import { FoodItem, Category, FoodVariant, FoodAddon } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface MenuManagementProps {
   foods: FoodItem[];
@@ -9,18 +27,27 @@ interface MenuManagementProps {
   onRefreshData: () => void;
 }
 
-export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categories, onRefreshData }) => {
+export const MenuManagement: React.FC<MenuManagementProps> = ({
+  foods,
+  categories,
+  onRefreshData
+}) => {
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'foods' | 'categories'>('foods');
   const [editingFood, setEditingFood] = useState<Partial<FoodItem> | null>(null);
+  const [formSection, setFormSection] = useState<'basic' | 'pricing' | 'prep' | 'variants' | 'media'>('basic');
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
-  // New Category State
+  // Category state
   const [newCatNameBn, setNewCatNameBn] = useState('');
   const [newCatNameEn, setNewCatNameEn] = useState('');
   const [newCatDescBn, setNewCatDescBn] = useState('');
 
   const handleOpenAddFood = () => {
+    setFormSection('basic');
     setEditingFood({
       id: `food-${Date.now()}`,
       sku: `GS-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -32,7 +59,9 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
       fullDescBn: '',
       image: '/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg',
       price: 250,
+      salePrice: undefined,
       portionBn: '১ জনের পেটভরা মিল',
+      portionEn: '1 Full Meal',
       prepTimeMinutes: 30,
       advanceNoticeRequiredHours: 4,
       spiceLevel: 'Medium',
@@ -89,10 +118,18 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
   };
 
   const handleDeleteFood = async (id: string) => {
-    if (window.confirm('আপনি কি নিশ্চিতভাবে এই খাবারটি ডিলিট করতে চান?')) {
+    if (window.confirm(language === 'en' ? 'Are you sure you want to delete this food item?' : 'আপনি কি নিশ্চিতভাবে এই খাবারটি ডিলিট করতে চান?')) {
       await api.deleteFood(id);
       onRefreshData();
     }
+  };
+
+  const handleToggleAvailable = async (food: FoodItem) => {
+    await api.saveFood({
+      ...food,
+      isAvailable: !food.isAvailable
+    });
+    onRefreshData();
   };
 
   const handleAddVariant = () => {
@@ -121,8 +158,8 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
     if (!editingFood) return;
     const newAddon: FoodAddon = {
       id: `add-${Date.now()}`,
-      nameBn: 'নতুন অতিরিক্ত আইটেম',
-      nameEn: 'New Addon',
+      nameBn: 'অতিরিক্ত পদ',
+      nameEn: 'Extra Side Item',
       price: 30
     };
     setEditingFood({
@@ -143,12 +180,11 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
     e.preventDefault();
     if (!newCatNameBn.trim()) return;
 
-    const id = newCatNameEn.trim().toLowerCase().replace(/[^a-z0-9]/g, '-') || `cat-${Date.now()}`;
     await api.saveCategory({
-      id,
+      id: `cat-${Date.now()}`,
       nameBn: newCatNameBn.trim(),
       nameEn: newCatNameEn.trim() || newCatNameBn.trim(),
-      descriptionBn: newCatDescBn.trim(),
+      descriptionBn: newCatDescBn.trim() || '',
       sortOrder: categories.length + 1,
       isActive: true
     });
@@ -160,163 +196,262 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (window.confirm('এই ক্যাটাগরিটি মুছে ফেলতে চান?')) {
+    if (window.confirm(language === 'en' ? 'Are you sure you want to delete this category?' : 'আপনি কি নিশ্চিতভাবে এই ক্যাটাগরি ডিলিট করতে চান?')) {
       await api.deleteCategory(id);
       onRefreshData();
     }
   };
 
+  const filteredFoods = foods.filter(f => {
+    const matchesCat = categoryFilter === 'all' || f.categoryId === categoryFilter;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      searchQuery === '' ||
+      f.nameBn.toLowerCase().includes(q) ||
+      f.nameEn.toLowerCase().includes(q) ||
+      f.sku.toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
+
   return (
     <div className="space-y-6 text-left">
-      {/* Tab Switcher & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">
-            খাবার মেনু ও ক্যাটাগরি ম্যানেজমেন্ট
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            নতুন খাবার যোগ করুন, দাম ও স্টক পরিবর্তন করুন, ইমেজ আপলোড করুন।
-          </p>
+      {/* Top Bar Navigation & Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <UtensilsCrossed className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              {language === 'en' ? 'Menu & Dishes Catalog' : 'মেনু ও খাদ্যসামগ্রী ব্যবস্থাপনা'}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {language === 'en'
+                ? 'Create, edit, price, and manage inventory for all authentic dishes.'
+                : 'সকল খাবার, রেসিপি বিবরণ, মূল্য, ভ্যারিয়েন্ট ও দৈনিক স্টক নিয়ন্ত্রণ করুন।'}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          {/* Tabs */}
+          <div className="p-1 bg-slate-100 rounded-xl flex items-center text-xs font-semibold">
             <button
               onClick={() => setActiveTab('foods')}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
-                activeTab === 'foods' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                activeTab === 'foods'
+                  ? 'bg-white text-emerald-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              খাবারের তালিকা ({foods.length})
+              {language === 'en' ? `Dishes (${foods.length})` : `খাবারের তালিকা (${foods.length})`}
             </button>
             <button
               onClick={() => setActiveTab('categories')}
               className={`px-3 py-1.5 rounded-lg transition-colors ${
-                activeTab === 'categories' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                activeTab === 'categories'
+                  ? 'bg-white text-emerald-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              ক্যাটাগরি ({categories.length})
+              {language === 'en' ? `Categories (${categories.length})` : `ক্যাটাগরি (${categories.length})`}
             </button>
           </div>
 
           {activeTab === 'foods' && (
             <button
               onClick={handleOpenAddFood}
-              className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>নতুন খাবার যোগ</span>
+              <span>{language === 'en' ? 'Add Food' : 'নতুন খাবার'}</span>
             </button>
           )}
         </div>
       </div>
 
       {activeTab === 'foods' ? (
-        /* Foods List Table */
-        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="py-3 px-4">ছবি</th>
-                  <th className="py-3 px-4">খাবারের নাম ও SKU</th>
-                  <th className="py-3 px-4">ক্যাটাগরি</th>
-                  <th className="py-3 px-4">মূল্য (বিক্রয়)</th>
-                  <th className="py-3 px-4">সময় ও স্টক</th>
-                  <th className="py-3 px-4">উপলব্ধতা</th>
-                  <th className="py-3 px-4 text-right">অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {foods.map(food => (
-                  <tr key={food.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4">
-                      <img
-                        src={food.image}
-                        alt={food.nameBn}
-                        referrerPolicy="no-referrer"
-                        className="w-12 h-10 rounded-lg object-cover bg-slate-100"
-                      />
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-900 block">{food.nameBn}</span>
-                      <span className="text-[11px] text-slate-400 font-mono">{food.sku}</span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-800 font-medium">
-                      {food.categoryNameBn}
-                    </td>
-                    <td className="py-3 px-4 font-bold tabular-nums text-slate-900">
-                      ৳{food.salePrice || food.price}
-                      {food.salePrice && <span className="text-slate-400 text-[10px] line-through ml-1">৳{food.price}</span>}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span>{food.prepTimeMinutes} মি.</span>
-                      <span className="block text-[11px] text-slate-500">স্টক: {food.currentStock}/{food.dailyStock}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
-                        food.isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                      }`}>
-                        {food.isAvailable ? 'স্টকে আছে' : 'অনুপলব্ধ'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => setEditingFood(food)}
-                          className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-slate-100 rounded-lg"
-                          title="সম্পাদনা করুন"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFood(food.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg"
-                          title="মুছে ফেলুন"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+        <div className="space-y-4">
+          {/* Search & Category Filter Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between text-xs">
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={language === 'en' ? 'Search by food name or SKU...' : 'খাবারের নাম বা এসকেইউ (SKU) দিয়ে খুঁজুন...'}
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+              <span className="text-slate-400 font-semibold shrink-0 flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5" />
+                {language === 'en' ? 'Category:' : 'ক্যাটাগরি:'}
+              </span>
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors ${
+                  categoryFilter === 'all'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {language === 'en' ? 'All' : 'সব'}
+              </button>
+              {categories.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setCategoryFilter(c.id)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors ${
+                    categoryFilter === c.id
+                      ? 'bg-emerald-700 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {language === 'en' ? c.nameEn : c.nameBn}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Enhanced Food Data Table */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-4">{language === 'en' ? 'Dish' : 'খাবারের তথ্য'}</th>
+                    <th className="py-3.5 px-4">{language === 'en' ? 'Category' : 'ক্যাটাগরি'}</th>
+                    <th className="py-3.5 px-4">{language === 'en' ? 'Price' : 'মূল্য'}</th>
+                    <th className="py-3.5 px-4">{language === 'en' ? 'Stock & Time' : 'স্টক ও প্রস্তুতি'}</th>
+                    <th className="py-3.5 px-4">{language === 'en' ? 'Availability' : 'উপলব্ধতা'}</th>
+                    <th className="py-3.5 px-4 text-right">{language === 'en' ? 'Actions' : 'অ্যাকশন'}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredFoods.map(food => (
+                    <tr key={food.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={food.image}
+                            alt={food.nameBn}
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100"
+                          />
+                          <div>
+                            <span className="font-bold text-slate-900 block text-sm">{food.nameBn}</span>
+                            <span className="text-[11px] text-slate-400 font-mono">{food.sku} • {food.nameEn}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-100 text-[11px]">
+                          {food.categoryNameBn}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold tabular-nums text-slate-900 text-sm">
+                          ৳{food.salePrice || food.price}
+                          {food.salePrice && (
+                            <span className="text-slate-400 text-[11px] line-through ml-1.5 font-normal">
+                              ৳{food.price}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <span className="font-semibold text-slate-800 block">
+                            {language === 'en' ? 'Stock:' : 'স্টক:'} {food.currentStock}/{food.dailyStock}
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            {food.prepTimeMinutes} মি. • {food.advanceNoticeRequiredHours || 4}h অগ্রিম
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAvailable(food)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                            food.isAvailable
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                          }`}
+                        >
+                          {food.isAvailable
+                            ? (language === 'en' ? '● Available' : '● স্টকে আছে')
+                            : (language === 'en' ? '○ Unavailable' : '○ অনুপলব্ধ')}
+                        </button>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => {
+                              setEditingFood(food);
+                              setFormSection('basic');
+                            }}
+                            className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                            title="সম্পাদনা করুন"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFood(food.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            title="মুছে ফেলুন"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (
         /* Categories List & Add */
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+          <div className="md:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              বর্তমান ক্যাটাগরি তালিকা
+              {language === 'en' ? 'Existing Categories' : 'বর্তমান ক্যাটাগরি তালিকা'}
             </h3>
             <div className="divide-y divide-slate-100 text-xs">
               {categories.map(cat => (
-                <div key={cat.id} className="py-3 flex items-center justify-between">
+                <div key={cat.id} className="py-3.5 flex items-center justify-between">
                   <div>
-                    <h4 className="font-semibold text-slate-900 text-sm">{cat.nameBn}</h4>
-                    <p className="text-slate-500 text-[11px]">{cat.nameEn} • {cat.descriptionBn}</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{cat.nameBn}</h4>
+                    <p className="text-slate-500 text-[11px] mt-0.5">{cat.nameEn} • {cat.descriptionBn}</p>
                   </div>
                   <button
                     onClick={() => handleDeleteCategory(cat.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-50 rounded-lg"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="md:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+          <div className="md:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              নতুন ক্যাটাগরি তৈরি
+              {language === 'en' ? 'Create New Category' : 'নতুন ক্যাটাগরি তৈরি'}
             </h3>
             <form onSubmit={handleSaveCategory} className="space-y-3 text-xs">
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  বাংলা নাম <span className="text-rose-500">*</span>
+                  {language === 'en' ? 'Name (Bengali) *' : 'বাংলা নাম *'}
                 </label>
                 <input
                   type="text"
@@ -324,392 +459,604 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({ foods, categorie
                   value={newCatNameBn}
                   onChange={e => setNewCatNameBn(e.target.value)}
                   placeholder="যেমন: মিষ্টি ও ডেজার্ট"
-                  className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  ইংরেজি নাম
+                  {language === 'en' ? 'Name (English)' : 'ইংরেজি নাম'}
                 </label>
                 <input
                   type="text"
                   value={newCatNameEn}
                   onChange={e => setNewCatNameEn(e.target.value)}
                   placeholder="Sweets & Desserts"
-                  className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  সংক্ষিপ্ত বিবরণ
+                  {language === 'en' ? 'Short Description' : 'সংক্ষিপ্ত বিবরণ'}
                 </label>
                 <input
                   type="text"
                   value={newCatDescBn}
                   onChange={e => setNewCatDescBn(e.target.value)}
                   placeholder="ঘরোয়া মিষ্টি, দই ও পায়েস"
-                  className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg transition-colors"
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs transition-colors"
               >
-                ক্যাটাগরি সেভ করুন
+                {language === 'en' ? 'Save Category' : 'ক্যাটাগরি সেভ করুন'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Food Edit / Create Modal */}
+      {/* Enhanced Food Edit / Create Modal with Clean Form Layout */}
       {editingFood && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-slate-100 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">
-                {editingFood.nameBn ? 'খাবার সম্পাদনা করুন' : 'নতুন খাবার যোগ করুন'}
-              </h3>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/65 backdrop-blur-2xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-emerald-100 flex flex-col my-6">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingFood.nameBn ? (language === 'en' ? 'Edit Dish Profile' : 'খাবার তথ্য সম্পাদনা') : (language === 'en' ? 'Add New Dish to Catalog' : 'নতুন খাবার যোগ করুন')}
+                </h3>
+                <span className="text-xs text-slate-500 font-mono">
+                  SKU: {editingFood.sku || 'GS-AUTO'}
+                </span>
+              </div>
               <button
                 onClick={() => setEditingFood(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100"
+                className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveFood} className="space-y-4 text-xs">
-              {/* Row 1: Names */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    খাবারের নাম (বাংলা) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingFood.nameBn || ''}
-                    onChange={e => setEditingFood({ ...editingFood, nameBn: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    খাবারের নাম (ইংরেজি)
-                  </label>
-                  <input
-                    type="text"
-                    value={editingFood.nameEn || ''}
-                    onChange={e => setEditingFood({ ...editingFood, nameEn: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
+            {/* Form Section Navigation Tabs */}
+            <div className="px-5 border-b border-slate-100 flex gap-1 overflow-x-auto bg-white text-xs font-semibold py-2">
+              <button
+                type="button"
+                onClick={() => setFormSection('basic')}
+                className={`px-3 py-1.8 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                  formSection === 'basic' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {language === 'en' ? '1. General Info' : '১. সাধারণ তথ্য'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormSection('pricing')}
+                className={`px-3 py-1.8 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                  formSection === 'pricing' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {language === 'en' ? '2. Pricing & Stock' : '২. মূল্য ও স্টক'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormSection('prep')}
+                className={`px-3 py-1.8 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                  formSection === 'prep' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {language === 'en' ? '3. Prep & Diet' : '৩. প্রস্তুতি ও বৈশিষ্ট্য'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormSection('variants')}
+                className={`px-3 py-1.8 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                  formSection === 'variants' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {language === 'en' ? '4. Variants & Addons' : '৪. ভ্যারিয়েন্ট ও অ্যাড-অন'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormSection('media')}
+                className={`px-3 py-1.8 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                  formSection === 'media' ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {language === 'en' ? '5. Media & Photos' : '৫. ছবি ও ভিজ্যুয়াল'}
+              </button>
+            </div>
 
-              {/* Row 2: Category & SKU */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    ক্যাটাগরি
-                  </label>
-                  <select
-                    value={editingFood.categoryId || ''}
-                    onChange={e => setEditingFood({ ...editingFood, categoryId: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-600"
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.nameBn}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    SKU কোড
-                  </label>
-                  <input
-                    type="text"
-                    value={editingFood.sku || ''}
-                    onChange={e => setEditingFood({ ...editingFood, sku: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
+            {/* Modal Body */}
+            <form onSubmit={handleSaveFood} className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
+              {/* Section 1: Basic */}
+              {formSection === 'basic' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        খাবারের নাম (বাংলা) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={editingFood.nameBn || ''}
+                        onChange={e => setEditingFood({ ...editingFood, nameBn: e.target.value })}
+                        placeholder="যেমন: সরষে ইলিশ ও জাফরানি পোলাও"
+                        className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        খাবারের নাম (ইংরেজি)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingFood.nameEn || ''}
+                        onChange={e => setEditingFood({ ...editingFood, nameEn: e.target.value })}
+                        placeholder="Shorshe Ilish with Saffron Pulao"
+                        className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                      />
+                    </div>
+                  </div>
 
-              {/* Row 3: Prices & Portion */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    নিয়মিত মূল্য (৳) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={editingFood.price || 0}
-                    onChange={e => setEditingFood({ ...editingFood, price: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    অফার মূল্য / সেল প্রাইস (ঐচ্ছিক)
-                  </label>
-                  <input
-                    type="number"
-                    value={editingFood.salePrice || ''}
-                    onChange={e => setEditingFood({ ...editingFood, salePrice: e.target.value ? Number(e.target.value) : undefined })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    পরিমাণ / পরিবেশন (যেমন: ১ জন)
-                  </label>
-                  <input
-                    type="text"
-                    value={editingFood.portionBn || ''}
-                    onChange={e => setEditingFood({ ...editingFood, portionBn: e.target.value })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        ক্যাটাগরি <span className="text-rose-500">*</span>
+                      </label>
+                      <select
+                        value={editingFood.categoryId || ''}
+                        onChange={e => setEditingFood({ ...editingFood, categoryId: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-600"
+                      >
+                        {categories.map(c => (
+                          <option key={c.id} value={c.id}>{c.nameBn} ({c.nameEn})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        এসকেইউ কোড (SKU)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingFood.sku || ''}
+                        onChange={e => setEditingFood({ ...editingFood, sku: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 font-mono"
+                      />
+                    </div>
+                  </div>
 
-              {/* Row 4: Prep Time & Advance Hours */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    রান্নার সময় (মিনিট)
-                  </label>
-                  <input
-                    type="number"
-                    value={editingFood.prepTimeMinutes || 30}
-                    onChange={e => setEditingFood({ ...editingFood, prepTimeMinutes: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    দৈনিক স্টক সীমা
-                  </label>
-                  <input
-                    type="number"
-                    value={editingFood.dailyStock || 20}
-                    onChange={e => setEditingFood({ ...editingFood, dailyStock: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    বর্তমান স্টক
-                  </label>
-                  <input
-                    type="number"
-                    value={editingFood.currentStock || 20}
-                    onChange={e => setEditingFood({ ...editingFood, currentStock: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
-
-              {/* Image Upload & Preview */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="font-semibold text-slate-800 block">
-                  খাবারের ছবি আপলোড / URL
-                </label>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={editingFood.image || '/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg'}
-                    alt="Preview"
-                    referrerPolicy="no-referrer"
-                    className="w-16 h-14 rounded-lg object-cover bg-white border border-slate-200"
-                  />
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageFileChange}
-                      className="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">
+                      সংক্ষিপ্ত বিবরণ (কার্ড ও মেনু প্রিভিউ)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editingFood.shortDescBn || ''}
+                      onChange={e => setEditingFood({ ...editingFood, shortDescBn: e.target.value })}
+                      placeholder="পদ্মার তাজা ইলিশের খাঁটি সরিষা বাটা রেসিপি ও সুগন্ধি পোলাও।"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                     />
-                    <input
-                      type="text"
-                      value={editingFood.image || ''}
-                      onChange={e => setEditingFood({ ...editingFood, image: e.target.value })}
-                      placeholder="বা ইমেজ পাথ/ইউআরএল লিখুন..."
-                      className="w-full mt-1.5 p-1.5 rounded-md border border-slate-200 bg-white text-[11px]"
+                  </div>
+
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">
+                      সম্পূর্ণ রেসিপি ও উপকরণ বিবরণ
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editingFood.fullDescBn || ''}
+                      onChange={e => setEditingFood({ ...editingFood, fullDescBn: e.target.value })}
+                      placeholder="খাবারের বিস্তারিত প্রস্তুতি, স্বাস্থ্যসম্মত উপায়ে রান্নার নিয়ম..."
+                      className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                     />
                   </div>
                 </div>
-                {isUploading && <span className="text-[11px] text-emerald-700">ইমেজ আপলোড হচ্ছে...</span>}
-              </div>
+              )}
 
-              {/* Descriptions */}
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">
-                  সংক্ষিপ্ত বিবরণ (কার্ডের জন্য)
-                </label>
-                <input
-                  type="text"
-                  value={editingFood.shortDescBn || ''}
-                  onChange={e => setEditingFood({ ...editingFood, shortDescBn: e.target.value })}
-                  className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
+              {/* Section 2: Pricing */}
+              {formSection === 'pricing' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        নিয়মিত মূল্য (৳) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={editingFood.price || 0}
+                        onChange={e => setEditingFood({ ...editingFood, price: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        ছাড়কৃত অফার মূল্য (৳, ঐচ্ছিক)
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.salePrice || ''}
+                        onChange={e => setEditingFood({ ...editingFood, salePrice: e.target.value ? Number(e.target.value) : undefined })}
+                        placeholder="অফার না থাকলে ফাঁকা রাখুন"
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">
-                  পূর্ণাঙ্গ বিবরণ ও উপাদান
-                </label>
-                <textarea
-                  rows={2}
-                  value={editingFood.fullDescBn || ''}
-                  onChange={e => setEditingFood({ ...editingFood, fullDescBn: e.target.value })}
-                  className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
-
-              {/* Checkboxes: Available, Featured, Bestseller */}
-              <div className="flex flex-wrap items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingFood.isAvailable}
-                    onChange={e => setEditingFood({ ...editingFood, isAvailable: e.target.checked })}
-                    className="rounded text-emerald-700"
-                  />
-                  <span>উপলব্ধ (Available)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingFood.isFeatured}
-                    onChange={e => setEditingFood({ ...editingFood, isFeatured: e.target.checked })}
-                    className="rounded text-emerald-700"
-                  />
-                  <span>স্পেশাল ফিচারড (Featured)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingFood.isBestseller}
-                    onChange={e => setEditingFood({ ...editingFood, isBestseller: e.target.checked })}
-                    className="rounded text-amber-600"
-                  />
-                  <span>বেস্টসেলার (Bestseller)</span>
-                </label>
-              </div>
-
-              {/* Variants Builder */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800">ভ্যারিয়েন্ট তালিকা (পোলাও/ভাত/পরোটা ইত্যাদি)</span>
-                  <button
-                    type="button"
-                    onClick={handleAddVariant}
-                    className="text-xs text-emerald-700 font-semibold hover:underline"
-                  >
-                    + ভ্যারিয়েন্ট যোগ
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        দৈনিক সক্ষমতা / সর্বোচ্চ স্টক
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.dailyStock || 25}
+                        onChange={e => setEditingFood({ ...editingFood, dailyStock: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        বর্তমান লাইভ স্টক
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.currentStock || 25}
+                        onChange={e => setEditingFood({ ...editingFood, currentStock: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-emerald-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        ন্যূনতম অর্ডার পরিমাণ
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.minOrderQty || 1}
+                        onChange={e => setEditingFood({ ...editingFood, minOrderQty: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                  </div>
                 </div>
-                {(editingFood.variants || []).map((v, i) => (
-                  <div key={v.id || i} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={v.nameBn}
-                      onChange={e => {
-                        const next = [...(editingFood.variants || [])];
-                        next[i].nameBn = e.target.value;
-                        setEditingFood({ ...editingFood, variants: next });
-                      }}
-                      className="flex-1 p-1.5 border rounded bg-white text-xs"
-                      placeholder="ভ্যারিয়েন্টের নাম"
-                    />
-                    <input
-                      type="number"
-                      value={v.additionalPrice}
-                      onChange={e => {
-                        const next = [...(editingFood.variants || [])];
-                        next[i].additionalPrice = Number(e.target.value);
-                        setEditingFood({ ...editingFood, variants: next });
-                      }}
-                      className="w-24 p-1.5 border rounded bg-white text-xs"
-                      placeholder="অতিরিক্ত ৳"
-                    />
+              )}
+
+              {/* Section 3: Prep */}
+              {formSection === 'prep' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        পরিমাণ / পরিবেশন বিবরণ (বাংলা)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingFood.portionBn || ''}
+                        onChange={e => setEditingFood({ ...editingFood, portionBn: e.target.value })}
+                        placeholder="যেমন: ১ জনের পেটভরা মিল (১ টুকরা ইলিশ + পোলাও)"
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        পরিবেশন বিবরণ (ইংরেজি)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingFood.portionEn || ''}
+                        onChange={e => setEditingFood({ ...editingFood, portionEn: e.target.value })}
+                        placeholder="1 Full Meal"
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        রান্নার সময় (মিনিট)
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.prepTimeMinutes || 30}
+                        onChange={e => setEditingFood({ ...editingFood, prepTimeMinutes: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        অগ্রিম নোটিশ আবশ্যক (ঘন্টা)
+                      </label>
+                      <input
+                        type="number"
+                        value={editingFood.advanceNoticeRequiredHours || 4}
+                        onChange={e => setEditingFood({ ...editingFood, advanceNoticeRequiredHours: Number(e.target.value) })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">
+                        ঝাল মাত্রা (Spice Level)
+                      </label>
+                      <select
+                        value={editingFood.spiceLevel || 'Medium'}
+                        onChange={e => setEditingFood({ ...editingFood, spiceLevel: e.target.value as any })}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-white"
+                      >
+                        <option value="Mild">মৃদু (Mild)</option>
+                        <option value="Medium">মাঝারি (Medium)</option>
+                        <option value="Spicy">ঝাল (Spicy)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Badges toggles */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-wrap gap-5">
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={editingFood.isAvailable}
+                        onChange={e => setEditingFood({ ...editingFood, isAvailable: e.target.checked })}
+                        className="rounded text-emerald-700"
+                      />
+                      <span>খাবারটি বিক্রির জন্য সক্রিয় রাখুন</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={editingFood.isFeatured}
+                        onChange={e => setEditingFood({ ...editingFood, isFeatured: e.target.checked })}
+                        className="rounded text-emerald-700"
+                      />
+                      <span>হোমপেজে ফিচারড দেখান</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={editingFood.isBestseller}
+                        onChange={e => setEditingFood({ ...editingFood, isBestseller: e.target.checked })}
+                        className="rounded text-emerald-700"
+                      />
+                      <span>বেস্টসেলার ব্যাজ যুক্ত করুন</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Section 4: Variants & Addons */}
+              {formSection === 'variants' && (
+                <div className="space-y-6">
+                  {/* Variants */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-900">
+                        খাবারের ভ্যারিয়েন্ট বা সাইজ অপশন
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={handleAddVariant}
+                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-emerald-700 font-bold hover:bg-emerald-50 flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>ভ্যারিয়েন্ট যোগ</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {editingFood.variants?.map((v, i) => (
+                        <div key={v.id} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200">
+                          <input
+                            type="text"
+                            value={v.nameBn}
+                            onChange={e => {
+                              const updated = [...(editingFood.variants || [])];
+                              updated[i].nameBn = e.target.value;
+                              setEditingFood({ ...editingFood, variants: updated });
+                            }}
+                            placeholder="ভ্যারিয়েন্টের নাম (যেমন: হাফ প্লেট / ফুল প্লেট)"
+                            className="flex-1 p-1.5 border rounded-lg"
+                          />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-slate-400">৳</span>
+                            <input
+                              type="number"
+                              value={v.additionalPrice}
+                              onChange={e => {
+                                const updated = [...(editingFood.variants || [])];
+                                updated[i].additionalPrice = Number(e.target.value);
+                                setEditingFood({ ...editingFood, variants: updated });
+                              }}
+                              className="w-20 p-1.5 border rounded-lg font-bold"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveVariant(v.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Addons */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-900">
+                        অতিরিক্ত পদ / অ্যাড-অন অপশন
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={handleAddAddon}
+                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-emerald-700 font-bold hover:bg-emerald-50 flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>অ্যাড-অন যোগ</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {editingFood.addons?.map((a, i) => (
+                        <div key={a.id} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200">
+                          <input
+                            type="text"
+                            value={a.nameBn}
+                            onChange={e => {
+                              const updated = [...(editingFood.addons || [])];
+                              updated[i].nameBn = e.target.value;
+                              setEditingFood({ ...editingFood, addons: updated });
+                            }}
+                            placeholder="অ্যাড-অনের নাম (যেমন: ডিম ভুনা বা বোরহানি)"
+                            className="flex-1 p-1.5 border rounded-lg"
+                          />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-slate-400">৳</span>
+                            <input
+                              type="number"
+                              value={a.price}
+                              onChange={e => {
+                                const updated = [...(editingFood.addons || [])];
+                                updated[i].price = Number(e.target.value);
+                                setEditingFood({ ...editingFood, addons: updated });
+                              }}
+                              className="w-20 p-1.5 border rounded-lg font-bold"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAddon(a.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Section 5: Media */}
+              {formSection === 'media' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="font-semibold text-slate-700 block mb-1">
+                          খাবারের ছবি ইউআরএল (Image URL)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingFood.image || ''}
+                          onChange={e => setEditingFood({ ...editingFood, image: e.target.value })}
+                          placeholder="/src/assets/images/... বা ওয়েব লিংক"
+                          className="w-full p-2.5 rounded-xl border border-slate-200 font-mono text-[11px]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
+                        <UploadCloud className="w-8 h-8 text-emerald-700 mx-auto" />
+                        <span className="font-semibold text-slate-800 block">
+                          কম্পিউটার বা মোবাইল থেকে ছবি আপলোড করুন
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileChange}
+                          disabled={isUploading}
+                          className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                        />
+                        {isUploading && (
+                          <span className="text-[11px] text-emerald-700 font-bold block">
+                            ছবি আপলোড হচ্ছে...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="font-semibold text-slate-700 block mb-2">
+                        লাইভ প্রিভিউ (Customer Card Preview)
+                      </span>
+                      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                        <img
+                          src={editingFood.image}
+                          alt="Preview"
+                          className="w-full h-44 object-cover"
+                        />
+                        <div className="p-3">
+                          <h5 className="font-bold text-slate-900 text-sm">
+                            {editingFood.nameBn || 'খাবারের নাম'}
+                          </h5>
+                          <span className="text-emerald-700 font-bold text-sm block mt-1">
+                            ৳{editingFood.salePrice || editingFood.price || 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Form Actions */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="flex gap-2">
+                  {formSection !== 'basic' && (
                     <button
                       type="button"
-                      onClick={() => handleRemoveVariant(v.id)}
-                      className="p-1 text-rose-600 hover:bg-rose-50 rounded"
+                      onClick={() => {
+                        const sections: ('basic' | 'pricing' | 'prep' | 'variants' | 'media')[] = ['basic', 'pricing', 'prep', 'variants', 'media'];
+                        const curr = sections.indexOf(formSection);
+                        if (curr > 0) setFormSection(sections[curr - 1]);
+                      }}
+                      className="px-3 py-1.8 border rounded-xl"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      পূর্ববর্তী
                     </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Addons Builder */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800">অতিরিক্ত অ্যাড-অন (ডিম/বোরহানি/দই ইত্যাদি)</span>
-                  <button
-                    type="button"
-                    onClick={handleAddAddon}
-                    className="text-xs text-emerald-700 font-semibold hover:underline"
-                  >
-                    + অ্যাড-অন যোগ
-                  </button>
-                </div>
-                {(editingFood.addons || []).map((a, i) => (
-                  <div key={a.id || i} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={a.nameBn}
-                      onChange={e => {
-                        const next = [...(editingFood.addons || [])];
-                        next[i].nameBn = e.target.value;
-                        setEditingFood({ ...editingFood, addons: next });
-                      }}
-                      className="flex-1 p-1.5 border rounded bg-white text-xs"
-                      placeholder="অ্যাড-অন নাম"
-                    />
-                    <input
-                      type="number"
-                      value={a.price}
-                      onChange={e => {
-                        const next = [...(editingFood.addons || [])];
-                        next[i].price = Number(e.target.value);
-                        setEditingFood({ ...editingFood, addons: next });
-                      }}
-                      className="w-24 p-1.5 border rounded bg-white text-xs"
-                      placeholder="মূল্য ৳"
-                    />
+                  )}
+                  {formSection !== 'media' && (
                     <button
                       type="button"
-                      onClick={() => handleRemoveAddon(a.id)}
-                      className="p-1 text-rose-600 hover:bg-rose-50 rounded"
+                      onClick={() => {
+                        const sections: ('basic' | 'pricing' | 'prep' | 'variants' | 'media')[] = ['basic', 'pricing', 'prep', 'variants', 'media'];
+                        const curr = sections.indexOf(formSection);
+                        if (curr < sections.length - 1) setFormSection(sections[curr + 1]);
+                      }}
+                      className="px-3 py-1.8 bg-slate-100 text-slate-800 rounded-xl font-semibold"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      পরবর্তী ধাপ
                     </button>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
 
-              {/* Form Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingFood(null)}
-                  className="px-4 py-2 border rounded-lg text-slate-700 hover:bg-slate-50"
-                >
-                  বাতিল
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold shadow-xs"
-                >
-                  {isSaving ? 'সংরক্ষিত হচ্ছে...' : 'খাবার সেভ করুন'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingFood(null)}
+                    className="px-4 py-2 border rounded-xl font-semibold"
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{isSaving ? 'সংরক্ষণ হচ্ছে...' : 'খাবার সেভ করুন'}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

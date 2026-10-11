@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { SmtpConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface TestLogItem {
   id: string;
@@ -27,6 +28,7 @@ interface TestLogItem {
 }
 
 export const SmtpSettings: React.FC = () => {
+  const { language } = useLanguage();
   const [formData, setFormData] = useState<SmtpConfig>({
     host: 'smtp.gmail.com',
     port: 587,
@@ -163,11 +165,13 @@ export const SmtpSettings: React.FC = () => {
               <Mail className="w-4 h-4" />
             </div>
             <h2 className="text-lg font-bold text-slate-900">
-              Email / SMTP Settings (ইমেইল ও ওটিপি কনফিগারেশন)
+              {language === 'en' ? 'Email / SMTP Setup & OTP Configuration' : 'Email / SMTP Settings (ইমেইল ও ওটিপি কনফিগারেশন)'}
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            গ্রাহক একাউন্ট ভেরিফিকেশন ও পাসওয়ার্ড রিসেট ওটিপি (OTP) পাঠাতে আপনার নিজস্ব SMTP সার্ভার কনফিগার করুন।
+            {language === 'en'
+              ? 'Configure your SMTP server to send customer verification OTPs, password reset emails, and order notifications.'
+              : 'গ্রাহক একাউন্ট ভেরিফিকেশন ও পাসওয়ার্ড রিসেট ওটিপি (OTP) পাঠাতে আপনার নিজস্ব SMTP সার্ভার কনফিগার করুন।'}
           </p>
         </div>
 

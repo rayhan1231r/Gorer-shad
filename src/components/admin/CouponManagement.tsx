@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tag, Plus, Check, X } from 'lucide-react';
 import { Coupon } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface CouponManagementProps {
   coupons: Coupon[];
@@ -9,6 +10,7 @@ interface CouponManagementProps {
 }
 
 export const CouponManagement: React.FC<CouponManagementProps> = ({ coupons, onRefreshData }) => {
+  const { language } = useLanguage();
   const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon> | null>(null);
 
   const handleOpenAdd = () => {
@@ -41,18 +43,18 @@ export const CouponManagement: React.FC<CouponManagementProps> = ({ coupons, onR
       <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
-            কুপন ও ডিসকাউন্ট অফার
+            {language === 'en' ? 'Coupons & Promotional Offers' : 'কুপন ও ডিসকাউন্ট অফার'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            বিশেষ ছাড় ও প্রোমো কোড তৈরি এবং ব্যবহার মনিটরিং।
+            {language === 'en' ? 'Create promo discount codes, manage percentage/flat offers and expiration.' : 'বিশেষ ছাড় ও প্রোমো কোড তৈরি এবং ব্যবহার মনিটরিং।'}
           </p>
         </div>
         <button
           onClick={handleOpenAdd}
-          className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+          className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>নতুন কুপন যোগ</span>
+          <span>{language === 'en' ? 'Add Coupon' : 'নতুন কুপন যোগ'}</span>
         </button>
       </div>
 
@@ -60,13 +62,13 @@ export const CouponManagement: React.FC<CouponManagementProps> = ({ coupons, onR
         <table className="w-full text-xs text-left">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
             <tr>
-              <th className="py-3 px-4">কুপন কোড</th>
-              <th className="py-3 px-4">ছাড়ের ধরণ ও মান</th>
-              <th className="py-3 px-4">ন্যূনতম অর্ডার</th>
-              <th className="py-3 px-4">মেয়াদ</th>
-              <th className="py-3 px-4">ব্যবহারের সংখ্যা</th>
-              <th className="py-3 px-4">অবস্থা</th>
-              <th className="py-3 px-4 text-right">অ্যাকশন</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Coupon Code' : 'কুপন কোড'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Discount Type & Value' : 'ছাড়ের ধরণ ও মান'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Min Order' : 'ন্যূনতম অর্ডার'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Validity / Expiry' : 'মেয়াদ'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Usage Count' : 'ব্যবহারের সংখ্যা'}</th>
+              <th className="py-3 px-4">{language === 'en' ? 'Status' : 'অবস্থা'}</th>
+              <th className="py-3 px-4 text-right">{language === 'en' ? 'Action' : 'অ্যাকশন'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">

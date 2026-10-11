@@ -4,6 +4,7 @@ import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';
 import { FoodCard } from './FoodCard.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { LanguageToggle } from '../common/LanguageToggle.tsx';
+import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface HomePageProps {
   config: BusinessConfig;
@@ -37,8 +38,8 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="lg:col-span-7 space-y-6">
               {/* Badges & Language Toggle Row */}
               <div className="flex flex-wrap items-center gap-2.5">
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-100/70 px-3.5 py-1.5 rounded-full border border-emerald-200/60 shadow-2xs">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-100/70 pl-2 pr-3.5 py-1.5 rounded-full border border-emerald-200/60 shadow-2xs">
+                  <BrandLogo size="xs" className="ring-1 ring-emerald-600/30" />
                   <span>
                     {language === 'en'
                       ? `${config.brandNameEn} • ${config.taglineEn} • Araihazar, Dhaka`
@@ -115,6 +116,11 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             {/* Right Media Column (5 cols) */}
             <div className="lg:col-span-5 relative">
+              {/* Floating Verified Brand Seal */}
+              <div className="absolute -top-4 -left-4 sm:-top-5 sm:-left-5 bg-white p-1 rounded-full shadow-xl border border-emerald-100 z-20 hidden sm:block">
+                <BrandLogo size="lg" className="ring-2 ring-emerald-600/30 shadow-sm" />
+              </div>
+
               <div className="relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-100 group">
                 <img
                   src="/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg"

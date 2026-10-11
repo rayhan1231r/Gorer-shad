@@ -2,6 +2,7 @@ import React from 'react';
 import { Phone, MapPin, Clock, MessageSquare, Heart } from 'lucide-react';
 import { BusinessConfig } from '../../types/index.ts';
 import { useLanguage } from '../../context/LanguageContext.tsx';
+import { BrandLogo } from './BrandLogo.tsx';
 
 interface FooterProps {
   config: BusinessConfig;
@@ -18,9 +19,11 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
           {/* Brand Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
-                স্বাদ
-              </div>
+              <BrandLogo
+                size="lg"
+                className="ring-2 ring-emerald-500/40 shadow-sm"
+                alt={language === 'en' ? config.brandNameEn : config.brandNameBn}
+              />
               <div>
                 <span className="block text-xl font-bold text-white tracking-tight">
                   {language === 'en' ? config.brandNameEn : config.brandNameBn}

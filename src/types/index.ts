@@ -10,8 +10,23 @@ export type OrderStatus =
   | 'cancelled'
   | 'rejected';
 
-export type PaymentMethod = 'cod' | 'bkash' | 'nagad' | 'rocket' | 'bank';
+export type PaymentMethod = 'cod' | 'bkash' | 'nagad' | 'rocket' | 'bank' | 'upay' | 'card' | string;
 export type PaymentStatus = 'pending' | 'verified' | 'paid' | 'failed' | 'refunded';
+
+export interface PaymentMethodConfig {
+  id: string;
+  nameBn: string;
+  nameEn: string;
+  type: 'bkash' | 'nagad' | 'rocket' | 'upay' | 'bank' | 'cod' | 'card' | 'other';
+  accountType?: 'Personal' | 'Merchant' | 'Agent';
+  accountNumber: string;
+  chargePercentage?: number;
+  instructionsBn?: string;
+  instructionsEn?: string;
+  isActive: boolean;
+  requiresTransactionId: boolean;
+  sortOrder: number;
+}
 
 export interface FoodVariant {
   id: string;
@@ -70,11 +85,14 @@ export interface DeliveryZone {
   nameBn: string;
   nameEn: string;
   upazilaOrArea: string;
+  division?: string;
   charge: number;
   minOrderAmount: number;
   freeDeliveryThreshold: number;
   estimatedDeliveryMinutes: string;
   isActive: boolean;
+  zoneScope?: 'local' | 'dhaka_city' | 'dhaka_suburb' | 'division' | 'nationwide';
+  courierPartner?: string;
 }
 
 export interface Coupon {
@@ -125,6 +143,10 @@ export interface Order {
   deliveryZoneName: string;
   deliveryAddress: string;
   deliveryLandmark?: string;
+  division?: string;
+  district?: string;
+  courierPartner?: string;
+  paymentMethodTitle?: string;
   requestedDate: string;
   requestedTimeSlot: string;
   isUrgent: boolean;

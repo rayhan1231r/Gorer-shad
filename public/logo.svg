@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .green-primary { fill: #166534; }
+      .green-deep { fill: #14532d; }
+      .green-leaf { fill: #22c55e; }
+      .text-white { fill: #ffffff; font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif; }
+      .text-green { fill: #14532d; font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif; }
+    </style>
+  </defs>
+
+  <!-- Circular background -->
+  <circle cx="256" cy="256" r="250" class="bg" />
+
+  <!-- Outer Double Rings -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#166534" stroke-width="12" />
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#166534" stroke-width="4" />
+
+  <!-- House roof silhouette -->
+  <g class="green-primary">
+    <!-- Gable Roof -->
+    <path d="M 256 110 L 370 200 L 350 200 L 256 128 L 162 200 L 142 200 Z" />
+    <path d="M 256 134 L 344 204 L 334 204 L 256 142 L 178 204 L 168 204 Z" />
+    
+    <!-- Chimney on right with sprout -->
+    <rect x="320" y="135" width="22" height="40" rx="3" />
+    <!-- Leaf sprout on chimney -->
+    <path d="M 326 135 C 322 120 334 110 340 115 C 344 125 334 135 326 135 Z" fill="#22c55e" />
+    <path d="M 336 135 C 342 122 354 120 354 128 C 350 136 340 137 336 135 Z" fill="#22c55e" />
+
+    <!-- Left leaves on roof -->
+    <path d="M 175 168 C 158 152 170 130 186 136 C 192 148 186 168 175 168 Z" fill="#22c55e" />
+    <path d="M 188 175 C 182 155 198 145 208 155 C 206 168 196 178 188 175 Z" fill="#22c55e" />
+
+    <!-- Window panes in gable -->
+    <rect x="238" y="165" width="14" height="14" rx="2" fill="#166534" />
+    <rect x="260" y="165" width="14" height="14" rx="2" fill="#166534" />
+    <rect x="238" y="185" width="14" height="14" rx="2" fill="#166534" />
+    <rect x="260" y="185" width="14" height="14" rx="2" fill="#166534" />
+  </g>
+
+  <!-- Main Bengali Brand Title: ঘরের স্বাদ -->
+  <text x="256" y="278" font-size="64" font-weight="900" text-anchor="middle" class="text-green" letter-spacing="1">ঘরের স্বাদ</text>
+
+  <!-- Brush/Ribbon Banner for Tagline: সব স্বাদের এক ঠিকানা -->
+  <g>
+    <!-- Ribbon shape -->
+    <path d="M 72 328 L 440 328 L 424 358 L 440 388 L 72 388 L 88 358 Z" fill="#166534" />
+    <!-- White inner banner border -->
+    <line x1="90" y1="334" x2="422" y2="334" stroke="#ffffff" stroke-width="2" />
+    <line x1="90" y1="382" x2="422" y2="382" stroke="#ffffff" stroke-width="2" />
+    <!-- White text inside banner -->
+    <text x="256" y="367" font-size="28" font-weight="800" text-anchor="middle" class="text-white" letter-spacing="2">সব স্বাদের এক ঠিকানা</text>
+  </g>
+
+  <!-- Subtitle: ঘরোয়া স্বাদ, ভালোবাসায় ভরা -->
+  <text x="256" y="420" font-size="19" font-weight="700" text-anchor="middle" class="text-green">ঘরোয়া স্বাদ, ভালোবাসায় ভরা</text>
+
+  <!-- Decorative line divider with diamond -->
+  <line x1="120" y1="438" x2="238" y2="438" stroke="#166534" stroke-width="2" />
+  <polygon points="256,432 262,438 256,444 250,438" fill="#166534" />
+  <line x1="274" y1="438" x2="392" y2="438" stroke="#166534" stroke-width="2" />
+
+  <!-- Categories -->
+  <text x="256" y="462" font-size="14" font-weight="600" text-anchor="middle" class="text-green">বাংলা খাবার • ফাস্ট ফুড • সি ফুড • ক্যাটারিং</text>
+
+  <!-- Inner bottom contact detail -->
+  <text x="256" y="488" font-size="13" font-weight="700" text-anchor="middle" fill="#15803d">☎ 01857-220603 • ✆ 01912-838891</text>
+</svg>

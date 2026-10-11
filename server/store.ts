@@ -15,7 +15,8 @@ import {
   AppUser,
   SmtpConfig,
   CustomerReview,
-  HomepageContent
+  HomepageContent,
+  PaymentMethodConfig
 } from '../src/types/index.ts';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
@@ -28,6 +29,7 @@ export interface DatabaseSchema {
   categories: Category[];
   foods: FoodItem[];
   deliveryZones: DeliveryZone[];
+  paymentMethods: PaymentMethodConfig[];
   coupons: Coupon[];
   orders: Order[];
   cateringInquiries: CateringInquiry[];
@@ -74,17 +76,17 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
 };
 
 const DEFAULT_SMTP_CONFIG: SmtpConfig = {
-  host: "smtp.gmail.com",
-  port: 587,
-  user: "",
-  pass: "",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: Number(process.env.SMTP_PORT) || 587,
+  user: process.env.SMTP_USER || "rmartbdltd@gmail.com",
+  pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "dcru jgid udnh aeel",
   security: "STARTTLS",
-  senderEmail: "ghorershad.arai@gmail.com",
-  senderName: "ঘরের স্বাদ (Ghorer Shad)",
+  senderEmail: process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com",
+  senderName: "R-Mart / ঘরের স্বাদ",
   otpExpirationMinutes: 5,
   otpResendCooldownSeconds: 60,
   maxVerificationAttempts: 5,
-  isConfigured: false
+  isConfigured: true
 };
 
 const DEFAULT_REVIEWS: CustomerReview[] = [
@@ -335,55 +337,247 @@ const DEFAULT_DELIVERY_ZONES: DeliveryZone[] = [
     nameBn: "আড়াইহাজার সদর (পৌরসভা এলাকা)",
     nameEn: "Araihazar Sadar (Municipality Area)",
     upazilaOrArea: "Araihazar Sadar",
+    division: "dhaka",
     charge: 40,
     minOrderAmount: 200,
     freeDeliveryThreshold: 800,
-    estimatedDeliveryMinutes: "30-45 মিনিট",
-    isActive: true
+    estimatedDeliveryMinutes: "৩০-৪৫ মিনিট",
+    isActive: true,
+    zoneScope: 'local'
   },
   {
     id: "zone-2",
-    nameBn: "দুপতারা ইউনিয়ন",
-    nameEn: "Duptara Union",
+    nameBn: "দুপতারা ও ব্রাক্ষন্দী ইউনিয়ন",
+    nameEn: "Duptara & Brahmandi Union",
     upazilaOrArea: "Duptara",
+    division: "dhaka",
     charge: 50,
     minOrderAmount: 250,
     freeDeliveryThreshold: 1000,
-    estimatedDeliveryMinutes: "40-55 মিনিট",
-    isActive: true
+    estimatedDeliveryMinutes: "৪০-৫৫ মিনিট",
+    isActive: true,
+    zoneScope: 'local'
   },
   {
     id: "zone-3",
     nameBn: "গোপালদী পৌরসভা ও বাজার",
     nameEn: "Gopaldi Municipality & Bazar",
     upazilaOrArea: "Gopaldi",
+    division: "dhaka",
     charge: 60,
     minOrderAmount: 300,
     freeDeliveryThreshold: 1200,
-    estimatedDeliveryMinutes: "45-60 মিনিট",
-    isActive: true
+    estimatedDeliveryMinutes: "৪৫-৬০ মিনিট",
+    isActive: true,
+    zoneScope: 'local'
   },
   {
     id: "zone-4",
     nameBn: "উচিতপুর (মেঘনা ঘাট রোড এলাকা)",
     nameEn: "Uchitpur (Meghna Ghat Area)",
     upazilaOrArea: "Uchitpur",
+    division: "dhaka",
     charge: 50,
     minOrderAmount: 250,
     freeDeliveryThreshold: 900,
-    estimatedDeliveryMinutes: "35-50 মিনিট",
-    isActive: true
+    estimatedDeliveryMinutes: "৩৫-৫০ মিনিট",
+    isActive: true,
+    zoneScope: 'local'
   },
   {
-    id: "zone-5",
-    nameBn: "ব্রাহ্মন্দী ইউনিয়ন",
-    nameEn: "Brahmandi Union",
-    upazilaOrArea: "Brahmandi",
-    charge: 50,
-    minOrderAmount: 300,
-    freeDeliveryThreshold: 1000,
-    estimatedDeliveryMinutes: "40-55 মিনিট",
-    isActive: true
+    id: "zone-dhaka-city",
+    nameBn: "ঢাকা মহানগর (উত্তর ও দক্ষিণ সিটি করপোরেশন)",
+    nameEn: "Dhaka City (North & South City Corp)",
+    upazilaOrArea: "Dhaka Metro",
+    division: "dhaka",
+    charge: 80,
+    minOrderAmount: 350,
+    freeDeliveryThreshold: 1500,
+    estimatedDeliveryMinutes: "২-৪ ঘন্টা / একই দিন এক্সপ্রেস",
+    isActive: true,
+    zoneScope: 'dhaka_city',
+    courierPartner: 'Pathao / Steadfast'
+  },
+  {
+    id: "zone-dhaka-suburb",
+    nameBn: "ঢাকা উপশহর (গাজীপুর, নারায়ণগঞ্জ সদর, সাভার, রূপগঞ্জ, নরসিংদী)",
+    nameEn: "Dhaka Suburbs (Gazipur, Savar, Rupganj, Narsingdi)",
+    upazilaOrArea: "Dhaka Suburbs",
+    division: "dhaka",
+    charge: 90,
+    minOrderAmount: 400,
+    freeDeliveryThreshold: 1800,
+    estimatedDeliveryMinutes: "২৪ ঘন্টা (হোম ডেলিভারি)",
+    isActive: true,
+    zoneScope: 'dhaka_suburb',
+    courierPartner: 'Steadfast / Sundarban'
+  },
+  {
+    id: "zone-chattogram",
+    nameBn: "চট্টগ্রাম বিভাগ (চট্টগ্রাম, কক্সবাজার, কুমিল্লা, নোয়াখালী)",
+    nameEn: "Chattogram Division",
+    upazilaOrArea: "Chattogram Division",
+    division: "chattogram",
+    charge: 130,
+    minOrderAmount: 450,
+    freeDeliveryThreshold: 2200,
+    estimatedDeliveryMinutes: "১-২ কার্যদিবস (কুরিয়ার এক্সপ্রেস)",
+    isActive: true,
+    zoneScope: 'division',
+    courierPartner: 'Steadfast / eCourier'
+  },
+  {
+    id: "zone-sylhet",
+    nameBn: "সিলেট বিভাগ (সিলেট, মৌলভীবাজার, হবিগঞ্জ, সুনামগঞ্জ)",
+    nameEn: "Sylhet Division",
+    upazilaOrArea: "Sylhet Division",
+    division: "sylhet",
+    charge: 130,
+    minOrderAmount: 450,
+    freeDeliveryThreshold: 2200,
+    estimatedDeliveryMinutes: "১-২ কার্যদিবস (কুরিয়ার এক্সপ্রেস)",
+    isActive: true,
+    zoneScope: 'division',
+    courierPartner: 'Steadfast / Sundarban'
+  },
+  {
+    id: "zone-rajshahi",
+    nameBn: "রাজশাহী ও রংপুর বিভাগ (উত্তরাঞ্চলের সকল জেলা)",
+    nameEn: "Rajshahi & Rangpur Divisions",
+    upazilaOrArea: "North Bengal",
+    division: "rajshahi",
+    charge: 130,
+    minOrderAmount: 450,
+    freeDeliveryThreshold: 2200,
+    estimatedDeliveryMinutes: "১-২ কার্যদিবস (কুরিয়ার এক্সপ্রেস)",
+    isActive: true,
+    zoneScope: 'division',
+    courierPartner: 'Steadfast / Pathao Courier'
+  },
+  {
+    id: "zone-khulna-barishal",
+    nameBn: "খুলনা ও বরিশাল বিভাগ (দক্ষিণাঞ্চলের সকল জেলা)",
+    nameEn: "Khulna & Barishal Divisions",
+    upazilaOrArea: "South Bengal",
+    division: "khulna",
+    charge: 130,
+    minOrderAmount: 450,
+    freeDeliveryThreshold: 2200,
+    estimatedDeliveryMinutes: "১-২ কার্যদিবস (কুরিয়ার এক্সপ্রেস)",
+    isActive: true,
+    zoneScope: 'division',
+    courierPartner: 'Steadfast / Sundarban'
+  },
+  {
+    id: "zone-all-bangladesh",
+    nameBn: "সারা বাংলাদেশ (সকল ৬৪ জেলায় হোম ডেলিভারি)",
+    nameEn: "All Bangladesh (Nationwide Delivery to All 64 Districts)",
+    upazilaOrArea: "All 64 Districts",
+    division: "all",
+    charge: 120,
+    minOrderAmount: 400,
+    freeDeliveryThreshold: 2000,
+    estimatedDeliveryMinutes: "১-৩ কার্যদিবস",
+    isActive: true,
+    zoneScope: 'nationwide',
+    courierPartner: 'Steadfast / Sundarban / Pathao'
+  }
+];
+
+const DEFAULT_PAYMENT_METHODS: PaymentMethodConfig[] = [
+  {
+    id: "pm-cod",
+    nameBn: "ক্যাশ অন ডেলিভারি (Cash on Delivery)",
+    nameEn: "Cash on Delivery (COD)",
+    type: "cod",
+    accountNumber: "N/A",
+    instructionsBn: "খাবার বা পার্সেল হাতে পেয়ে রাইডারকে ক্যাশ টাকা পরিশোধ করুন।",
+    instructionsEn: "Pay in cash directly to the delivery rider upon receiving your package.",
+    isActive: true,
+    requiresTransactionId: false,
+    sortOrder: 1
+  },
+  {
+    id: "pm-bkash-personal",
+    nameBn: "বিকাশ (Personal - Send Money)",
+    nameEn: "bKash (Personal - Send Money)",
+    type: "bkash",
+    accountType: "Personal",
+    accountNumber: "01912-838891",
+    chargePercentage: 1.5,
+    instructionsBn: "বিকাশ অ্যাপ বা *247# ডায়াল করে Send Money করুন। রেফারেন্সে আপনার মোবাইল নম্বর দিন এবং নিচে TrxID লিখুন।",
+    instructionsEn: "Send Money to our bKash Personal number and input your TrxID below.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 2
+  },
+  {
+    id: "pm-bkash-merchant",
+    nameBn: "বিকাশ (Merchant - Payment)",
+    nameEn: "bKash (Merchant - Make Payment)",
+    type: "bkash",
+    accountType: "Merchant",
+    accountNumber: "01857-220603",
+    chargePercentage: 0,
+    instructionsBn: "বিকাশ অ্যাপ থেকে 'Make Payment' অপশন ব্যবহার করুন। কোনো অতিরিক্ত ক্যাশ-আউট চার্জ প্রযোজ্য নয়।",
+    instructionsEn: "Use 'Make Payment' option in bKash app. No extra cash-out fee applies.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 3
+  },
+  {
+    id: "pm-nagad",
+    nameBn: "নগদ (Personal - Send Money)",
+    nameEn: "Nagad (Personal - Send Money)",
+    type: "nagad",
+    accountType: "Personal",
+    accountNumber: "01857-220603",
+    chargePercentage: 1.0,
+    instructionsBn: "নগদ অ্যাপ বা *167# ডায়াল করে Send Money করুন। সফল পেমেন্টের পর প্রাপ্ত TrxID নিচে লিখুন।",
+    instructionsEn: "Send Money to our Nagad number and enter the Transaction ID.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 4
+  },
+  {
+    id: "pm-rocket",
+    nameBn: "রকেট (Personal - Send Money)",
+    nameEn: "Rocket (Personal - Send Money)",
+    type: "rocket",
+    accountType: "Personal",
+    accountNumber: "01857-220603-9",
+    chargePercentage: 1.0,
+    instructionsBn: "ডাচ-বাংলা রকেটে Send Money করুন এবং ১২ ডিজিটের ট্রানজেকশন আইডি দিন।",
+    instructionsEn: "Send Money to our Rocket account and input the TrxID.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 5
+  },
+  {
+    id: "pm-upay",
+    nameBn: "উপায় (Upay - Send Money)",
+    nameEn: "Upay (Send Money)",
+    type: "upay",
+    accountType: "Personal",
+    accountNumber: "01857-220603",
+    chargePercentage: 1.0,
+    instructionsBn: "ইউসিবি উপায় একাউন্টে Send Money করে ট্রানজেকশন আইডি নিচে প্রদান করুন।",
+    instructionsEn: "Send Money via Upay and provide the transaction ID.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 6
+  },
+  {
+    id: "pm-bank",
+    nameBn: "ব্যাংক ট্রান্সফার (Bank Deposit / EFT)",
+    nameEn: "Bank Transfer (Islami Bank Bangladesh Ltd)",
+    type: "bank",
+    accountNumber: "205012345678",
+    instructionsBn: "ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, আড়াইহাজার শাখা। হিসাব নাম: Joynob Islam Kakoly। রাউটিং: 125270189। ট্রান্সফারের পর রেফারেন্স স্লট দিন।",
+    instructionsEn: "Islami Bank Bangladesh Ltd, Araihazar Branch. A/C: 205012345678. Routing: 125270189.",
+    isActive: true,
+    requiresTransactionId: true,
+    sortOrder: 7
   }
 ];
 
@@ -462,10 +656,17 @@ class DatabaseStore {
         return {
           config: { ...DEFAULT_CONFIG, ...(parsed.config || {}) },
           homepageContent: { ...DEFAULT_HOMEPAGE_CONTENT, ...(parsed.homepageContent || {}) },
-          smtpConfig: { ...DEFAULT_SMTP_CONFIG, ...(parsed.smtpConfig || {}) },
+          smtpConfig: {
+            ...DEFAULT_SMTP_CONFIG,
+            ...(parsed.smtpConfig || {}),
+            pass: (parsed.smtpConfig && parsed.smtpConfig.pass) || DEFAULT_SMTP_CONFIG.pass,
+            user: (parsed.smtpConfig && parsed.smtpConfig.user) || DEFAULT_SMTP_CONFIG.user,
+            isConfigured: true
+          },
           categories: parsed.categories || DEFAULT_CATEGORIES,
           foods: parsed.foods || DEFAULT_FOODS,
           deliveryZones: parsed.deliveryZones || DEFAULT_DELIVERY_ZONES,
+          paymentMethods: parsed.paymentMethods || DEFAULT_PAYMENT_METHODS,
           coupons: parsed.coupons || DEFAULT_COUPONS,
           orders: parsed.orders || [],
           cateringInquiries: parsed.cateringInquiries || [],
@@ -487,6 +688,7 @@ class DatabaseStore {
       categories: DEFAULT_CATEGORIES,
       foods: DEFAULT_FOODS,
       deliveryZones: DEFAULT_DELIVERY_ZONES,
+      paymentMethods: DEFAULT_PAYMENT_METHODS,
       coupons: DEFAULT_COUPONS,
       orders: [],
       cateringInquiries: [],
@@ -534,6 +736,44 @@ class DatabaseStore {
         addresses: ["ঢাকা, বাংলাদেশ"],
         passwordHash: hashPassword("ghorer2026")
       };
+    }
+
+    // Active AI Studio User Admin (ahmedskkawsar43@gmail.com)
+    const activeAdminEmail = "ahmedskkawsar43@gmail.com";
+    if (!this.data.users[activeAdminEmail]) {
+      this.data.users[activeAdminEmail] = {
+        id: "usr-admin-kawsar",
+        name: "Ahmed Kawsar",
+        email: activeAdminEmail,
+        phone: "01857-220603",
+        role: "admin",
+        isEmailVerified: true,
+        provider: "google",
+        createdAt: new Date().toISOString(),
+        addresses: ["ঢাকা, বাংলাদেশ"],
+        passwordHash: hashPassword("ghorer2026")
+      };
+    }
+
+    // Specified App Admin: rmartbdltd@gmail.com (UID: qEaFZDzP02O7kyUVpHNfM7FiZmz1)
+    const rmartEmail = (process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    const rmartUid = process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1";
+    if (!this.data.users[rmartEmail]) {
+      this.data.users[rmartEmail] = {
+        id: rmartUid,
+        name: "R-Mart Admin",
+        email: rmartEmail,
+        phone: "01857-220603",
+        role: "admin",
+        isEmailVerified: true,
+        provider: "google",
+        createdAt: new Date().toISOString(),
+        addresses: ["ঢাকা, বাংলাদেশ"],
+        passwordHash: hashPassword(process.env.GMAIL_APP_PASSWORD || "admin123")
+      };
+    } else {
+      this.data.users[rmartEmail].role = 'admin';
+      this.data.users[rmartEmail].id = rmartUid;
     }
     this.saveData();
   }
@@ -770,6 +1010,11 @@ class DatabaseStore {
     let existing = this.data.users[cleanEmail];
 
     const isSystemAdminEmail =
+      cleanEmail === "rmartbdltd@gmail.com" ||
+      cleanEmail === (process.env.ADMIN_EMAIL || "").toLowerCase().trim() ||
+      googlePayload.uid === "qEaFZDzP02O7kyUVpHNfM7FiZmz1" ||
+      googlePayload.uid === process.env.ADMIN_UID ||
+      cleanEmail === "ahmedskkawsar43@gmail.com" ||
       cleanEmail === "rayhanahamad50@gmail.com" ||
       cleanEmail === "joynob.kakoly@ghorershad.com";
 
@@ -971,6 +1216,68 @@ class DatabaseStore {
     }
     this.saveData();
     return zone;
+  }
+
+  public deleteDeliveryZone(id: string): boolean {
+    const prevLen = this.data.deliveryZones.length;
+    this.data.deliveryZones = this.data.deliveryZones.filter(z => z.id !== id);
+    if (this.data.deliveryZones.length !== prevLen) {
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  // ---------------- Payment Methods Management ----------------
+  public getPaymentMethods(activeOnly = false): PaymentMethodConfig[] {
+    const list = this.data.paymentMethods || DEFAULT_PAYMENT_METHODS;
+    if (activeOnly) {
+      return list.filter(p => p.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+    return list.sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  public savePaymentMethod(pm: PaymentMethodConfig): PaymentMethodConfig {
+    if (!this.data.paymentMethods) {
+      this.data.paymentMethods = [...DEFAULT_PAYMENT_METHODS];
+    }
+    const idx = this.data.paymentMethods.findIndex(p => p.id === pm.id);
+    if (idx >= 0) {
+      this.data.paymentMethods[idx] = pm;
+    } else {
+      this.data.paymentMethods.push(pm);
+    }
+    this.saveData();
+    this.logAction('PAYMENT_METHOD_SAVED', `Updated payment method: ${pm.nameBn} (${pm.type})`, 'Admin');
+    return pm;
+  }
+
+  public deletePaymentMethod(id: string): boolean {
+    if (!this.data.paymentMethods) {
+      this.data.paymentMethods = [...DEFAULT_PAYMENT_METHODS];
+    }
+    const prevLen = this.data.paymentMethods.length;
+    this.data.paymentMethods = this.data.paymentMethods.filter(p => p.id !== id);
+    if (this.data.paymentMethods.length !== prevLen) {
+      this.saveData();
+      this.logAction('PAYMENT_METHOD_DELETED', `Deleted payment method ID: ${id}`, 'Admin');
+      return true;
+    }
+    return false;
+  }
+
+  public togglePaymentMethod(id: string): boolean {
+    if (!this.data.paymentMethods) {
+      this.data.paymentMethods = [...DEFAULT_PAYMENT_METHODS];
+    }
+    const found = this.data.paymentMethods.find(p => p.id === id);
+    if (found) {
+      found.isActive = !found.isActive;
+      this.saveData();
+      this.logAction('PAYMENT_METHOD_TOGGLED', `Toggled ${found.nameBn} to ${found.isActive ? 'Active' : 'Inactive'}`, 'Admin');
+      return true;
+    }
+    return false;
   }
 
   public getCoupons(): Coupon[] {

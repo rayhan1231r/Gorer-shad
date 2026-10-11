@@ -16,7 +16,8 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const firestoreDbId = (firebaseConfig as any).firestoreDatabaseId;
+export const db = firestoreDbId ? getFirestore(app, firestoreDbId) : getFirestore(app);
 
 // Test Firestore connection on boot
 export async function testFirestoreConnection() {

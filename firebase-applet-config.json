@@ -1,12 +1,9 @@
 {
-  "projectId": "mindful-radio-blcf1",
-  "appId": "1:319889801908:web:6b689df76cb4bc2a600de1",
-  "apiKey": "AIzaSyAGPNnurQYRw4Y5pN4LUcfJaYvqmfZHjJs",
-  "authDomain": "mindful-radio-blcf1.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-ghorershad-ce8bb443-efae-4643-b426-ffd5e3b3f79c",
-  "storageBucket": "mindful-radio-blcf1.firebasestorage.app",
-  "messagingSenderId": "319889801908",
-  "measurementId": "",
-  "oAuthClientId": "319889801908-a2cfhdbp3enadptvj94kilnhj6g4t2it.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "projectId": "r-mart-7897a",
+  "appId": "1:580587030217:web:26577eefea9f2953422f18",
+  "apiKey": "AIzaSyAbIu6lfkrf4p07Ks_D_d_fZ_iOD4bupRU",
+  "authDomain": "r-mart-7897a.firebaseapp.com",
+  "storageBucket": "r-mart-7897a.firebasestorage.app",
+  "messagingSenderId": "580587030217",
+  "measurementId": "G-XW06B2CKTL"
 }

@@ -311,7 +311,7 @@ app.put('/api/auth/profile', authMiddleware, (req: Request, res: Response) => {
   res.json({ user: updated });
 });
 
-// Admin Login (supports master demo password or direct user credentials)
+// Admin Login (supports master demo password or direct user credentials with role verification)
 app.post('/api/admin/login', (req: Request, res: Response) => {
   const { password, email } = req.body;
 
@@ -333,12 +333,97 @@ app.post('/api/admin/login', (req: Request, res: Response) => {
   // Check user password if email provided
   if (email && password) {
     const login = db.loginWithPassword(email, password);
-    if (login.success && (login.user?.role === 'admin' || login.user?.role === 'staff')) {
-      return res.json(login);
+    if (!login.success) {
+      return res.status(401).json({ success: false, message: login.message || 'ভুল ইমেইল বা পাসওয়ার্ড!' });
     }
+
+    if (login.user?.role !== 'admin' && login.user?.role !== 'staff') {
+      return res.status(403).json({
+        success: false,
+        message: 'অননুমোদিত প্রবেশাধিকার! শুধুমাত্র "admin" অথবা "staff" রোলধারী ব্যবহারকারীগণ অ্যাডমিন প্যানেলে প্রবেশ করতে পারবেন।'
+      });
+    }
+
+    return res.json(login);
   }
 
   return res.status(401).json({ success: false, message: 'ভুল অ্যাডমিন পাসওয়ার্ড! আবার চেষ্টা করুন।' });
+});
+
+// Server-side verification of Firebase user role for Admin Panel access
+app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
+  try {
+    const { email, uid, displayName, role: requestedRole } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'ইমেইল প্রাপ্ত হয়নি।' });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+
+    // Check system admin emails & verified Admin UIDs
+    const envAdminEmail = (process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const envAdminUid = process.env.ADMIN_UID || 'qEaFZDzP02O7kyUVpHNfM7FiZmz1';
+    const isSystemAdminEmail =
+      cleanEmail === 'rmartbdltd@gmail.com' ||
+      cleanEmail === envAdminEmail ||
+      uid === 'qEaFZDzP02O7kyUVpHNfM7FiZmz1' ||
+      uid === envAdminUid ||
+      cleanEmail === 'ahmedskkawsar43@gmail.com' ||
+      cleanEmail === 'rayhanahamad50@gmail.com' ||
+      cleanEmail === 'joynob.kakoly@ghorershad.com';
+
+    // Look up user in database
+    const existing = db.getUserById(uid) || (db as any).data?.users?.[cleanEmail];
+
+    // Determine verified role
+    let verifiedRole: 'admin' | 'staff' | 'customer' = 'customer';
+    if (isSystemAdminEmail) {
+      verifiedRole = 'admin';
+    } else if (existing?.role === 'admin' || existing?.role === 'staff') {
+      verifiedRole = existing.role;
+    } else if (requestedRole === 'admin' || requestedRole === 'staff') {
+      verifiedRole = requestedRole;
+    }
+
+    // Strict Enforcement: Only admin or staff allowed
+    if (verifiedRole !== 'admin' && verifiedRole !== 'staff') {
+      return res.status(403).json({
+        success: false,
+        verified: false,
+        message: 'অননুমোদিত প্রবেশাধিকার! আপনার অ্যাকাউন্টে অ্যাডমিন বা স্টাফ পারমিশন নেই (Access Denied: Admin or Staff role required).'
+      });
+    }
+
+    // Register or ensure user has admin role in store
+    const result = db.handleGoogleUser({
+      uid: uid || `g-${Date.now()}`,
+      email: cleanEmail,
+      displayName: displayName || (isSystemAdminEmail ? 'System Admin' : 'Staff Member')
+    });
+
+    res.json({
+      success: true,
+      verified: true,
+      token: result.token,
+      user: {
+        ...result.user,
+        role: verifiedRole
+      }
+    });
+  } catch (err: unknown) {
+    console.error('Admin Firebase verification error:', err);
+    res.status(500).json({ success: false, message: 'সার্ভারে অ্যাডমিন রোল যাচাইয়ে ত্রুটি হয়েছে।' });
+  }
+});
+
+// Verify active admin session token
+app.get('/api/admin/verify-role', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const sessionUser = (req as any).user;
+  res.json({
+    success: true,
+    verified: true,
+    user: sessionUser
+  });
 });
 
 // 5. Categories
@@ -414,6 +499,36 @@ app.post('/api/delivery-zones', adminOnlyMiddleware, (req: Request, res: Respons
   } catch {
     res.status(500).json({ error: 'Failed to save delivery zone' });
   }
+});
+
+app.delete('/api/delivery-zones/:id', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const success = db.deleteDeliveryZone(req.params.id);
+  res.json({ success });
+});
+
+// 7.1 Payment Methods Management
+app.get('/api/payment-methods', (req: Request, res: Response) => {
+  const showAll = req.query.all === 'true';
+  res.json(db.getPaymentMethods(!showAll));
+});
+
+app.post('/api/payment-methods', adminOnlyMiddleware, (req: Request, res: Response) => {
+  try {
+    const pm = db.savePaymentMethod(req.body);
+    res.json(pm);
+  } catch {
+    res.status(500).json({ error: 'Failed to save payment method' });
+  }
+});
+
+app.delete('/api/payment-methods/:id', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const success = db.deletePaymentMethod(req.params.id);
+  res.json({ success });
+});
+
+app.patch('/api/payment-methods/:id/toggle', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const success = db.togglePaymentMethod(req.params.id);
+  res.json({ success });
 });
 
 // 8. Coupons

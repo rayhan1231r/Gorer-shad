@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { Search, Filter, Eye, Printer, CheckCircle, Clock, Truck, XCircle, AlertTriangle, UserCheck } from 'lucide-react';
 import { Order, OrderStatus, BusinessConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 import { PrintSlipModal } from './PrintSlipModal.tsx';
 
 interface OrderManagementProps {
   orders: Order[];
-  config: BusinessConfig;
-  onRefreshOrders: () => void;
+  config?: BusinessConfig;
+  onRefreshOrders?: () => void;
+  onRefreshData?: () => void;
 }
 
-export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config, onRefreshOrders }) => {
+export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config, onRefreshOrders, onRefreshData }) => {
+  const { language } = useLanguage();
+  const refreshFn = onRefreshOrders || onRefreshData || (() => {});
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -52,7 +56,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
       });
       setIsUpdating(false);
       setSelectedOrder(null);
-      onRefreshOrders();
+      refreshFn();
     } catch (err) {
       console.error(err);
       setIsUpdating(false);
@@ -70,7 +74,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="অর্ডার নং (GS-2601), গ্রাহকের নাম, মোবাইল..."
+              placeholder={language === 'en' ? "Order #, customer name, phone number..." : "অর্ডার নং (GS-2601), গ্রাহকের নাম, মোবাইল..."}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-emerald-600 bg-white"
             />
           </div>
@@ -81,21 +85,21 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               onChange={e => setStatusFilter(e.target.value)}
               className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
             >
-              <option value="all">সব অর্ডার ({orders.length})</option>
-              <option value="placed">নতুন (Placed)</option>
-              <option value="accepted">গৃহীত (Accepted)</option>
-              <option value="preparing">রান্না চলছে (Preparing)</option>
-              <option value="ready">প্রস্তুত (Ready)</option>
-              <option value="out_for_delivery">ডেলিভারির পথে (Out)</option>
-              <option value="delivered">ডেলিভারড (Delivered)</option>
-              <option value="cancelled">বাতিল (Cancelled)</option>
+              <option value="all">{language === 'en' ? `All Orders (${orders.length})` : `সব অর্ডার (${orders.length})`}</option>
+              <option value="placed">{language === 'en' ? 'New (Placed)' : 'নতুন (Placed)'}</option>
+              <option value="accepted">{language === 'en' ? 'Accepted' : 'গৃহীত (Accepted)'}</option>
+              <option value="preparing">{language === 'en' ? 'Preparing (Cooking)' : 'রান্না চলছে (Preparing)'}</option>
+              <option value="ready">{language === 'en' ? 'Ready for Pickup' : 'প্রস্তুত (Ready)'}</option>
+              <option value="out_for_delivery">{language === 'en' ? 'Out for Delivery' : 'ডেলিভারির পথে (Out)'}</option>
+              <option value="delivered">{language === 'en' ? 'Delivered' : 'ডেলিভারড (Delivered)'}</option>
+              <option value="cancelled">{language === 'en' ? 'Cancelled' : 'বাতিল (Cancelled)'}</option>
             </select>
 
             <button
-              onClick={onRefreshOrders}
+              onClick={refreshFn}
               className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors shrink-0"
             >
-              রিফ্রেশ
+              {language === 'en' ? 'Refresh' : 'রিফ্রেশ'}
             </button>
           </div>
         </div>
@@ -107,21 +111,21 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
           <table className="w-full text-xs text-left">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">অর্ডার নং</th>
-                <th className="py-3 px-4">গ্রাহকের নাম ও ফোন</th>
-                <th className="py-3 px-4">এলাকা</th>
-                <th className="py-3 px-4">সময় স্লট</th>
-                <th className="py-3 px-4">বিল</th>
-                <th className="py-3 px-4">পেমেন্ট</th>
-                <th className="py-3 px-4">অবস্থা</th>
-                <th className="py-3 px-4 text-right">অ্যাকশন</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Order #' : 'অর্ডার নং'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Customer & Phone' : 'গ্রাহকের নাম ও ফোন'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Area / Zone' : 'এলাকা'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Time Slot' : 'সময় স্লট'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Bill' : 'বিল'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Payment' : 'পেমেন্ট'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Status' : 'অবস্থা'}</th>
+                <th className="py-3 px-4 text-right">{language === 'en' ? 'Action' : 'অ্যাকশন'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
-                    কোনো অর্ডার খুঁজে পাওয়া যায়নি
+                    {language === 'en' ? 'No orders found matching criteria' : 'কোনো অর্ডার খুঁজে পাওয়া যায়নি'}
                   </td>
                 </tr>
               ) : (
@@ -210,7 +214,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
-                  <span className="text-xs text-slate-400 block">অর্ডার বিবরণী:</span>
+                  <span className="text-xs text-slate-400 block">{language === 'en' ? 'Order Details:' : 'অর্ডার বিবরণী:'}</span>
                   <h3 className="text-lg font-mono font-bold text-slate-900">
                     {selectedOrder.orderNumber}
                   </h3>
@@ -226,31 +230,31 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               {/* Customer Info */}
               <div className="py-4 border-b border-slate-100 space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">গ্রাহকের নাম:</span>
+                  <span className="text-slate-500">{language === 'en' ? 'Customer Name:' : 'গ্রাহকের নাম:'}</span>
                   <span className="font-semibold text-slate-900">{selectedOrder.customerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">ফোন নম্বর:</span>
+                  <span className="text-slate-500">{language === 'en' ? 'Phone Number:' : 'ফোন নম্বর:'}</span>
                   <a href={`tel:${selectedOrder.customerPhone}`} className="font-mono text-emerald-700 underline font-semibold">
                     {selectedOrder.customerPhone}
                   </a>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">ডেলিভারি এলাকা:</span>
+                  <span className="text-slate-500">{language === 'en' ? 'Delivery Zone:' : 'ডেলিভারি এলাকা:'}</span>
                   <span className="font-semibold text-slate-900">{selectedOrder.deliveryZoneName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">সম্পূর্ণ ঠিকানা:</span>
+                  <span className="text-slate-500 block">{language === 'en' ? 'Full Address:' : 'সম্পূর্ণ ঠিকানা:'}</span>
                   <span className="font-medium text-slate-800 block mt-0.5">{selectedOrder.deliveryAddress}</span>
                 </div>
                 {selectedOrder.deliveryLandmark && (
                   <div>
-                    <span className="text-slate-500 block">ল্যান্ডমার্ক:</span>
+                    <span className="text-slate-500 block">{language === 'en' ? 'Landmark:' : 'ল্যান্ডমার্ক:'}</span>
                     <span className="text-slate-700">{selectedOrder.deliveryLandmark}</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-1">
-                  <span className="text-slate-500">অনুরোধকৃত সময়:</span>
+                  <span className="text-slate-500">{language === 'en' ? 'Requested Time:' : 'অনুরোধকৃত সময়:'}</span>
                   <span className="font-semibold text-slate-900">{selectedOrder.requestedTimeSlot}</span>
                 </div>
               </div>
@@ -258,19 +262,19 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               {/* Items List */}
               <div className="py-4 border-b border-slate-100 space-y-2 text-xs">
                 <span className="font-bold text-slate-900 uppercase tracking-wider block">
-                  খাবারের তালিকা:
+                  {language === 'en' ? 'Ordered Items:' : 'খাবারের তালিকা:'}
                 </span>
                 <div className="divide-y divide-slate-100">
                   {selectedOrder.items.map((it, idx) => (
                     <div key={idx} className="py-1.5 flex justify-between">
                       <div>
-                        <span className="font-semibold text-slate-900">{it.nameBn}</span>
+                        <span className="font-semibold text-slate-900">{language === 'en' ? (it.nameEn || it.nameBn) : it.nameBn}</span>
                         <span className="text-slate-500 ml-1">× {it.quantity}</span>
                         {it.selectedVariantName && (
-                          <span className="text-[11px] text-slate-400 block">ভ্যারিয়েন্ট: {it.selectedVariantName}</span>
+                          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Variant: ' : 'ভ্যারিয়েন্ট: '}{it.selectedVariantName}</span>
                         )}
                         {it.selectedAddonsNames && it.selectedAddonsNames.length > 0 && (
-                          <span className="text-[11px] text-slate-400 block">যুক্ত: {it.selectedAddonsNames.join(', ')}</span>
+                          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Addons: ' : 'যুক্ত: '}{it.selectedAddonsNames.join(', ')}</span>
                         )}
                       </div>
                       <span className="font-bold tabular-nums">৳{it.itemTotal}</span>
@@ -279,11 +283,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
                 </div>
 
                 <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm">
-                  <span>সর্বমোট প্রদেয়:</span>
+                  <span>{language === 'en' ? 'Total Payable:' : 'সর্বমোট প্রদেয়:'}</span>
                   <span className="text-emerald-800 tabular-nums">৳{selectedOrder.totalAmount}</span>
                 </div>
                 <div className="text-[11px] text-slate-500">
-                  পেমেন্ট পদ্ধতি: <strong>{selectedOrder.paymentMethod.toUpperCase()}</strong> ({selectedOrder.paymentStatus})
+                  {language === 'en' ? 'Payment Method: ' : 'পেমেন্ট পদ্ধতি: '}<strong>{selectedOrder.paymentMethod.toUpperCase()}</strong> ({selectedOrder.paymentStatus})
                   {selectedOrder.paymentTransactionId && <span> • TrxID: {selectedOrder.paymentTransactionId}</span>}
                 </div>
               </div>
@@ -292,46 +296,46 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
               <div className="py-4 space-y-4 text-xs">
                 <div>
                   <label className="font-bold text-slate-800 block mb-1">
-                    অর্ডারের স্ট্যাটাস পরিবর্তন
+                    {language === 'en' ? 'Update Order Status' : 'অর্ডারের স্ট্যাটাস পরিবর্তন'}
                   </label>
                   <select
                     value={editStatus}
                     onChange={e => setEditStatus(e.target.value as any)}
                     className="w-full p-2.5 rounded-lg border border-slate-200 bg-white font-semibold focus:outline-none focus:border-emerald-600"
                   >
-                    <option value="placed">অর্ডার গৃহীত (Placed)</option>
-                    <option value="accepted">নিশ্চিত করা হয়েছে (Accepted)</option>
-                    <option value="preparing">রান্না চলছে (Preparing)</option>
-                    <option value="ready">প্যাকেজিং প্রস্তুত (Ready)</option>
-                    <option value="out_for_delivery">ডেলিভারির পথে (Out for Delivery)</option>
-                    <option value="delivered">ডেলিভার সম্পন্ন (Delivered)</option>
-                    <option value="cancelled">অর্ডার বাতিল (Cancelled)</option>
-                    <option value="rejected">প্রত্যাখ্যাত (Rejected)</option>
+                    <option value="placed">{language === 'en' ? 'Order Placed' : 'অর্ডার গৃহীত (Placed)'}</option>
+                    <option value="accepted">{language === 'en' ? 'Order Accepted' : 'নিশ্চিত করা হয়েছে (Accepted)'}</option>
+                    <option value="preparing">{language === 'en' ? 'Preparing in Kitchen' : 'রান্না চলছে (Preparing)'}</option>
+                    <option value="ready">{language === 'en' ? 'Ready for Pickup / Out' : 'প্যাকেজিং প্রস্তুত (Ready)'}</option>
+                    <option value="out_for_delivery">{language === 'en' ? 'Out for Delivery' : 'ডেলিভারির পথে (Out for Delivery)'}</option>
+                    <option value="delivered">{language === 'en' ? 'Delivered' : 'ডেলিভার সম্পন্ন (Delivered)'}</option>
+                    <option value="cancelled">{language === 'en' ? 'Cancelled' : 'অর্ডার বাতিল (Cancelled)'}</option>
+                    <option value="rejected">{language === 'en' ? 'Rejected' : 'প্রত্যাখ্যাত (Rejected)'}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="font-bold text-slate-800 block mb-1">
-                    দায়িত্বপ্রাপ্ত ডেলিভারি ম্যান
+                    {language === 'en' ? 'Assigned Delivery Person' : 'দায়িত্বপ্রাপ্ত ডেলিভারি ম্যান'}
                   </label>
                   <input
                     type="text"
                     value={deliveryPerson}
                     onChange={e => setDeliveryPerson(e.target.value)}
-                    placeholder="যেমন: রাকিব হাসান (ডেলিভারি ম্যান ১)"
+                    placeholder={language === 'en' ? "e.g. Delivery Agent 1 (Phone)" : "যেমন: রাকিব হাসান (ডেলিভারি ম্যান ১)"}
                     className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
 
                 <div>
                   <label className="font-bold text-slate-800 block mb-1">
-                    অভ্যন্তরীণ অ্যাডমিন নোট
+                    {language === 'en' ? 'Internal Admin Notes' : 'অভ্যন্তরীণ অ্যাডমিন নোট'}
                   </label>
                   <textarea
                     rows={2}
                     value={adminNotes}
                     onChange={e => setAdminNotes(e.target.value)}
-                    placeholder="গ্রাহকের সাথে ফোনে কথা হয়েছে, বিশেষ নির্দেশনা..."
+                    placeholder={language === 'en' ? "Notes on customer calls, instructions..." : "গ্রাহকের সাথে ফোনে কথা হয়েছে, বিশেষ নির্দেশনা..."}
                     className="w-full p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
@@ -347,7 +351,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
                   className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>রসিদ</span>
+                  <span>{language === 'en' ? 'Receipt' : 'রসিদ'}</span>
                 </button>
                 <button
                   type="button"
@@ -355,7 +359,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
                   className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>কিচেন টিকিট</span>
+                  <span>{language === 'en' ? 'Kitchen Ticket' : 'কিচেন টিকিট'}</span>
                 </button>
               </div>
 
@@ -365,7 +369,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
                 onClick={handleSaveOrderUpdates}
                 className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
               >
-                {isUpdating ? 'সংরক্ষিত হচ্ছে...' : 'আপডেট সেভ করুন'}
+                {isUpdating ? (language === 'en' ? 'Saving...' : 'সংরক্ষিত হচ্ছে...') : (language === 'en' ? 'Save Updates' : 'আপডেট সেভ করুন')}
               </button>
             </div>
           </div>
