@@ -68,11 +68,17 @@ export default function App() {
   // Customer Authentication & Account
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalNotice, setAuthModalNotice] = useState<string | null>(null);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   // Order & Tracking Flow
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [trackingOrderNumber, setTrackingOrderNumber] = useState('');
+
+  const handleRequireLogin = (reason = 'অর্ডার বা কার্টে খাবার যোগ করতে অনুগ্রহ করে আগে লগইন করুন।') => {
+    setAuthModalNotice(reason);
+    setIsAuthModalOpen(true);
+  };
 
   const loadInitialData = async () => {
     try {
@@ -102,14 +108,19 @@ export default function App() {
   }, []);
 
   const handleAdminClick = async () => {
-    if (isAdminLoggedIn) {
-      const verify = await api.verifyAdminRole();
-      if (verify.verified) {
-        setActivePage('admin');
-      } else {
-        setIsAdminLoggedIn(false);
-        setIsAdminLoginOpen(true);
-      }
+    if (isAdminLoggedIn || currentUser?.role === 'admin' || currentUser?.role === 'staff') {
+      setIsAdminLoggedIn(true);
+      setActivePage('admin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const verify = await api.verifyAdminRole();
+    if (verify.verified) {
+      setIsAdminLoggedIn(true);
+      if (verify.user?.name) setAdminUserName(verify.user.name);
+      setActivePage('admin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setIsAdminLoginOpen(true);
     }
@@ -130,6 +141,10 @@ export default function App() {
   };
 
   const handleQuickAdd = (food: FoodItem) => {
+    if (!currentUser) {
+      handleRequireLogin('কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।');
+      return;
+    }
     setSelectedFoodForModal(food);
   };
 
@@ -147,9 +162,12 @@ export default function App() {
 
   const handleAuthSuccess = (user: AppUser) => {
     setCurrentUser(user);
+    setAuthModalNotice(null);
     if (user.role === 'admin' || user.role === 'staff') {
       setIsAdminLoggedIn(true);
       setAdminUserName(user.name);
+      setActivePage('admin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -186,7 +204,10 @@ export default function App() {
               isAdminLoggedIn={isAdminLoggedIn}
               onAdminClick={handleAdminClick}
               currentUser={currentUser}
-              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onOpenAuth={() => {
+                setAuthModalNotice(null);
+                setIsAuthModalOpen(true);
+              }}
               onOpenAccount={() => setIsAccountModalOpen(true)}
             />
 
@@ -222,6 +243,8 @@ export default function App() {
                   config={config}
                   onBackToMenu={() => setActivePage('menu')}
                   onOrderSuccess={handleOrderSuccess}
+                  currentUser={currentUser}
+                  onRequireLogin={() => handleRequireLogin('অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।')}
                 />
               )}
 
@@ -267,16 +290,22 @@ export default function App() {
                 setActivePage('checkout');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
+              currentUser={currentUser}
+              onRequireLogin={() => handleRequireLogin('অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।')}
             />
           </>
         )}
 
         {/* Global Modals */}
-        <FoodDetailModal
-          food={selectedFoodForModal}
-          onClose={() => setSelectedFoodForModal(null)}
-          whatsappNumber={config.whatsapp}
-        />
+        {selectedFoodForModal && (
+          <FoodDetailModal
+            food={selectedFoodForModal}
+            onClose={() => setSelectedFoodForModal(null)}
+            whatsappNumber={config.whatsapp}
+            currentUser={currentUser}
+            onRequireLogin={() => handleRequireLogin('কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।')}
+          />
+        )}
 
         <SearchModal
           isOpen={isSearchOpen}
@@ -288,8 +317,12 @@ export default function App() {
 
         <AuthModal
           isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
+          onClose={() => {
+            setIsAuthModalOpen(false);
+            setAuthModalNotice(null);
+          }}
           onAuthSuccess={handleAuthSuccess}
+          customNotice={authModalNotice}
         />
 
         {currentUser && (

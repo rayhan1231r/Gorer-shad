@@ -575,18 +575,41 @@
       "passwordHash": "b352744f301314ec9b489c7eea08788c:10104def373881f6f92ff627fbab26ac2b9de97221d4cd5552425463d71e72933dd27506c539a742e10cf99267bc151acb119f845e4702075226cb0df0b9baa9"
     },
     "rmartbdltd@gmail.com": {
-      "id": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "name": "R-Mart Admin",
+      "id": "usr-1791733951104-566",
+      "name": "Rayhan",
       "email": "rmartbdltd@gmail.com",
+      "role": "admin",
+      "isEmailVerified": true,
+      "provider": "email_otp",
+      "createdAt": "2026-10-11T15:52:31.104Z",
+      "addresses": [],
+      "passwordHash": "f6f70b4a3a8ecf1f64d41ab920391d6b:f84b8f8bbd9a5687ae1f41b411e4042d5a1d8a7a5e9f571e8985b9b4f40dab7f6454f2e1527bc55beac03fe2e4c09626d1cdd1f7760610a31b6cbfcee43a0063"
+    },
+    "proxy6726@gmail.com": {
+      "id": "usr-admin-proxy",
+      "name": "Admin User",
+      "email": "proxy6726@gmail.com",
       "phone": "01857-220603",
       "role": "admin",
       "isEmailVerified": true,
       "provider": "google",
-      "createdAt": "2026-10-11T14:55:34.105Z",
+      "createdAt": "2026-10-11T15:58:40.352Z",
       "addresses": [
-        "ঢাকা, বাংলাদেশ"
-      ],
-      "passwordHash": "b352744f301314ec9b489c7eea08788c:10104def373881f6f92ff627fbab26ac2b9de97221d4cd5552425463d71e72933dd27506c539a742e10cf99267bc151acb119f845e4702075226cb0df0b9baa9"
+        "আড়াইহাজার, ঢাকা"
+      ]
+    },
+    "ghorershad.arai@gmail.com": {
+      "id": "usr-admin-brand",
+      "name": "Ghorer Shad Admin",
+      "email": "ghorershad.arai@gmail.com",
+      "phone": "01857-220603",
+      "role": "admin",
+      "isEmailVerified": true,
+      "provider": "google",
+      "createdAt": "2026-10-11T15:58:40.352Z",
+      "addresses": [
+        "আড়াইহাজার, ঢাকা"
+      ]
     }
   },
   "reviews": [

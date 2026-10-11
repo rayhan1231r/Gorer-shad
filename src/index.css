@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+:root {
+  --brand-primary: #166534;
+  --brand-primary-hover: #14532d;
+  --brand-primary-dark: #0f3d1f;
+  --brand-primary-light: #f0fdf4;
+  --brand-primary-lighter: #f8fdf9;
+  --brand-primary-border: #bbf7d0;
+  --brand-primary-rgb: 22, 101, 52;
+
+  --brand-accent: #d97706;
+  --brand-accent-hover: #b45309;
+  --brand-accent-light: #fffbeb;
+  --brand-accent-border: #fde68a;
+  --brand-accent-rgb: 217, 119, 6;
+}
+
 @layer base {
   body {
     font-family: 'Hind Siliguri', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -7,6 +23,19 @@
     color: #0F172A;
   }
 }
+
+/* Explicit Brand Utilities for dynamic theme application */
+.bg-brand-primary { background-color: var(--brand-primary); }
+.bg-brand-primary-hover:hover { background-color: var(--brand-primary-hover); }
+.text-brand-primary { color: var(--brand-primary); }
+.border-brand-primary { border-color: var(--brand-primary); }
+.bg-brand-primary-light { background-color: var(--brand-primary-light); }
+
+.bg-brand-accent { background-color: var(--brand-accent); }
+.bg-brand-accent-hover:hover { background-color: var(--brand-accent-hover); }
+.text-brand-accent { color: var(--brand-accent); }
+.border-brand-accent { border-color: var(--brand-accent); }
+.bg-brand-accent-light { background-color: var(--brand-accent-light); }
 
 /* Print styling for kitchen tickets and receipts */
 @media print {

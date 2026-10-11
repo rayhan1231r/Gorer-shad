@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { SmtpConfig } from '../src/types/index.ts';
+import type { SmtpConfig } from '../src/types/index.ts';
 
 export class SmtpService {
   private createTransporter(config: SmtpConfig) {

@@ -234,6 +234,8 @@ export interface BusinessConfig {
   nagadNumber: string;
   rocketNumber: string;
   bankDetails: string;
+  primaryColor?: string;
+  accentColor?: string;
 }
 
 export interface FinancialSummary {
@@ -276,14 +278,21 @@ export interface SmtpConfig {
 
 export interface CustomerReview {
   id: string;
+  customerId?: string;
   customerName: string;
+  customerDisplayName?: string;
   customerEmail?: string;
   foodId?: string;
+  productId?: string;
   foodNameBn?: string;
   rating: number; // 1 to 5
   comment: string;
   createdAt: string;
+  updatedAt?: string;
   isApproved: boolean;
+  approvedStatus?: 'approved' | 'pending' | 'hidden';
+  isReported?: boolean;
+  reportReason?: string;
   isVerifiedPurchase: boolean;
 }
 

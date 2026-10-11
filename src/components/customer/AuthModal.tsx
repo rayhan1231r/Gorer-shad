@@ -20,7 +20,8 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAuthSuccess: (user: AppUser) => void;
-  initialMode?: 'login' | 'signup';
+  initialMode?: 'login' | 'signup' | 'forgot_request';
+  customNotice?: string | null;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -28,14 +29,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onAuthSuccess,
   initialMode = 'login',
+  customNotice = null,
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup' | 'verify_otp'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'signup' | 'verify_otp' | 'forgot_request' | 'forgot_verify'>(initialMode);
 
   // Form inputs
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   // OTP state
   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
@@ -62,7 +66,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   // Cooldown & expiration timers
   useEffect(() => {
-    if (mode !== 'verify_otp') return;
+    if (mode !== 'verify_otp' && mode !== 'forgot_verify') return;
 
     const interval = setInterval(() => {
       setCooldownSeconds(prev => (prev > 0 ? prev - 1 : 0));
@@ -217,6 +221,105 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  // Submit Forgot Password Request (Triggers SMTP OTP)
+  const handleForgotRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!email.trim()) {
+      setErrorMsg('আপনার ইমেইল ঠিকানা প্রদান করুন।');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await api.forgotPasswordRequest(email.trim());
+      if (res.success) {
+        setMaskedEmail(res.maskedEmail);
+        setCooldownSeconds(res.cooldownSeconds || 60);
+        setExpiresSeconds(300);
+        setOtpDigits(['', '', '', '', '', '']);
+        setDebugNotice(res.debugNotice || null);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setMode('forgot_verify');
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'পাসওয়ার্ড রিসেট ওটিপি পাঠাতে সমস্যা হয়েছে।');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Submit Forgot Password OTP & New Password Reset
+  const handleForgotReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const otpCode = otpDigits.join('');
+    if (otpCode.length !== 6) {
+      setErrorMsg('সম্পূর্ণ ৬-সংখ্যার ওটিপি কোডটি লিখুন।');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMsg('নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setErrorMsg('নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+      return;
+    }
+
+    setErrorMsg(null);
+    setIsLoading(true);
+
+    try {
+      const res = await api.forgotPasswordReset({
+        email: email.trim(),
+        otp: otpCode,
+        newPassword,
+        confirmPassword: confirmNewPassword
+      });
+
+      if (res.success && res.user) {
+        setSuccessMsg('পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! আপনাকে স্বাগতম...');
+        setTimeout(() => {
+          onAuthSuccess(res.user!);
+          onClose();
+        }, 1200);
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে।');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend Forgot Password OTP
+  const handleResendForgotOtp = async () => {
+    if (cooldownSeconds > 0) return;
+    setErrorMsg(null);
+    setIsLoading(true);
+
+    try {
+      const res = await api.forgotPasswordResend(email.trim());
+      if (res.success) {
+        setCooldownSeconds(60);
+        setExpiresSeconds(300);
+        setOtpDigits(['', '', '', '', '', '']);
+        if (res.debugNotice) setDebugNotice(res.debugNotice);
+        setSuccessMsg('নতুন ওটিপি কোড পাঠানো হয়েছে।');
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Google Login via Firebase
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
@@ -272,13 +375,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {mode === 'login' && 'গ্রাহক অ্যাকাউন্টে লগইন'}
             {mode === 'signup' && 'নতুন গ্রাহক অ্যাকাউন্ট তৈরি'}
             {mode === 'verify_otp' && 'ইমেইল ওটিপি (OTP) যাচাইকরণ'}
+            {mode === 'forgot_request' && 'পাসওয়ার্ড রিসেট করুন'}
+            {mode === 'forgot_verify' && 'ওটিপি যাচাই ও নতুন পাসওয়ার্ড'}
           </h3>
           <p className="text-xs text-slate-500">
-            {mode === 'verify_otp'
+            {mode === 'verify_otp' || mode === 'forgot_verify'
               ? `${maskedEmail} ঠিকানায় ৬-সংখ্যার ওটিপি পাঠানো হয়েছে`
+              : mode === 'forgot_request'
+              ? 'আপনার নিবন্ধিত ইমেইল দিন, আমরা পাসওয়ার্ড রিসেট কোড পাঠাবো'
               : 'ঘরের স্বাদ • খাঁটি ঘরোয়া খাবারের নিশ্চয়তা'}
           </p>
         </div>
+
+        {customNotice && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span className="font-medium">{customNotice}</span>
+          </div>
+        )}
 
         {/* Feedback messages */}
         {errorMsg && (
@@ -366,6 +480,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="আপনার পাসওয়ার্ড..."
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                   />
+                </div>
+                <div className="flex justify-end mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                      setMode('forgot_request');
+                    }}
+                    className="text-[11px] text-emerald-700 hover:text-emerald-800 font-medium hover:underline cursor-pointer"
+                  >
+                    পাসওয়ার্ড ভুলে গেছেন?
+                  </button>
                 </div>
               </div>
 
@@ -623,6 +750,191 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
               >
                 ইমেইল ঠিকানা পরিবর্তন করুন
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ---------------- 4. FORGOT PASSWORD REQUEST MODE ---------------- */}
+        {mode === 'forgot_request' && (
+          <div className="space-y-4 text-xs">
+            <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-emerald-800 text-[11px] leading-relaxed">
+              আপনার নিবন্ধিত ইমেইল ঠিকানা প্রদান করুন। আমরা আপনার পাসওয়ার্ড রিসেট করতে ৬-সংখ্যার ওটিপি কোড পাঠাবো।
+            </div>
+
+            <form onSubmit={handleForgotRequest} className="space-y-3.5">
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">নিবন্ধিত ইমেইল ঠিকানা</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>ওটিপি কোড পাঠানো হচ্ছে...</span>
+                  </>
+                ) : (
+                  <span>রিসেট ওটিপি কোড পাঠান</span>
+                )}
+              </button>
+            </form>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                  setMode('login');
+                }}
+                className="text-emerald-700 font-semibold hover:underline cursor-pointer"
+              >
+                ← লগইনে ফিরে যান
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ---------------- 5. FORGOT PASSWORD VERIFY & RESET MODE ---------------- */}
+        {mode === 'forgot_verify' && (
+          <div className="space-y-4 text-xs">
+            <div className="text-center p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-slate-700">
+              <span className="text-[11px] block text-slate-500 mb-0.5">ওটিপি পাঠানো হয়েছে:</span>
+              <strong className="text-xs text-emerald-800 font-semibold">{maskedEmail}</strong>
+            </div>
+
+            <form onSubmit={handleForgotReset} className="space-y-4">
+              {/* 6-Digit Numeric OTP Inputs */}
+              <div>
+                <label className="font-semibold text-slate-700 block text-center mb-2.5">
+                  ৬-সংখ্যার কোডটি প্রবেশ করান:
+                </label>
+                <div className="flex items-center justify-center gap-2 sm:gap-2.5" onPaste={handlePasteOtp}>
+                  {otpDigits.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      ref={el => {
+                        inputRefs.current[idx] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={1}
+                      value={digit}
+                      onChange={e => handleDigitChange(idx, e.target.value)}
+                      onKeyDown={e => handleKeyDown(idx, e)}
+                      className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-slate-200 focus:border-emerald-600 focus:outline-none bg-white text-slate-900 shadow-2xs"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Expiration Timer & Resend */}
+              <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
+                <span>
+                  মেয়াদ বাকি: <strong className="font-mono text-emerald-800">{formatTimer(expiresSeconds)}</strong>
+                </span>
+
+                {cooldownSeconds > 0 ? (
+                  <span>পুনরায় পাঠানো যাবে: {cooldownSeconds} সে. পর</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendForgotOtp}
+                    disabled={isLoading}
+                    className="text-emerald-700 font-bold hover:underline cursor-pointer"
+                  >
+                    আবার কোড পাঠান (Resend)
+                  </button>
+                )}
+              </div>
+
+              {/* New Password & Confirm */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      placeholder="নতুন পাসওয়ার্ড লিখুন..."
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={confirmNewPassword}
+                      onChange={e => setConfirmNewPassword(e.target.value)}
+                      placeholder="পাসওয়ার্ড পুনরায় লিখুন..."
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || otpDigits.join('').length !== 6 || expiresSeconds === 0}
+                className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>যাচাই ও রিসেট হচ্ছে...</span>
+                  </>
+                ) : (
+                  <span>পাসওয়ার্ড রিসেট ও লগইন করুন</span>
+                )}
+              </button>
+            </form>
+
+            <div className="pt-2 text-center flex items-center justify-between text-[11px] text-slate-500">
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setMode('forgot_request');
+                }}
+                className="hover:underline cursor-pointer"
+              >
+                ইমেইল পরিবর্তন করুন
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setMode('login');
+                }}
+                className="text-emerald-700 font-bold hover:underline cursor-pointer"
+              >
+                লগইনে ফিরে যান
               </button>
             </div>
           </div>

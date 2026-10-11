@@ -1,25 +1,69 @@
-import React, { useState } from 'react';
-import { X, Clock, Users, ShieldAlert, MessageCircle, ShoppingBag, Plus, Minus, Check } from 'lucide-react';
-import { FoodItem, FoodVariant, FoodAddon } from '../../types/index.ts';
+import React, { useState, useEffect } from 'react';
+import { X, Clock, Users, ShieldAlert, MessageCircle, ShoppingBag, Plus, Minus, Check, Star, ShieldCheck, Send, MessageSquare } from 'lucide-react';
+import { FoodItem, FoodVariant, FoodAddon, AppUser, CustomerReview } from '../../types/index.ts';
 import { useCart } from '../../context/CartContext.tsx';
+import { api } from '../../services/api.ts';
 
 interface FoodDetailModalProps {
   food: FoodItem | null;
   onClose: () => void;
   whatsappNumber: string;
+  currentUser?: AppUser | null;
+  onRequireLogin?: () => void;
 }
 
-export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ food, onClose, whatsappNumber }) => {
+export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
+  food,
+  onClose,
+  whatsappNumber,
+  currentUser,
+  onRequireLogin
+}) => {
   const { addToCart, setIsCartOpen } = useCart();
 
-  if (!food) return null;
-
   const [selectedVariant, setSelectedVariant] = useState<FoodVariant | undefined>(
-    food.variants.length > 0 ? food.variants[0] : undefined
+    food && food.variants && food.variants.length > 0 ? food.variants[0] : undefined
   );
   const [selectedAddons, setSelectedAddons] = useState<FoodAddon[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [specialNotes, setSpecialNotes] = useState('');
+
+  // Product Reviews State
+  const [productReviews, setProductReviews] = useState<CustomerReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [isWritingReview, setIsWritingReview] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [reviewAuthorName, setReviewAuthorName] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (food) {
+      setSelectedVariant(food.variants && food.variants.length > 0 ? food.variants[0] : undefined);
+      setSelectedAddons([]);
+      setQuantity(1);
+      setSpecialNotes('');
+      setIsWritingReview(false);
+      setNewComment('');
+      setReviewNotice(null);
+
+      // Fetch reviews specifically for this food
+      setLoadingReviews(true);
+      api.getReviews(false, food.id)
+        .then(res => setProductReviews(res))
+        .catch(() => setProductReviews([]))
+        .finally(() => setLoadingReviews(false));
+    }
+  }, [food]);
+
+  useEffect(() => {
+    if (currentUser?.name) {
+      setReviewAuthorName(currentUser.name);
+    }
+  }, [currentUser]);
+
+  if (!food) return null;
 
   const toggleAddon = (addon: FoodAddon) => {
     setSelectedAddons(prev =>
@@ -29,6 +73,40 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ food, onClose,
     );
   };
 
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
+    if (!newComment.trim()) return;
+
+    setIsSubmittingReview(true);
+    try {
+      const added = await api.submitReview({
+        customerId: currentUser.id,
+        customerDisplayName: reviewAuthorName.trim() || currentUser.name,
+        customerName: reviewAuthorName.trim() || currentUser.name,
+        customerEmail: currentUser.email,
+        productId: food.id,
+        foodId: food.id,
+        foodNameBn: food.nameBn,
+        rating: newRating,
+        comment: newComment.trim(),
+      });
+      setProductReviews(prev => [added, ...prev]);
+      setNewComment('');
+      setIsWritingReview(false);
+      setReviewNotice('আপনার মূল্যবান রিভিউ সফলভাবে প্রকাশিত হয়েছে!');
+      setTimeout(() => setReviewNotice(null), 4000);
+    } catch (err) {
+      console.error(err);
+      setReviewNotice('রিভিউ পাঠাতে ত্রুটি হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   const basePrice = food.salePrice !== undefined ? food.salePrice : food.price;
   const variantExtra = selectedVariant?.additionalPrice || 0;
   const addonsExtra = selectedAddons.reduce((sum, a) => sum + a.price, 0);
@@ -36,6 +114,12 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({ food, onClose,
   const totalPrice = unitPrice * quantity;
 
   const handleAddToCart = (openDrawer = false) => {
+    if (!currentUser) {
+      if (onRequireLogin) {
+        onRequireLogin();
+      }
+      return;
+    }
     addToCart(food, quantity, selectedVariant, selectedAddons, specialNotes.trim() || undefined);
     if (openDrawer) {
       setIsCartOpen(true);

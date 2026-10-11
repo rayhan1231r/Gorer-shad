@@ -18,7 +18,7 @@ import {
   Banknote
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext.tsx';
-import { BusinessConfig, Order, PaymentMethod, PaymentMethodConfig, DeliveryZone } from '../../types/index.ts';
+import { BusinessConfig, Order, PaymentMethod, PaymentMethodConfig, DeliveryZone, AppUser } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
 import { BD_DIVISIONS, BD_DISTRICTS, District } from '../../data/bangladeshLocations.ts';
 
@@ -26,9 +26,17 @@ interface CheckoutPageProps {
   config: BusinessConfig;
   onBackToMenu: () => void;
   onOrderSuccess: (order: Order) => void;
+  currentUser?: AppUser | null;
+  onRequireLogin?: () => void;
 }
 
-export const CheckoutPage: React.FC<CheckoutPageProps> = ({ config, onBackToMenu, onOrderSuccess }) => {
+export const CheckoutPage: React.FC<CheckoutPageProps> = ({
+  config,
+  onBackToMenu,
+  onOrderSuccess,
+  currentUser,
+  onRequireLogin
+}) => {
   const {
     cart,
     subtotal,
@@ -133,6 +141,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ config, onBackToMenu
     e.preventDefault();
     setErrorMsg(null);
 
+    // Login validation
+    if (!currentUser) {
+      setErrorMsg('অর্ডার নিশ্চিত করতে অনুগ্রহ করে প্রথমে আপনার অ্যাকাউন্টে লগইন করুন।');
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
+
     // Validation
     if (!customerName.trim()) {
       setErrorMsg('অনুগ্রহ করে আপনার পুরো নাম লিখুন।');
@@ -228,6 +243,28 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ config, onBackToMenu
             <span>নিরাপদ চেকআউট • ঘরের স্বাদ</span>
           </div>
         </div>
+
+        {/* Require Login Banner if not logged in */}
+        {!currentUser && (
+          <div className="mb-6 bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-amber-100 text-amber-700 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-amber-900 text-sm">অর্ডার সম্পন্ন করতে লগইন প্রয়োজন</h4>
+                <p className="text-amber-800 mt-0.5">খাবারের অর্ডার নিশ্চিত করতে আপনার অ্যাকাউন্টে লগইন করুন বা নতুন একাউন্ট খুলুন।</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onRequireLogin}
+              className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl transition-colors cursor-pointer shrink-0 shadow-xs"
+            >
+              এখনই লগইন করুন
+            </button>
+          </div>
+        )}
 
         {/* Nationwide Bangladesh Delivery Notice Banner */}
         <div className="mb-6 bg-white border border-emerald-200 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start gap-4">
@@ -662,6 +699,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ config, onBackToMenu
               >
                 {isSubmitting ? (
                   <span>অর্ডার প্রসেস হচ্ছে...</span>
+                ) : !currentUser ? (
+                  <>
+                    <AlertCircle className="w-5 h-5" />
+                    <span>লগইন করে অর্ডার সম্পন্ন করুন (৳{total})</span>
+                  </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5" />

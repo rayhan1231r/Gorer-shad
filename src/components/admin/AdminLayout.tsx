@@ -48,6 +48,7 @@ import { CustomerManagement } from './CustomerManagement.tsx';
 import { FinanceReports } from './FinanceReports.tsx';
 import { SettingsManagement } from './SettingsManagement.tsx';
 import { SmtpSettings } from './SmtpSettings.tsx';
+import { ReviewManagement } from './ReviewManagement.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AdminLayoutProps {
@@ -190,6 +191,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       labelBn: 'আর্থিক হিসাব ও খরচ',
       labelEn: 'Finance & Expenses',
       icon: DollarSign
+    },
+    {
+      id: 'reviews',
+      labelBn: 'গ্রাহক রিভিউ ও রেটিং',
+      labelEn: 'Reviews & Ratings',
+      icon: MessageSquare
     },
     {
       id: 'smtp',
@@ -500,6 +507,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               summary={financialSummary}
               expenses={expenses}
               onRefreshData={fetchAllData}
+            />
+          )}
+
+          {activeTab === 'reviews' && (
+            <ReviewManagement
+              onRefreshStats={fetchAllData}
             />
           )}
 

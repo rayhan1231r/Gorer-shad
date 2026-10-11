@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { useCart } from '../../context/CartContext.tsx';
-import { DeliveryZone } from '../../types/index.ts';
+import { DeliveryZone, AppUser } from '../../types/index.ts';
 
 interface CartDrawerProps {
   onProceedToCheckout: () => void;
+  currentUser?: AppUser | null;
+  onRequireLogin?: () => void;
 }
 
-export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) => {
+export const CartDrawer: React.FC<CartDrawerProps> = ({
+  onProceedToCheckout,
+  currentUser,
+  onRequireLogin
+}) => {
   const {
     cart,
     isCartOpen,
@@ -274,12 +280,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
             {/* Checkout Action Button */}
             <button
               onClick={() => {
+                if (!currentUser) {
+                  setIsCartOpen(false);
+                  if (onRequireLogin) onRequireLogin();
+                  return;
+                }
                 setIsCartOpen(false);
                 onProceedToCheckout();
               }}
-              className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
+              className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
             >
-              <span>চেকআউট ও ঠিকানা দিন</span>
+              <span>{currentUser ? 'চেকআউট ও ঠিকানা দিন' : 'লগইন করে অর্ডার করুন'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

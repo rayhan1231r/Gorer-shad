@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import {
+import type {
   BusinessConfig,
   Category,
   FoodItem,
@@ -79,7 +79,7 @@ const DEFAULT_SMTP_CONFIG: SmtpConfig = {
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number(process.env.SMTP_PORT) || 587,
   user: process.env.SMTP_USER || "rmartbdltd@gmail.com",
-  pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "dcru jgid udnh aeel",
+  pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "",
   security: "STARTTLS",
   senderEmail: process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com",
   senderName: "R-Mart / ঘরের স্বাদ",
@@ -775,7 +775,101 @@ class DatabaseStore {
       this.data.users[rmartEmail].role = 'admin';
       this.data.users[rmartEmail].id = rmartUid;
     }
+    // Current AI Studio Admin User (proxy6726@gmail.com)
+    const currentAdminEmail = "proxy6726@gmail.com";
+    if (!this.data.users[currentAdminEmail]) {
+      this.data.users[currentAdminEmail] = {
+        id: "usr-admin-proxy",
+        name: "Admin User",
+        email: currentAdminEmail,
+        phone: "01857-220603",
+        role: "admin",
+        isEmailVerified: true,
+        provider: "google",
+        createdAt: new Date().toISOString(),
+        addresses: ["আড়াইহাজার, ঢাকা"],
+        passwordHash: hashPassword("ghorer2026")
+      };
+    } else {
+      this.data.users[currentAdminEmail].role = 'admin';
+    }
+
+    // Brand email: ghorershad.arai@gmail.com
+    const brandAdminEmail = "ghorershad.arai@gmail.com";
+    if (!this.data.users[brandAdminEmail]) {
+      this.data.users[brandAdminEmail] = {
+        id: "usr-admin-brand",
+        name: "Ghorer Shad Admin",
+        email: brandAdminEmail,
+        phone: "01857-220603",
+        role: "admin",
+        isEmailVerified: true,
+        provider: "google",
+        createdAt: new Date().toISOString(),
+        addresses: ["আড়াইহাজার, ঢাকা"],
+        passwordHash: hashPassword("ghorer2026")
+      };
+    } else {
+      this.data.users[brandAdminEmail].role = 'admin';
+    }
+
     this.saveData();
+  }
+
+  public isSystemAdmin(email?: string, uid?: string): boolean {
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const envAdminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
+    const viteAdminEmail = (process.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim();
+    const configAdminEmail = (this.data.config?.email || '').toLowerCase().trim();
+    const envAdminUid = (process.env.ADMIN_UID || '').trim();
+    const viteAdminUid = (process.env.VITE_ADMIN_UID || '').trim();
+
+    const adminEmails = [
+      'proxy6726@gmail.com',
+      'rmartbdltd@gmail.com',
+      'ghorershad.arai@gmail.com',
+      'joynob.kakoly@ghorershad.com',
+      'rayhanahamad50@gmail.com',
+      'ahmedskkawsar43@gmail.com',
+      envAdminEmail,
+      viteAdminEmail,
+      configAdminEmail
+    ].filter(Boolean);
+
+    if (cleanEmail && adminEmails.includes(cleanEmail)) {
+      return true;
+    }
+
+    const adminUids = [
+      'qEaFZDzP02O7kyUVpHNfM7FiZmz1',
+      'usr-admin-1',
+      'usr-admin-owner',
+      'usr-admin-kawsar',
+      'usr-admin-proxy',
+      'usr-admin-brand',
+      envAdminUid,
+      viteAdminUid
+    ].filter(Boolean);
+
+    if (uid && adminUids.includes(uid.trim())) {
+      return true;
+    }
+
+    if (cleanEmail && this.data.users[cleanEmail]?.role === 'admin') {
+      return true;
+    }
+
+    return false;
+  }
+
+  public isVerifiedPurchase(customerId?: string, customerEmail?: string, foodId?: string): boolean {
+    if (!foodId) return false;
+    const cleanEmail = (customerEmail || '').toLowerCase().trim();
+    return (this.data.orders || []).some(o =>
+      ((customerId && o.customerId === customerId) || (cleanEmail && o.customerEmail?.toLowerCase().trim() === cleanEmail)) &&
+      (o.orderStatus === 'delivered' || o.orderStatus === 'accepted' || o.orderStatus === 'preparing' || o.orderStatus === 'ready' || o.orderStatus === 'placed') &&
+      o.items.some(item => item.foodId === foodId)
+    );
   }
 
   public saveData(dataToSave?: DatabaseSchema) {
@@ -900,6 +994,138 @@ class DatabaseStore {
     return { success: true, otp: newOtp, message: 'নতুন ওটিপি কোড পাঠানো হয়েছে।' };
   }
 
+  public createPendingForgotOtp(email: string): {
+    success: boolean;
+    message?: string;
+    name?: string;
+    otp?: string;
+    cooldownSeconds?: number;
+  } {
+    const cleanEmail = email.toLowerCase().trim();
+    const user = this.data.users[cleanEmail];
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'এই ইমেইল ঠিকানা দিয়ে কোনো নিবন্ধিত অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে সঠিক ইমেইল দিন বা নতুন অ্যাকাউন্ট তৈরি করুন।'
+      };
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expirationMinutes = this.data.smtpConfig.otpExpirationMinutes || 5;
+    const cooldownSeconds = this.data.smtpConfig.otpResendCooldownSeconds || 60;
+    const maxAttempts = this.data.smtpConfig.maxVerificationAttempts || 5;
+
+    const record: PendingOtp = {
+      email: cleanEmail,
+      name: user.name || 'গ্রাহক',
+      passwordHash: user.passwordHash || '',
+      otp,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + expirationMinutes * 60 * 1000,
+      attempts: 0,
+      maxAttempts,
+      lastSentAt: Date.now(),
+      purpose: 'reset_password'
+    };
+
+    this.pendingOtps.set(cleanEmail, record);
+    return { success: true, name: user.name, otp, cooldownSeconds };
+  }
+
+  public resendForgotOtp(email: string): { success: boolean; otp?: string; message: string; cooldownRemaining?: number } {
+    const cleanEmail = email.toLowerCase().trim();
+    const record = this.pendingOtps.get(cleanEmail);
+
+    if (!record || record.purpose !== 'reset_password') {
+      return { success: false, message: 'পাসওয়ার্ড রিসেটের কোনো সক্রিয় অনুরোধ পাওয়া যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।' };
+    }
+
+    const cooldown = (this.data.smtpConfig.otpResendCooldownSeconds || 60) * 1000;
+    const elapsed = Date.now() - record.lastSentAt;
+
+    if (elapsed < cooldown) {
+      const waitSeconds = Math.ceil((cooldown - elapsed) / 1000);
+      return {
+        success: false,
+        message: `অনুগ্রহ করে আরও ${waitSeconds} সেকেন্ড পর পুনরায় ওটিপি পাঠানোর চেষ্টা করুন।`,
+        cooldownRemaining: waitSeconds
+      };
+    }
+
+    const newOtp = crypto.randomInt(100000, 999999).toString();
+    record.otp = newOtp;
+    record.lastSentAt = Date.now();
+    record.expiresAt = Date.now() + (this.data.smtpConfig.otpExpirationMinutes || 5) * 60 * 1000;
+    record.attempts = 0;
+
+    return { success: true, otp: newOtp, message: 'নতুন পাসওয়ার্ড রিসেট ওটিপি কোড পাঠানো হয়েছে।' };
+  }
+
+  public verifyAndResetPassword(
+    email: string,
+    submittedOtp: string,
+    newPasswordPlain: string
+  ): { success: boolean; message: string; user?: AppUser; token?: string } {
+    const cleanEmail = email.toLowerCase().trim();
+    const record = this.pendingOtps.get(cleanEmail);
+
+    if (!record || record.purpose !== 'reset_password') {
+      return { success: false, message: 'পাসওয়ার্ড রিসেট সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে নতুন করে চেষ্টা করুন।' };
+    }
+
+    if (Date.now() > record.expiresAt) {
+      this.pendingOtps.delete(cleanEmail);
+      return { success: false, message: 'ওটিপির নির্ধারিত সময় অতিবাহিত হয়েছে। অনুগ্রহ করে নতুন কোড পাঠান।' };
+    }
+
+    record.attempts += 1;
+
+    if (record.attempts > record.maxAttempts) {
+      this.pendingOtps.delete(cleanEmail);
+      return { success: false, message: 'সর্বোচ্চ প্রচেষ্টার সীমা অতিক্রান্ত হয়েছে। পুনরায় চেষ্টা করুন।' };
+    }
+
+    if (record.otp !== submittedOtp.trim()) {
+      const remaining = record.maxAttempts - record.attempts;
+      return {
+        success: false,
+        message: `ভুল ওটিপি কোড! আর ${remaining} বার চেষ্টা করতে পারবেন।`
+      };
+    }
+
+    const user = this.data.users[cleanEmail];
+    if (!user) {
+      this.pendingOtps.delete(cleanEmail);
+      return { success: false, message: 'ব্যবহারকারীর তথ্য খুঁজে পাওয়া যায়নি।' };
+    }
+
+    user.passwordHash = hashPassword(newPasswordPlain);
+    user.isEmailVerified = true;
+    this.pendingOtps.delete(cleanEmail);
+    this.saveData();
+
+    const token = this.createSession(user.id, user.role, user.email);
+    this.logAction('USER_PASSWORD_RESET', `Password reset successfully for ${cleanEmail}`, user.name);
+
+    return {
+      success: true,
+      message: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে এবং আপনি লগইন হয়েছেন!',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        provider: user.provider,
+        createdAt: user.createdAt,
+        addresses: user.addresses || []
+      },
+      token
+    };
+  }
+
   public verifySignupOtp(email: string, submittedOtp: string): { success: boolean; message: string; user?: AppUser; token?: string } {
     const cleanEmail = email.toLowerCase().trim();
     const record = this.pendingOtps.get(cleanEmail);
@@ -931,11 +1157,12 @@ class DatabaseStore {
     // OTP Valid! Create user
     this.pendingOtps.delete(cleanEmail);
 
+    const isSysAdmin = this.isSystemAdmin(cleanEmail);
     const newUser: AppUser & { passwordHash?: string } = {
       id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: record.name,
       email: cleanEmail,
-      role: 'customer',
+      role: isSysAdmin ? 'admin' : 'customer',
       isEmailVerified: true,
       provider: 'email_otp',
       createdAt: new Date().toISOString(),
@@ -985,6 +1212,12 @@ class DatabaseStore {
       return { success: false, message: 'আপনার ইমেইল এখনও ভেরিফাই করা হয়নি। ওটিপি দিয়ে ভেরিফাই করুন।' };
     }
 
+    // Automatically elevate system admins to 'admin' role
+    if (this.isSystemAdmin(cleanEmail, user.id) && user.role !== 'admin') {
+      user.role = 'admin';
+      this.saveData();
+    }
+
     const token = this.createSession(user.id, user.role, user.email);
 
     return {
@@ -1009,19 +1242,12 @@ class DatabaseStore {
     const cleanEmail = googlePayload.email.toLowerCase().trim();
     let existing = this.data.users[cleanEmail];
 
-    const isSystemAdminEmail =
-      cleanEmail === "rmartbdltd@gmail.com" ||
-      cleanEmail === (process.env.ADMIN_EMAIL || "").toLowerCase().trim() ||
-      googlePayload.uid === "qEaFZDzP02O7kyUVpHNfM7FiZmz1" ||
-      googlePayload.uid === process.env.ADMIN_UID ||
-      cleanEmail === "ahmedskkawsar43@gmail.com" ||
-      cleanEmail === "rayhanahamad50@gmail.com" ||
-      cleanEmail === "joynob.kakoly@ghorershad.com";
+    const isSystemAdminEmail = this.isSystemAdmin(cleanEmail, googlePayload.uid);
 
     if (!existing) {
       existing = {
-        id: `usr-g-${googlePayload.uid.slice(0, 12)}`,
-        name: googlePayload.displayName || "Google User",
+        id: googlePayload.uid || `usr-g-${Date.now()}`,
+        name: googlePayload.displayName || (isSystemAdminEmail ? "Admin User" : "Google User"),
         email: cleanEmail,
         role: isSystemAdminEmail ? "admin" : "customer",
         isEmailVerified: true,
@@ -1116,17 +1342,26 @@ class DatabaseStore {
   }
 
   public addReview(reviewData: Partial<CustomerReview>): CustomerReview {
+    const foodOrProductId = reviewData.productId || reviewData.foodId || '';
+    const isVerified = this.isVerifiedPurchase(reviewData.customerId, reviewData.customerEmail, foodOrProductId) || Boolean(reviewData.isVerifiedPurchase);
+    const now = new Date().toISOString();
+
     const newRev: CustomerReview = {
       id: `rev-${Date.now()}`,
-      customerName: reviewData.customerName || 'গ্রাহক',
+      customerId: reviewData.customerId || '',
+      customerDisplayName: reviewData.customerDisplayName || reviewData.customerName || 'সম্মানিত ক্রেতা',
+      customerName: reviewData.customerDisplayName || reviewData.customerName || 'সম্মানিত ক্রেতা',
       customerEmail: reviewData.customerEmail,
-      foodId: reviewData.foodId,
+      productId: foodOrProductId,
+      foodId: foodOrProductId,
       foodNameBn: reviewData.foodNameBn,
-      rating: Math.min(5, Math.max(1, reviewData.rating || 5)),
-      comment: reviewData.comment || '',
-      createdAt: new Date().toISOString(),
-      isApproved: true, // Auto-approve clean reviews
-      isVerifiedPurchase: Boolean(reviewData.isVerifiedPurchase)
+      rating: Math.min(5, Math.max(1, Number(reviewData.rating) || 5)),
+      comment: String(reviewData.comment || '').trim(),
+      createdAt: now,
+      updatedAt: now,
+      isApproved: true, // Auto-approved
+      approvedStatus: 'approved',
+      isVerifiedPurchase: isVerified
     };
 
     if (!this.data.reviews) this.data.reviews = [];
@@ -1139,6 +1374,42 @@ class DatabaseStore {
     const rev = (this.data.reviews || []).find(r => r.id === id);
     if (rev) {
       rev.isApproved = !rev.isApproved;
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  public setReviewStatus(id: string, status: 'approved' | 'hidden' | 'pending'): boolean {
+    const rev = (this.data.reviews || []).find(r => r.id === id);
+    if (rev) {
+      rev.approvedStatus = status;
+      rev.isApproved = status === 'approved';
+      rev.updatedAt = new Date().toISOString();
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  public reportReview(id: string, reason = 'Reported by user'): boolean {
+    const rev = (this.data.reviews || []).find(r => r.id === id);
+    if (rev) {
+      rev.isReported = true;
+      rev.reportReason = reason;
+      rev.updatedAt = new Date().toISOString();
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  public resolveReport(id: string): boolean {
+    const rev = (this.data.reviews || []).find(r => r.id === id);
+    if (rev) {
+      rev.isReported = false;
+      rev.reportReason = undefined;
+      rev.updatedAt = new Date().toISOString();
       this.saveData();
       return true;
     }

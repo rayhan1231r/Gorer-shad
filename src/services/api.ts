@@ -149,6 +149,62 @@ export const api = {
     return data;
   },
 
+  async forgotPasswordRequest(email: string): Promise<{
+    success: boolean;
+    maskedEmail: string;
+    cooldownSeconds: number;
+    emailSent: boolean;
+    smtpConfigured: boolean;
+    debugNotice?: string;
+  }> {
+    const res = await fetch(`${API_BASE}/auth/forgot-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'পাসওয়ার্ড রিসেট ওটিপি পাঠাতে ব্যর্থ হয়েছে');
+    return data;
+  },
+
+  async forgotPasswordResend(email: string): Promise<{
+    success: boolean;
+    message: string;
+    debugNotice?: string;
+    cooldownRemaining?: number;
+  }> {
+    const res = await fetch(`${API_BASE}/auth/forgot-resend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে');
+    return data;
+  },
+
+  async forgotPasswordReset(payload: {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmPassword?: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    user?: AppUser;
+    token?: string;
+  }> {
+    const res = await fetch(`${API_BASE}/auth/forgot-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে');
+    if (data.token) setAuthToken(data.token);
+    return data;
+  },
+
   async login(email: string, password: string): Promise<{
     success: boolean;
     user?: AppUser;
@@ -196,8 +252,12 @@ export const api = {
   },
 
   // Customer Reviews
-  async getReviews(all = false): Promise<CustomerReview[]> {
-    const res = await fetch(`${API_BASE}/reviews${all ? '?all=true' : ''}`);
+  async getReviews(all = false, foodId?: string): Promise<CustomerReview[]> {
+    const params = new URLSearchParams();
+    if (all) params.append('all', 'true');
+    if (foodId) params.append('foodId', foodId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(`${API_BASE}/reviews${query}`);
     return res.json();
   },
   async submitReview(review: Partial<CustomerReview>): Promise<CustomerReview> {
@@ -211,6 +271,29 @@ export const api = {
   async approveReview(id: string): Promise<{ success: boolean }> {
     const res = await fetch(`${API_BASE}/reviews/${id}/approve`, {
       method: 'PATCH',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
+  async updateReviewStatus(id: string, status: 'approved' | 'hidden' | 'pending'): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/reviews/${id}/status`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ status }),
+    });
+    return res.json();
+  },
+  async reportReview(id: string, reason = 'Inappropriate content'): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/reviews/${id}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    return res.json();
+  },
+  async resolveReportReview(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${API_BASE}/reviews/${id}/resolve-report`, {
+      method: 'POST',
       headers: authHeaders(),
     });
     return res.json();

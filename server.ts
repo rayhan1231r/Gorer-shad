@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { db } from './server/store.ts';
@@ -92,7 +92,12 @@ app.post('/api/homepage', adminOnlyMiddleware, (req: Request, res: Response) => 
 // 2. Reviews & Moderation
 app.get('/api/reviews', (req: Request, res: Response) => {
   const showAll = req.query.all === 'true';
-  res.json(db.getReviews(!showAll));
+  const foodId = (req.query.foodId || req.query.productId) as string | undefined;
+  let reviews = db.getReviews(!showAll);
+  if (foodId) {
+    reviews = reviews.filter(r => r.foodId === foodId || r.productId === foodId);
+  }
+  res.json(reviews);
 });
 
 app.post('/api/reviews', (req: Request, res: Response) => {
@@ -106,6 +111,26 @@ app.post('/api/reviews', (req: Request, res: Response) => {
 
 app.patch('/api/reviews/:id/approve', adminOnlyMiddleware, (req: Request, res: Response) => {
   const ok = db.toggleApproveReview(req.params.id);
+  res.json({ success: ok });
+});
+
+app.patch('/api/reviews/:id/status', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const { status } = req.body;
+  if (!status || !['approved', 'hidden', 'pending'].includes(status)) {
+    return res.status(400).json({ error: 'Valid status required' });
+  }
+  const ok = db.setReviewStatus(req.params.id, status);
+  res.json({ success: ok });
+});
+
+app.post('/api/reviews/:id/report', (req: Request, res: Response) => {
+  const { reason } = req.body;
+  const ok = db.reportReview(req.params.id, reason);
+  res.json({ success: ok });
+});
+
+app.post('/api/reviews/:id/resolve-report', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const ok = db.resolveReport(req.params.id);
   res.json({ success: ok });
 });
 
@@ -250,6 +275,100 @@ app.post('/api/auth/resend-otp', async (req: Request, res: Response) => {
   }
 });
 
+// 4.1 Forgot Password & Email OTP Flow
+app.post('/api/auth/forgot-request', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'ইমেইল ঠিকানা প্রদান করুন।' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const result = db.createPendingForgotOtp(cleanEmail);
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+
+    const rawSmtp = db.getRawSmtpConfig();
+    let emailSent = false;
+    let emailError = '';
+
+    if (rawSmtp.isConfigured && rawSmtp.pass && result.otp) {
+      const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, result.name || 'গ্রাহক', result.otp, 'reset_password');
+      emailSent = mailRes.success;
+      if (!mailRes.success) emailError = mailRes.message || 'ইমেইল পাঠানো ব্যর্থ হয়েছে';
+    }
+
+    res.json({
+      success: true,
+      maskedEmail: maskEmail(cleanEmail),
+      cooldownSeconds: result.cooldownSeconds || 60,
+      emailSent,
+      smtpConfigured: rawSmtp.isConfigured,
+      debugNotice: !rawSmtp.isConfigured ? `[বিজ্ঞপ্তি] পাসওয়ার্ড রিসেট ওটিপি কোড: ${result.otp} (SMTP সেটআপ করলে সরাসরি ইমেইলে যাবে)` : undefined
+    });
+  } catch (err: unknown) {
+    console.error('Forgot password request error:', err);
+    res.status(500).json({ error: 'পাসওয়ার্ড রিসেট ওটিপি পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' });
+  }
+});
+
+app.post('/api/auth/forgot-resend', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'ইমেইল প্রদান করুন।' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const resend = db.resendForgotOtp(cleanEmail);
+    if (!resend.success) {
+      return res.status(400).json({ error: resend.message, cooldownRemaining: resend.cooldownRemaining });
+    }
+
+    const rawSmtp = db.getRawSmtpConfig();
+    if (rawSmtp.isConfigured && resend.otp) {
+      await smtpService.sendOtpEmail(rawSmtp, cleanEmail, 'গ্রাহক', resend.otp, 'reset_password');
+    }
+
+    res.json({
+      success: true,
+      message: resend.message,
+      debugNotice: !rawSmtp.isConfigured && resend.otp ? `[বিজ্ঞপ্তি] নতুন রিসেট ওটিপি: ${resend.otp}` : undefined
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।' });
+  }
+});
+
+app.post('/api/auth/forgot-reset', (req: Request, res: Response) => {
+  try {
+    const { email, otp, newPassword, confirmPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: 'ইমেইল, ওটিপি এবং নতুন পাসওয়ার্ড প্রদান করুন।' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।' });
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const result = db.verifyAndResetPassword(cleanEmail, otp, newPassword);
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+
+    res.json(result);
+  } catch (err: unknown) {
+    console.error('Password reset verify error:', err);
+    res.status(500).json({ error: 'পাসওয়ার্ড পরিবর্তন করতে সমস্যা হয়েছে।' });
+  }
+});
+
 app.post('/api/auth/login', (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -363,9 +482,16 @@ app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
     // Check system admin emails & verified Admin UIDs
     const envAdminEmail = (process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim();
     const envAdminUid = process.env.ADMIN_UID || 'qEaFZDzP02O7kyUVpHNfM7FiZmz1';
+    const viteAdminEmail = (process.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim();
+    const configAdminEmail = (db.getConfig().email || '').toLowerCase().trim();
+
     const isSystemAdminEmail =
+      cleanEmail === 'proxy6726@gmail.com' ||
+      cleanEmail === 'ghorershad.arai@gmail.com' ||
       cleanEmail === 'rmartbdltd@gmail.com' ||
       cleanEmail === envAdminEmail ||
+      cleanEmail === viteAdminEmail ||
+      cleanEmail === configAdminEmail ||
       uid === 'qEaFZDzP02O7kyUVpHNfM7FiZmz1' ||
       uid === envAdminUid ||
       cleanEmail === 'ahmedskkawsar43@gmail.com' ||
