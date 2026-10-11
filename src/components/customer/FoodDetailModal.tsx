@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Users, ShieldAlert, MessageCircle, ShoppingBag, Plus, Minus, Check, Star, ShieldCheck, Send, MessageSquare } from 'lucide-react';
+import { X, Clock, Users, MessageCircle, ShoppingBag, Plus, Minus, Star, ShieldCheck } from 'lucide-react';
 import { FoodItem, FoodVariant, FoodAddon, AppUser, CustomerReview } from '../../types/index.ts';
 import { useCart } from '../../context/CartContext.tsx';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 import { api } from '../../services/api.ts';
 
 interface FoodDetailModalProps {
@@ -20,6 +21,18 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   onRequireLogin
 }) => {
   const { addToCart, setIsCartOpen } = useCart();
+  const {
+    language,
+    t,
+    formatPrice,
+    getFoodTitle,
+    getFoodFullDesc,
+    getFoodPortion,
+    getFoodCategory,
+    getVariantTitle,
+    getAddonTitle,
+    getSpiceLevelText
+  } = useLanguage();
 
   const [selectedVariant, setSelectedVariant] = useState<FoodVariant | undefined>(
     food && food.variants && food.variants.length > 0 ? food.variants[0] : undefined
@@ -97,11 +110,19 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
       setProductReviews(prev => [added, ...prev]);
       setNewComment('');
       setIsWritingReview(false);
-      setReviewNotice('আপনার মূল্যবান রিভিউ সফলভাবে প্রকাশিত হয়েছে!');
+      setReviewNotice(
+        language === 'en'
+          ? 'Your review has been successfully submitted and published!'
+          : 'আপনার মূল্যবান রিভিউ সফলভাবে প্রকাশিত হয়েছে!'
+      );
       setTimeout(() => setReviewNotice(null), 4000);
     } catch (err) {
       console.error(err);
-      setReviewNotice('রিভিউ পাঠাতে ত্রুটি হয়েছে। আবার চেষ্টা করুন।');
+      setReviewNotice(
+        language === 'en'
+          ? 'Failed to submit review. Please try again.'
+          : 'রিভিউ পাঠাতে ত্রুটি হয়েছে। আবার চেষ্টা করুন।'
+      );
     } finally {
       setIsSubmittingReview(false);
     }
@@ -128,8 +149,16 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   };
 
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
+  const title = getFoodTitle(food);
+  const fullDesc = getFoodFullDesc(food);
+  const portion = getFoodPortion(food);
+  const categoryName = getFoodCategory(food);
+  const spiceText = getSpiceLevelText(food.spiceLevel);
+
   const waText = encodeURIComponent(
-    `আসসালামু আলাইকুম! ঘরের স্বাদ থেকে "${food.nameBn}" সম্পর্কে জানতে চাচ্ছি।`
+    language === 'en'
+      ? `Hello! I would like to order or inquire about "${title}" from Ghorer Shad.`
+      : `আসসালামু আলাইকুম! ঘরের স্বাদ থেকে "${title}" সম্পর্কে জানতে চাচ্ছি।`
   );
   const waUrl = `https://wa.me/${cleanPhone}?text=${waText}`;
 
@@ -139,8 +168,8 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 rounded-full shadow-md transition-colors"
-          aria-label="বন্ধ করুন"
+          className="absolute top-4 right-4 z-10 p-2 bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 rounded-full shadow-md transition-colors cursor-pointer"
+          aria-label={t('closeBtn')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -149,17 +178,17 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
         <div className="relative aspect-[16/9] w-full bg-slate-100">
           <img
             src={food.image}
-            alt={food.nameBn}
+            alt={title}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
           <div className="absolute bottom-3 left-4 flex items-center gap-2">
             <span className="bg-white/90 backdrop-blur-xs text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
-              {food.categoryNameBn}
+              {categoryName}
             </span>
             {food.isBestseller && (
               <span className="bg-amber-600 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
-                জনপ্রিয়
+                {language === 'en' ? 'Popular' : 'জনপ্রিয়'}
               </span>
             )}
           </div>
@@ -171,33 +200,36 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
-                {food.nameBn}
+                {title}
               </h2>
-              {food.nameEn && (
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {food.nameEn}
-                </p>
-              )}
               <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                  রান্নার সময়: {food.prepTimeMinutes} মিনিট
+                  {language === 'en' ? 'Cooking time:' : 'রান্নার সময়:'} {food.prepTimeMinutes} {language === 'en' ? 'mins' : 'মিনিট'}
                 </span>
                 <span aria-hidden="true">·</span>
                 <span className="flex items-center gap-1">
                   <Users className="w-3.5 h-3.5 text-emerald-600" />
-                  {food.portionBn}
+                  {portion}
                 </span>
+                {food.spiceLevel && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {language === 'en' ? `Spice: ${spiceText}` : `ঝাল: ${spiceText}`}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="text-right sm:self-center">
               <div className="text-2xl font-bold text-slate-900 tabular-nums">
-                ৳{unitPrice}
+                {formatPrice(unitPrice)}
               </div>
               {food.salePrice !== undefined && food.salePrice < food.price && (
                 <div className="text-xs text-slate-400 line-through tabular-nums">
-                  ৳{food.price}
+                  {formatPrice(food.price)}
                 </div>
               )}
             </div>
@@ -205,52 +237,42 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
 
           {/* Description */}
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              বিবরণ ও স্বাদ
-            </h4>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              {food.fullDescBn || food.shortDescBn}
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              {language === 'en' ? 'Description' : 'খাবারের বিবরণ'}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              {fullDesc}
             </p>
-            {food.ingredientsBn && (
-              <p className="text-xs text-slate-500 pt-1">
-                <span className="font-medium text-slate-700">উপকরণ: </span>
-                {food.ingredientsBn}
-              </p>
-            )}
           </div>
 
-          {/* Advance Preparation Notice */}
-          <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5 text-xs text-emerald-900 flex items-start gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold block mb-0.5">টাটকা রান্নার নিশ্চয়তা:</span>
-              এই খাবারটি আপনার অর্ডারের পর খাঁটি ঘরোয়া মশলায় তাজা রান্না করা হয়। অগ্রিম {food.advanceNoticeRequiredHours || 4} ঘন্টা আগে অর্ডার করতে অনুরোধ করা হচ্ছে।
-            </div>
-          </div>
-
-          {/* Selectable Variants */}
-          {food.variants.length > 0 && (
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                পছন্দের ভ্যারিয়েন্ট বেছে নিন
-              </h4>
+          {/* Variants Selection */}
+          {food.variants && food.variants.length > 0 && (
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                {language === 'en' ? 'Select Preferred Variant:' : 'পছন্দের ভ্যারিয়েন্ট বেছে নিন:'}
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {food.variants.map(variant => {
                   const isSelected = selectedVariant?.id === variant.id;
+                  const vName = getVariantTitle(variant);
                   return (
                     <button
                       key={variant.id}
                       type="button"
                       onClick={() => setSelectedVariant(variant)}
-                      className={`text-left p-3 rounded-lg border text-xs transition-colors flex items-center justify-between ${
+                      className={`p-3 rounded-xl border text-left flex items-center justify-between text-xs transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-emerald-600 bg-emerald-50/50 text-slate-900 font-semibold'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                          ? 'border-emerald-600 bg-emerald-50/60 text-emerald-900 font-semibold ring-1 ring-emerald-600'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
                       }`}
                     >
-                      <span className="truncate pr-2">{variant.nameBn}</span>
-                      <span className="shrink-0 text-slate-500 font-medium tabular-nums">
-                        {variant.additionalPrice > 0 ? `+৳${variant.additionalPrice}` : variant.additionalPrice < 0 ? `-৳${Math.abs(variant.additionalPrice)}` : 'মূল্য অন্তর্ভুক্ত'}
+                      <span>{vName}</span>
+                      <span className="text-slate-500 tabular-nums">
+                        {variant.additionalPrice > 0
+                          ? `+${formatPrice(variant.additionalPrice)}`
+                          : variant.additionalPrice < 0
+                          ? `-${formatPrice(Math.abs(variant.additionalPrice))}`
+                          : (language === 'en' ? 'Free' : 'ফ্রি')}
                       </span>
                     </button>
                   );
@@ -259,39 +281,36 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
             </div>
           )}
 
-          {/* Add-ons */}
-          {food.addons.length > 0 && (
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-                সাথে অতিরিক্ত যুক্ত করতে পারেন (ঐচ্ছিক)
-              </h4>
+          {/* Addons Selection */}
+          {food.addons && food.addons.length > 0 && (
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                {language === 'en' ? 'Add Extra Items (Optional):' : 'অতিরিক্ত পদ যোগ করুন (ঐচ্ছিক):'}
+              </label>
               <div className="space-y-2">
                 {food.addons.map(addon => {
                   const isChecked = selectedAddons.some(a => a.id === addon.id);
+                  const aName = getAddonTitle(addon);
                   return (
                     <label
                       key={addon.id}
-                      onClick={() => toggleAddon(addon)}
-                      className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                      className={`p-3 rounded-xl border flex items-center justify-between text-xs cursor-pointer transition-colors ${
                         isChecked
-                          ? 'border-emerald-600 bg-emerald-50/30 font-medium text-slate-900'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'border-emerald-600 bg-emerald-50/40 text-emerald-900 font-semibold'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                            isChecked
-                              ? 'bg-emerald-600 border-emerald-600 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}
-                        >
-                          {isChecked && <Check className="w-3 h-3" />}
-                        </div>
-                        <span>{addon.nameBn}</span>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleAddon(addon)}
+                          className="w-4 h-4 text-emerald-600 rounded-sm focus:ring-emerald-500 border-slate-300"
+                        />
+                        <span>{aName}</span>
                       </div>
-                      <span className="text-slate-500 tabular-nums font-semibold">
-                        +৳{addon.price}
+                      <span className="text-slate-700 font-medium tabular-nums">
+                        +{formatPrice(addon.price)}
                       </span>
                     </label>
                   );
@@ -300,84 +319,209 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
             </div>
           )}
 
-          {/* Special Instructions */}
+          {/* Special Cooking Notes */}
           <div className="space-y-2">
-            <label htmlFor="modal-notes" className="text-xs font-semibold text-slate-900 uppercase tracking-wider block">
-              রান্না সম্পর্কিত বিশেষ নির্দেশ (ঐচ্ছিক)
+            <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+              {language === 'en' ? 'Special Cooking Instructions (Optional):' : 'রান্নার বিশেষ অনুরোধ (ঐচ্ছিক):'}
             </label>
             <textarea
-              id="modal-notes"
-              rows={2}
               value={specialNotes}
-              onChange={(e) => setSpecialNotes(e.target.value)}
-              placeholder="যেমন: ঝাল কম রাখবেন, লবণ হালকা, তেল কম ইত্যাদি..."
-              className="w-full text-xs p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600 text-slate-800"
+              onChange={e => setSpecialNotes(e.target.value)}
+              placeholder={t('specialNotesPlaceholder')}
+              rows={2}
+              className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 text-slate-800"
             />
           </div>
-        </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Quantity Selector */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-medium text-slate-600">পরিমাণ:</span>
-            <div className="flex items-center border border-slate-200 rounded-lg bg-white">
-              <button
-                type="button"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="p-2 text-slate-600 hover:text-slate-900 disabled:opacity-40"
-                disabled={quantity <= 1}
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="px-3 text-sm font-semibold text-slate-900 tabular-nums">
-                {quantity}
+          {/* Quantity Selector & Main Cart Button */}
+          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold text-slate-600">
+                {language === 'en' ? 'Quantity:' : 'পরিমাণ:'}
               </span>
-              <button
-                type="button"
-                onClick={() => setQuantity(quantity + 1)}
-                className="p-2 text-slate-600 hover:text-slate-900"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center border border-slate-200 rounded-xl bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="p-2 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="px-4 text-sm font-bold text-slate-900 tabular-nums">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="p-2 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="text-right ml-2">
-              <span className="text-xs text-slate-500 block">মোট মূল্য:</span>
-              <span className="text-base font-bold text-slate-900 tabular-nums">
-                ৳{totalPrice}
-              </span>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => handleAddToCart(true)}
+                className="flex-1 sm:flex-none px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>
+                  {language === 'en'
+                    ? `Add to Bag • ${formatPrice(totalPrice)}`
+                    : `ব্যাগে যোগ করুন • ${formatPrice(totalPrice)}`}
+                </span>
+              </button>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          {/* WhatsApp Direct Inquiry Option */}
+          <div className="pt-2">
             <a
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 text-emerald-700 bg-white border border-emerald-200 hover:bg-emerald-50 rounded-lg transition-colors"
-              title="হোয়াটসঅ্যাপে জিজ্ঞাসা করুন"
+              className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-4 h-4 text-emerald-700" />
+              <span>{t('whatsappInquiryBtn')}</span>
             </a>
+          </div>
 
-            <button
-              onClick={() => handleAddToCart(false)}
-              disabled={!food.isAvailable}
-              className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>ব্যাগে যোগ</span>
-            </button>
+          {/* Customer Reviews Section */}
+          <div className="pt-6 border-t border-slate-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {t('reviewsHeading')}
+                </h3>
+                <span className="text-xs text-slate-500">
+                  {language === 'en'
+                    ? `${productReviews.length} Verified Reviews`
+                    : `${productReviews.length}টি যাচাইকৃত রিভিউ`}
+                </span>
+              </div>
 
-            <button
-              onClick={() => handleAddToCart(true)}
-              disabled={!food.isAvailable}
-              className="flex-1 sm:flex-initial px-5 py-2.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors shadow-xs"
-            >
-              এখনই অর্ডার
-            </button>
+              {!isWritingReview && (
+                <button
+                  onClick={() => {
+                    if (!currentUser) {
+                      if (onRequireLogin) onRequireLogin();
+                      return;
+                    }
+                    setIsWritingReview(true);
+                  }}
+                  className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  {t('writeReviewBtn')}
+                </button>
+              )}
+            </div>
+
+            {reviewNotice && (
+              <div className="p-3 text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-medium">
+                {reviewNotice}
+              </div>
+            )}
+
+            {isWritingReview && (
+              <form onSubmit={handleReviewSubmit} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-700">
+                    {language === 'en' ? 'Select Rating:' : 'রেটিং নির্বাচন করুন:'}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setNewRating(star)}
+                        className="p-1 cursor-pointer"
+                      >
+                        <Star
+                          className={`w-5 h-5 ${
+                            star <= newRating
+                              ? 'text-amber-500 fill-amber-500'
+                              : 'text-slate-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <textarea
+                    rows={3}
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    placeholder={t('reviewPlaceholder')}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-emerald-600 text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsWritingReview(false)}
+                    className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
+                  >
+                    {language === 'en' ? 'Cancel' : 'বাতিল'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReview}
+                    className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSubmittingReview ? (language === 'en' ? 'Publishing...' : 'প্রকাশ হচ্ছে...') : t('submitReviewBtn')}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Existing Reviews List */}
+            <div className="space-y-3">
+              {loadingReviews ? (
+                <div className="text-center py-6 text-xs text-slate-400">
+                  {language === 'en' ? 'Loading reviews...' : 'রিভিউ লোড হচ্ছে...'}
+                </div>
+              ) : productReviews.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400 bg-slate-50/60 rounded-xl p-4">
+                  {t('noReviewsYet')}
+                </div>
+              ) : (
+                productReviews.map(rev => (
+                  <div key={rev.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-900">{rev.customerName}</span>
+                        {rev.isVerifiedPurchase && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-100/70 px-1.5 py-0.2 rounded font-medium">
+                            <ShieldCheck className="w-3 h-3" />
+                            <span>{t('verifiedPurchase')}</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < rev.rating
+                                ? 'text-amber-500 fill-amber-500'
+                                : 'text-slate-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-slate-600 leading-relaxed">{rev.comment}</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

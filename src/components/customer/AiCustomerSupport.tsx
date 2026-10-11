@@ -1,17 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  MessageSquare,
   Sparkles,
   X,
   Send,
   Bot,
-  User,
   ChevronRight,
-  Phone,
   Clock,
-  MapPin,
-  UtensilsCrossed,
-  CheckCircle2,
   Minimize2,
   Maximize2
 } from 'lucide-react';
@@ -36,28 +30,44 @@ interface Message {
 export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
   config,
   onNavigate,
-  foods = []
 }) => {
   const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'model',
-      text: language === 'en'
-        ? `Hello! Welcome to ${config.brandNameEn}. I am your authentic Bengali food AI assistant. Ask me anything about our freshly cooked menu, 4-6 hours advance ordering rules, delivery zones, or event catering!`
-        : `আসসালামু আলাইকুম! ${config.brandNameBn}-এ আপনাকে স্বাগতম। আমি আপনার এআই সহকারী। আজকের তাজা মেনু, অগ্রিম অর্ডারের সময়সীমা, ডেলিভারি এলাকা কিংবা যেকোনো মেহমানদারির ক্যাটারিং সম্পর্কে যেকোনো প্রশ্ন করুন!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      suggestedActions: [
-        { label: '🍲 আজকের মেনু দেখুন', action: 'VIEW_MENU' },
-        { label: '⏰ অর্ডারের নিয়মাবলী', action: 'ASK_HOURS' },
-        { label: '🎉 মেহমানদারি ও ক্যাটারিং', action: 'CATERING' }
-      ]
-    }
-  ]);
+
+  const getInitialMessage = (lang: string): Message => ({
+    id: 'welcome',
+    role: 'model',
+    text: lang === 'en'
+      ? `Hello! Welcome to ${config.brandNameEn}. I am your authentic Bengali food AI assistant. Feel free to ask about our freshly cooked menu, 4-6 hours advance order guidelines, Araihazar delivery zones, or custom catering services!`
+      : `আসসালামু আলাইকুম! ${config.brandNameBn}-এ আপনাকে স্বাগতম। আমি আপনার এআই সহকারী। আজকের তাজা মেনু, অগ্রিম অর্ডারের সময়সীমা, ডেলিভারি এলাকা কিংবা যেকোনো মেহমানদারির ক্যাটারিং সম্পর্কে যেকোনো প্রশ্ন করুন!`,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    suggestedActions: lang === 'en'
+      ? [
+          { label: '🍲 View Today’s Menu', action: 'VIEW_MENU' },
+          { label: '⏰ Advance Order Rules', action: 'ASK_HOURS' },
+          { label: '🎉 Catering & Events', action: 'CATERING' }
+        ]
+      : [
+          { label: '🍲 আজকের মেনু দেখুন', action: 'VIEW_MENU' },
+          { label: '⏰ অর্ডারের নিয়মাবলী', action: 'ASK_HOURS' },
+          { label: '🎉 মেহমানদারি ও ক্যাটারিং', action: 'CATERING' }
+        ]
+  });
+
+  const [messages, setMessages] = useState<Message[]>([getInitialMessage(language)]);
+
+  // Reset initial welcome message if language changes and only welcome exists
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length <= 1 && prev[0]?.id === 'welcome') {
+        return [getInitialMessage(language)];
+      }
+      return prev;
+    });
+  }, [language]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,13 +122,18 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
         id: `err-${Date.now()}`,
         role: 'model',
         text: language === 'en'
-          ? `Sorry for the delay! For urgent assistance or fast ordering, please call our hotline directly at ${config.phone} or chat on WhatsApp.`
+          ? `Apologies for the delay! For urgent assistance or fast ordering, please call our hotline directly at ${config.phone} or chat with us on WhatsApp.`
           : `আন্তরিকভাবে দুঃখিত! নেটওয়ার্ক সংযোগে কিছুটা বিলম্ব হচ্ছে। যেকোনো জরুরি প্রশ্ন বা দ্রুত খাবারের জন্য আমাদের কল করুন: ${config.phone} অথবা হোয়াটসঅ্যাপে যোগাযোগ করুন।`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestedActions: [
-          { label: '💬 হোয়াটসঅ্যাপে কথা বলুন', action: 'WHATSAPP' },
-          { label: '🍲 মেনু দেখুন', action: 'VIEW_MENU' }
-        ]
+        suggestedActions: language === 'en'
+          ? [
+              { label: '💬 Chat on WhatsApp', action: 'WHATSAPP' },
+              { label: '🍲 View Menu', action: 'VIEW_MENU' }
+            ]
+          : [
+              { label: '💬 হোয়াটসঅ্যাপে কথা বলুন', action: 'WHATSAPP' },
+              { label: '🍲 মেনু দেখুন', action: 'VIEW_MENU' }
+            ]
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -140,28 +155,46 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
         onNavigate('catering');
         setIsOpen(false);
         break;
-      case 'WHATSAPP':
+      case 'WHATSAPP': {
         const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent('আসসালামু আলাইকুম, ঘরের স্বাদ খাবার অর্ডার সংক্রান্ত তথ্য জানতে চাই।')}`, '_blank');
+        const msg = language === 'en'
+          ? 'Hello, I would like to inquire about ordering food from Ghorer Shad.'
+          : 'আসসালামু আলাইকুম, ঘরের স্বাদ খাবার অর্ডার সংক্রান্ত তথ্য জানতে চাই।';
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         break;
+      }
       case 'CALL':
         window.location.href = `tel:${config.phone.replace(/[^0-9]/g, '')}`;
         break;
       case 'ASK_HOURS':
-        handleSendMessage('খাবার অর্ডারের কতক্ষণ আগে জানাতে হয় এবং ডেলিভারির নিয়ম কি?');
+        handleSendMessage(
+          language === 'en'
+            ? 'How many hours in advance should orders be placed, and what are the delivery guidelines?'
+            : 'খাবার অর্ডারের কতক্ষণ আগে জানাতে হয় এবং ডেলিভারির নিয়ম কি?'
+        );
         break;
       default:
         break;
     }
   };
 
-  const quickPrompts = [
-    { label: '🍲 আজকের স্পেশাল মেনু কি?', query: 'আজকে কি কি স্পেশাল খাবার পাওয়া যাবে এবং দাম কত?' },
-    { label: '⏰ কতক্ষণ আগে অর্ডার দিতে হয়?', query: 'খাবার পাওয়ার জন্য কতক্ষণ আগে অগ্রিম অর্ডার দিতে হবে?' },
-    { label: '🚚 আড়াইহাজারে ডেলিভারি চার্জ কত?', query: 'আড়াইহাজার ও আশপাশের এলাকায় ডেলিভারি চার্জ কত এবং কতক্ষণ সময় লাগে?' },
-    { label: '🎉 মেহমানদারি ও ক্যাটারিং প্যাকেজ', query: 'পারিবারিক অনুষ্ঠান বা মেহমানদারির জন্য কি কি ক্যাটারিং প্যাকেজ আছে?' },
-    { label: '💳 বিকাশ বা নগদে পেমেন্ট', query: 'বিকাশ অথবা নগদে পেমেন্ট করার নিয়ম কি?' }
-  ];
+  const quickPrompts = language === 'en'
+    ? [
+        { label: '🍲 Today’s Special Menu', query: 'What special authentic dishes are available today and what are their prices?' },
+        { label: '⏰ Advance Notice Hours', query: 'How many hours in advance should I place an order for freshly prepared food?' },
+        { label: '🚚 Araihazar Delivery Fee', query: 'What are the delivery charges and delivery times across Araihazar?' },
+        { label: '🎉 Catering Packages', query: 'What catering and family feast packages do you offer?' },
+        { label: '💳 Payment via bKash / Nagad', query: 'How can I pay via bKash, Nagad or Cash on Delivery?' }
+      ]
+    : [
+        { label: '🍲 আজকের স্পেশাল মেনু কি?', query: 'আজকে কি কি স্পেশাল খাবার পাওয়া যাবে এবং দাম কত?' },
+        { label: '⏰ কতক্ষণ আগে অর্ডার দিতে হয়?', query: 'খাবার পাওয়ার জন্য কতক্ষণ আগে অগ্রিম অর্ডার দিতে হবে?' },
+        { label: '🚚 আড়াইহাজারে ডেলিভারি চার্জ কত?', query: 'আড়াইহাজার ও আশপাশের এলাকায় ডেলিভারি চার্জ কত এবং কতক্ষণ সময় লাগে?' },
+        { label: '🎉 মেহমানদারি ও ক্যাটারিং প্যাকেজ', query: 'পারিবারিক অনুষ্ঠান বা মেহমানদারির জন্য কি কি ক্যাটারিং প্যাকেজ আছে?' },
+        { label: '💳 বিকাশ বা নগদে পেমেন্ট', query: 'বিকাশ অথবা নগদে পেমেন্ট করার নিয়ম কি?' }
+      ];
+
+  const brandName = language === 'en' ? config.brandNameEn : config.brandNameBn;
 
   return (
     <div className="fixed bottom-5 right-5 z-40 text-left font-sans print:hidden">
@@ -170,7 +203,7 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
         <button
           onClick={() => setIsOpen(true)}
           className="group relative flex items-center gap-3 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white pl-4 pr-5 py-3.5 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-emerald-400/40 cursor-pointer"
-          aria-label="ঘরের স্বাদ এআই সহকারী খুলুন"
+          aria-label={language === 'en' ? 'Open Ghorer Shad AI Support' : 'ঘরের স্বাদ এআই সহকারী খুলুন'}
         >
           {/* Pulsing indicator */}
           <span className="relative flex h-3 w-3">
@@ -184,11 +217,13 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-bold leading-tight flex items-center gap-1">
-                <span>{config.brandNameBn} এআই</span>
-                <span className="bg-amber-400 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-extrabold uppercase">সহায়িকা</span>
+                <span>{language === 'en' ? `${brandName} AI` : `${brandName} এআই`}</span>
+                <span className="bg-amber-400 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-extrabold uppercase">
+                  {language === 'en' ? 'Assistant' : 'সহায়িকা'}
+                </span>
               </span>
               <span className="text-[10px] text-emerald-100 font-medium leading-none mt-0.5">
-                {language === 'en' ? 'Authentic Food AI Support' : 'খাবার ও অর্ডারের প্রশ্ন করুন'}
+                {language === 'en' ? 'Instant Food & Order Guide' : 'খাবার ও অর্ডারের প্রশ্ন করুন'}
               </span>
             </div>
           </div>
@@ -215,13 +250,13 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-sm leading-tight flex items-center gap-1.5">
-                  <span>{config.brandNameBn} এআই সহায়িকা</span>
+                  <span>{language === 'en' ? `${brandName} AI Assistant` : `${brandName} এআই সহায়িকা`}</span>
                   <span className="text-[10px] bg-emerald-500/30 text-emerald-100 px-1.5 py-0.2 rounded font-semibold border border-emerald-400/30">
                     Live
                   </span>
                 </h3>
                 <p className="text-[10px] text-emerald-100/90 leading-tight">
-                  {language === 'en' ? 'Instant Bengali Food & Order Guide' : 'খাঁটি বাঙালি খাবার ও অর্ডারের তাৎক্ষণিক উত্তর'}
+                  {language === 'en' ? 'Instant Food & Order Assistant' : 'খাঁটি বাঙালি খাবার ও অর্ডারের তাৎক্ষণিক উত্তর'}
                 </p>
               </div>
             </div>
@@ -229,15 +264,15 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
             <div className="flex items-center gap-1 text-emerald-100">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 hover:bg-white/15 rounded-lg transition-colors"
-                title={isMinimized ? 'বড় করুন' : 'মিনিমাইজ করুন'}
+                className="p-1.5 hover:bg-white/15 rounded-lg transition-colors cursor-pointer"
+                title={isMinimized ? (language === 'en' ? 'Maximize' : 'বড় করুন') : (language === 'en' ? 'Minimize' : 'মিনিমাইজ করুন')}
               >
                 {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:bg-white/15 rounded-lg transition-colors"
-                title="বন্ধ করুন"
+                className="p-1.5 hover:bg-white/15 rounded-lg transition-colors cursor-pointer"
+                title={language === 'en' ? 'Close' : 'বন্ধ করুন'}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -252,9 +287,13 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                 <div className="bg-emerald-50 border border-emerald-100/80 rounded-2xl p-2.5 text-center text-[11px] text-emerald-900 leading-relaxed shadow-2xs">
                   <div className="flex items-center justify-center gap-1 font-bold mb-0.5 text-emerald-800">
                     <Clock className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>অগ্রিম অর্ডারের নিশ্চয়তা</span>
+                    <span>{language === 'en' ? 'Advance Order Guarantee' : 'অগ্রিম অর্ডারের নিশ্চয়তা'}</span>
                   </div>
-                  <span>খাবারের টাটকা স্বাদ বজায় রাখতে প্রতিটি পদ ৪-৬ ঘণ্টা পূর্বে ফ্রেশ রান্না করা হয়।</span>
+                  <span>
+                    {language === 'en'
+                      ? 'Every dish is cooked fresh 4-6 hours in advance after your order is placed.'
+                      : 'খাবারের টাটকা স্বাদ বজায় রাখতে প্রতিটি পদ ৪-৬ ঘণ্টা পূর্বে ফ্রেশ রান্না করা হয়।'}
+                  </span>
                 </div>
 
                 {messages.map(msg => (
@@ -283,7 +322,7 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                           <button
                             key={i}
                             onClick={() => handleActionClick(act.action)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100/90 text-emerald-900 border border-emerald-200 hover:bg-emerald-200 active:scale-95 transition-all"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100/90 text-emerald-900 border border-emerald-200 hover:bg-emerald-200 active:scale-95 transition-all cursor-pointer"
                           >
                             <span>{act.label}</span>
                             <ChevronRight className="w-3 h-3 text-emerald-700" />
@@ -297,7 +336,7 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                 {isLoading && (
                   <div className="flex items-center gap-2 text-slate-400 text-xs bg-white px-3 py-2 rounded-2xl border border-slate-200/60 w-fit">
                     <Bot className="w-4 h-4 text-emerald-600 animate-bounce" />
-                    <span>ঘরের স্বাদ এআই ভাবছে...</span>
+                    <span>{language === 'en' ? `${brandName} AI is thinking...` : `${brandName} এআই ভাবছে...`}</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -310,7 +349,7 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                     key={idx}
                     onClick={() => handleSendMessage(q.query)}
                     disabled={isLoading}
-                    className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-600 border border-slate-200/60 transition-colors"
+                    className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-600 border border-slate-200/60 transition-colors cursor-pointer"
                   >
                     {q.label}
                   </button>
@@ -331,7 +370,11 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                     type="text"
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
-                    placeholder={language === 'en' ? 'Ask anything about menu, catering, delivery...' : 'মেনু, অগ্রিম অর্ডার বা ক্যাটারিং সম্পর্কে লিখুন...'}
+                    placeholder={
+                      language === 'en'
+                        ? 'Ask anything about menu, catering, delivery...'
+                        : 'মেনু, অগ্রিম অর্ডার বা ক্যাটারিং সম্পর্কে লিখুন...'
+                    }
                     className="flex-1 px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-slate-50/50 text-slate-900"
                     disabled={isLoading}
                   />
@@ -339,6 +382,7 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
                     type="submit"
                     disabled={!inputValue.trim() || isLoading}
                     className="p-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white rounded-xl transition-all shadow-xs flex items-center justify-center shrink-0 cursor-pointer"
+                    aria-label={language === 'en' ? 'Send message' : 'বার্তা পাঠান'}
                   >
                     <Send className="w-4 h-4" />
                   </button>

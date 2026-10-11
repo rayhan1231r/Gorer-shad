@@ -27,13 +27,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   className = '',
   imgClassName = '',
-  alt = 'ঘরের স্বাদ (Ghorer Shad) Logo',
+  alt,
   withText = false,
   textClassName = '',
   taglineClassName = '',
   language = 'bn'
 }) => {
   const dimensionClass = size !== 'custom' ? sizeMap[size] : '';
+  const defaultAlt = language === 'en' ? 'Ghorer Shad Logo' : 'ঘরের স্বাদ লোগো';
 
   const logoGraphic = (
     <div
@@ -41,12 +42,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     >
       <img
         src={logoImg}
-        alt={alt}
+        alt={alt || defaultAlt}
         className={`w-full h-full object-cover object-center select-none ${imgClassName}`}
         loading="eager"
         decoding="async"
         onError={(e) => {
-          // Graceful fallback if asset path shifts
           (e.target as HTMLImageElement).src = '/logo.jpg';
         }}
       />
@@ -73,7 +73,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             taglineClassName || 'text-slate-500'
           }`}
         >
-          {language === 'en' ? 'Authentic Homemade Taste' : 'সব স্বাদের এক ঠিকানা'}
+          {language === 'en' ? 'One destination for every authentic taste' : 'সব স্বাদের এক ঠিকানা'}
         </span>
       </div>
     </div>

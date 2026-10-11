@@ -12,7 +12,10 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
 
   if (variant === 'hero') {
     return (
-      <div className={`inline-flex items-center gap-1.5 p-1 bg-white/90 backdrop-blur-xs border border-slate-200/90 rounded-xl shadow-xs text-xs font-semibold ${className}`}>
+      <div
+        className={`inline-flex items-center gap-1.5 p-1 bg-white/90 backdrop-blur-xs border border-slate-200/90 rounded-xl shadow-xs text-xs font-semibold ${className}`}
+        aria-label={language === 'en' ? 'Language selection' : 'ভাষা নির্বাচন'}
+      >
         <Globe className="w-3.5 h-3.5 text-emerald-700 ml-1.5" />
         <button
           type="button"
@@ -22,6 +25,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
               ? 'bg-emerald-700 text-white shadow-2xs font-bold'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
+          title={language === 'en' ? 'Switch to Bengali' : 'বাংলা নির্বাচন করুন'}
         >
           বাংলা
         </button>
@@ -34,6 +38,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
               ? 'bg-emerald-700 text-white shadow-2xs font-bold'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
+          title={language === 'en' ? 'Switch to English' : 'ইংরেজি নির্বাচন করুন'}
         >
           English
         </button>
@@ -45,8 +50,8 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
   return (
     <div
       className={`inline-flex items-center p-0.5 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/80 rounded-lg text-xs font-semibold transition-colors ${className}`}
-      title="ভাষা পরিবর্তন করুন / Switch Language (বাংলা / English)"
-      aria-label="Language Switcher"
+      title={language === 'en' ? 'Switch language' : 'ভাষা পরিবর্তন করুন'}
+      aria-label={language === 'en' ? 'Language switcher' : 'ভাষা পরিবর্তন'}
     >
       <button
         type="button"
@@ -56,6 +61,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
             ? 'bg-emerald-700 text-white shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'
         }`}
+        title={language === 'en' ? 'Switch to Bengali' : 'বাংলা নির্বাচন করুন'}
       >
         বাংলা
       </button>
@@ -67,6 +73,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ variant = 'heade
             ? 'bg-emerald-700 text-white shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'
         }`}
+        title={language === 'en' ? 'Switch to English' : 'ইংরেজি নির্বাচন করুন'}
       >
         English
       </button>

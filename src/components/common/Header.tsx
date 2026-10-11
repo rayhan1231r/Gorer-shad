@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="bg-emerald-800 text-white text-xs py-1.5 px-4 font-medium transition-colors">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <p className="truncate text-emerald-50">
-              {config.announcementBarBn}
+              {t('announcementText')}
             </p>
             <div className="flex items-center gap-3 shrink-0 text-emerald-100 text-xs">
               <a
@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     onClick={onAdminClick}
                     className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-400 text-slate-900 hover:bg-amber-300 shadow-xs ring-1 ring-amber-300 transition-all cursor-pointer"
-                    title="অ্যাডমিন প্যানেল"
+                    title={language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
                   >
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-900" />
                     <span>{language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}</span>
@@ -97,6 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <BrandLogo
                 size="md"
+                language={language}
                 className="ring-2 ring-emerald-600/20 shadow-xs group-hover:scale-105 transition-transform"
                 alt={language === 'en' ? config.brandNameEn : config.brandNameBn}
               />
@@ -200,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg cursor-pointer"
-              aria-label="মেনু খুলুন"
+              aria-label={language === 'en' ? 'Toggle menu' : 'মেনু পরিবর্তন করুন'}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
             </button>
@@ -214,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
           <nav className="flex flex-col space-y-2">
             {/* Language selector prominently on mobile */}
             <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl mb-1">
-              <span className="text-xs font-semibold text-slate-700">Language / ভাষা:</span>
+              <span className="text-xs font-semibold text-slate-700">{language === 'en' ? 'Language:' : 'ভাষা পরিবর্তন:'}</span>
               <LanguageToggle variant="compact" />
             </div>
 
@@ -284,7 +285,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {config.phone}
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  {config.primaryLocation}
+                  {language === 'en' ? 'Araihazar, Dhaka' : config.primaryLocation}
                 </span>
               </div>
             </div>

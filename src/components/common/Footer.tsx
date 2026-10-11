@@ -52,7 +52,11 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{config.fullAddressBn}</span>
+                <span>
+                  {language === 'en'
+                    ? 'Araihazar Bazar Road, Araihazar, Narayanganj / Dhaka, Bangladesh'
+                    : config.fullAddressBn}
+                </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -68,12 +72,16 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  WhatsApp: {config.whatsapp}
+                  {language === 'en' ? 'WhatsApp:' : 'হোয়াটসঅ্যাপ:'} {config.whatsapp}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{config.openingHoursBn}</span>
+                <span>
+                  {language === 'en'
+                    ? '9:00 AM - 9:00 PM (Daily)'
+                    : config.openingHoursBn}
+                </span>
               </li>
             </ul>
           </div>
@@ -81,7 +89,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
           {/* Quick Links & Service Areas */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
-              {language === 'en' ? 'Quick Links' : 'প্রয়োজনীয় তথ্য'}
+              {language === 'en' ? 'Quick Links' : 'প্রয়োজনীয় লিংক'}
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
@@ -97,7 +105,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('catering')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Catering & Bulk Orders' : 'ক্যাটারিং ও বাল্ক অর্ডার'}
+                  {language === 'en' ? 'Catering & Bulk Orders' : 'ক্যাটারিং ও বড় আয়োজন'}
                 </button>
               </li>
               <li>
@@ -113,7 +121,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('faq')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Frequently Asked Questions' : 'সাধারণ জিজ্ঞাসা (FAQ)'}
+                  {language === 'en' ? 'Frequently Asked Questions' : 'সাধারণ জিজ্ঞাসা'}
                 </button>
               </li>
               <li>
@@ -121,7 +129,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('about')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Our Story & Mission' : 'আমাদের গল্প ও লক্ষ্য'}
+                  {language === 'en' ? 'Our Story & Mission' : 'আমাদের পরিচিতি ও লক্ষ্য'}
                 </button>
               </li>
             </ul>
@@ -130,7 +138,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
           {/* Delivery & Ordering Policy */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider">
-              {language === 'en' ? 'Policies & Terms' : 'পলিসি ও নিয়মাবলী'}
+              {language === 'en' ? 'Policies & Terms' : 'নীতিমালা ও শর্তাবলী'}
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
@@ -138,7 +146,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('delivery-policy')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Delivery Policy & Zones' : 'ডেলিভারি পলিসি ও এলাকা'}
+                  {language === 'en' ? 'Delivery Policy & Coverage' : 'ডেলিভারি নীতিমালা'}
                 </button>
               </li>
               <li>
@@ -146,7 +154,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('refund-policy')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Cancellation & Refund Policy' : 'বাতিল ও রিফান্ড নীতি'}
+                  {language === 'en' ? 'Cancellation & Refund Policy' : 'বাতিল ও রিফান্ড নীতিমালা'}
                 </button>
               </li>
               <li>
@@ -154,7 +162,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   onClick={() => onNavigate('privacy-policy')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  {language === 'en' ? 'Privacy Policy' : 'গোপনীয়তা নীতি (Privacy)'}
+                  {language === 'en' ? 'Privacy Policy' : 'গোপনীয়তা নীতিমালা'}
                 </button>
               </li>
               <li>
@@ -168,18 +176,22 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
             </ul>
             <div className="pt-2 text-xs text-slate-400 bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
               <span className="text-emerald-400 font-semibold block mb-1">
-                {language === 'en' ? 'Advance Order Policy:' : 'অগ্রিম অর্ডার পলিসি:'}
+                {language === 'en' ? 'Advance Order Policy:' : 'অগ্রিম অর্ডার নীতিমালা:'}
               </span>
               {language === 'en'
                 ? 'Please place orders 4-6 hours in advance to guarantee fresh, authentic home cooking.'
-                : 'টাটকা ও স্বাস্থ্যকর রান্নার নিশ্চয়তার জন্য কমপক্ষে ৪-৬ ঘন্টা পূর্বে অগ্রিম অর্ডার করুন।'}
+                : 'তাজা ও স্বাস্থ্যকর রান্নার নিশ্চয়তার জন্য কমপক্ষে ৪-৬ ঘন্টা পূর্বে অগ্রিম অর্ডার করুন।'}
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© 2026 {config.brandNameBn} ({config.brandNameEn}) — {language === 'en' ? 'All rights reserved.' : 'সর্বস্বত্ব সংরক্ষিত।'}</p>
+          <p>
+            {language === 'en'
+              ? `© 2026 ${config.brandNameEn} — All rights reserved.`
+              : `© ২০২৬ ${config.brandNameBn} — সর্বস্বত্ব সংরক্ষিত।`}
+          </p>
           <p className="flex items-center gap-1.5">
             <span>
               {language === 'en'

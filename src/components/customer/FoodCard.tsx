@@ -10,9 +10,21 @@ interface FoodCardProps {
 }
 
 export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }) => {
-  const { language } = useLanguage();
-  const displayName = language === 'en' && food.nameEn ? food.nameEn : food.nameBn;
-  const displayPortion = language === 'en' && food.portionEn ? food.portionEn : food.portionBn;
+  const {
+    language,
+    formatPrice,
+    getFoodTitle,
+    getFoodShortDesc,
+    getFoodPortion,
+    getFoodCategory,
+    getSpiceLevelText
+  } = useLanguage();
+
+  const title = getFoodTitle(food);
+  const shortDesc = getFoodShortDesc(food);
+  const portion = getFoodPortion(food);
+  const categoryName = getFoodCategory(food);
+  const spiceText = getSpiceLevelText(food.spiceLevel);
 
   return (
     <div className="group bg-white rounded-xl border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden text-left">
@@ -23,7 +35,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }
       >
         <img
           src={food.image}
-          alt={displayName}
+          alt={title}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
@@ -35,12 +47,12 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {food.isBestseller && (
             <span className="bg-white/95 backdrop-blur-xs text-amber-900 text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
-              {language === 'en' ? 'Popular Dish' : 'জনপ্রিয় ডিশ'}
+              {language === 'en' ? 'Popular Dish' : 'জনপ্রিয় পদ'}
             </span>
           )}
           {food.isFeatured && !food.isBestseller && (
             <span className="bg-white/95 backdrop-blur-xs text-emerald-900 text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
-              {language === 'en' ? 'Special' : 'স্পেশাল'}
+              {language === 'en' ? 'Special' : 'স্পেশাল পদ'}
             </span>
           )}
         </div>
@@ -59,19 +71,17 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }
         <div>
           {/* Metadata */}
           <div className="flex items-center gap-2 text-xs text-slate-500 mb-1.5">
-            <span>{food.categoryNameBn}</span>
+            <span>{categoryName}</span>
             <span aria-hidden="true">·</span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3 text-slate-400" />
-              <span>{food.prepTimeMinutes} {language === 'en' ? 'mins' : 'মি.'}</span>
+              <span>{food.prepTimeMinutes} {language === 'en' ? 'mins' : 'মিনিট'}</span>
             </span>
             {food.spiceLevel && (
               <>
                 <span aria-hidden="true">·</span>
                 <span>
-                  {language === 'en'
-                    ? `Spice: ${food.spiceLevel}`
-                    : `ঝাল: ${food.spiceLevel === 'Mild' ? 'কম' : food.spiceLevel === 'Medium' ? 'মাঝারি' : 'বেশি'}`}
+                  {language === 'en' ? `Spice: ${spiceText}` : `ঝাল: ${spiceText}`}
                 </span>
               </>
             )}
@@ -82,16 +92,16 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }
             onClick={() => onSelect(food)}
             className="text-base font-semibold text-slate-900 hover:text-emerald-700 transition-colors cursor-pointer line-clamp-1"
           >
-            {displayName}
+            {title}
           </h3>
 
           <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
-            {food.shortDescBn}
+            {shortDesc}
           </p>
 
           <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
             <Users className="w-3 h-3 text-slate-400" />
-            <span>{displayPortion}</span>
+            <span>{portion}</span>
           </div>
         </div>
 
@@ -99,11 +109,11 @@ export const FoodCard: React.FC<FoodCardProps> = ({ food, onSelect, onQuickAdd }
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
           <div className="flex items-baseline gap-1.5">
             <span className="text-lg font-bold text-slate-900 tabular-nums">
-              ৳{food.salePrice !== undefined ? food.salePrice : food.price}
+              {formatPrice(food.salePrice !== undefined ? food.salePrice : food.price)}
             </span>
             {food.salePrice !== undefined && food.salePrice < food.price && (
               <span className="text-xs text-slate-400 line-through tabular-nums">
-                ৳{food.price}
+                {formatPrice(food.price)}
               </span>
             )}
           </div>

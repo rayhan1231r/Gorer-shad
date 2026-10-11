@@ -4,17 +4,16 @@ import {
   Mail,
   Lock,
   User,
-  ShieldCheck,
   AlertCircle,
   CheckCircle,
   RefreshCw,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import { api } from '../../services/api.ts';
 import { signInWithGoogle } from '../../services/firebase.ts';
 import { AppUser } from '../../types/index.ts';
 import { BrandLogo } from '../common/BrandLogo.tsx';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -31,6 +30,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'login',
   customNotice = null,
 }) => {
+  const { language, t } = useLanguage();
   const [mode, setMode] = useState<'login' | 'signup' | 'verify_otp' | 'forgot_request' | 'forgot_verify'>(initialMode);
 
   // Form inputs
@@ -79,13 +79,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   const handleDigitChange = (index: number, value: string) => {
-    // Only accept numeric digit
     const cleaned = value.replace(/[^0-9]/g, '').slice(-1);
     const updated = [...otpDigits];
     updated[index] = cleaned;
     setOtpDigits(updated);
 
-    // Auto-advance focus
     if (cleaned && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -124,7 +122,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'লগইন ব্যর্থ হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Login failed. Please verify your credentials.' : 'লগইন ব্যর্থ হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -136,12 +138,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg(null);
 
     if (password !== confirmPassword) {
-      setErrorMsg('পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+      setErrorMsg(
+        language === 'en'
+          ? 'Password and confirm password do not match.'
+          : 'পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।'
+      );
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg('পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।');
+      setErrorMsg(
+        language === 'en'
+          ? 'Password must be at least 6 characters.'
+          : 'পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।'
+      );
       return;
     }
 
@@ -164,7 +174,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setMode('verify_otp');
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'ওটিপি পাঠাতে সমস্যা হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Failed to send OTP code. Please try again.' : 'ওটিপি পাঠাতে সমস্যা হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -175,7 +189,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     const otpCode = otpDigits.join('');
     if (otpCode.length !== 6) {
-      setErrorMsg('সম্পূর্ণ ৬-সংখ্যার ওটিপি কোডটি লিখুন।');
+      setErrorMsg(
+        language === 'en'
+          ? 'Please enter the complete 6-digit verification code.'
+          : 'সম্পূর্ণ ৬-সংখ্যার ওটিপি কোডটি লিখুন।'
+      );
       return;
     }
 
@@ -185,14 +203,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const res = await api.signupVerify(email.trim(), otpCode);
       if (res.success && res.user) {
-        setSuccessMsg('আপনার একাউন্ট সফলভাবে যাচাইকৃত ও সক্রিয় হয়েছে!');
+        setSuccessMsg(
+          language === 'en'
+            ? 'Your account has been verified and activated successfully!'
+            : 'আপনার একাউন্ট সফলভাবে যাচাইকৃত ও সক্রিয় হয়েছে!'
+        );
         setTimeout(() => {
           onAuthSuccess(res.user!);
           onClose();
         }, 1200);
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'ওটিপি যাচাইকরণ ব্যর্থ হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'OTP verification failed. Please try again.' : 'ওটিপি যাচাইকরণ ব্যর্থ হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -211,24 +237,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setExpiresSeconds(300);
         setOtpDigits(['', '', '', '', '', '']);
         if (res.debugNotice) setDebugNotice(res.debugNotice);
-        setSuccessMsg('নতুন ওটিপি কোড পাঠানো হয়েছে।');
+        setSuccessMsg(
+          language === 'en' ? 'A new verification code has been sent.' : 'নতুন ওটিপি কোড পাঠানো হয়েছে।'
+        );
         setTimeout(() => setSuccessMsg(null), 3000);
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Failed to resend OTP.' : 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Submit Forgot Password Request (Triggers SMTP OTP)
+  // Submit Forgot Password Request
   const handleForgotRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
 
     if (!email.trim()) {
-      setErrorMsg('আপনার ইমেইল ঠিকানা প্রদান করুন।');
+      setErrorMsg(
+        language === 'en' ? 'Please enter your registered email.' : 'আপনার ইমেইল ঠিকানা প্রদান করুন।'
+      );
       return;
     }
 
@@ -247,7 +281,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setMode('forgot_verify');
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'পাসওয়ার্ড রিসেট ওটিপি পাঠাতে সমস্যা হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Failed to send password reset code.' : 'পাসওয়ার্ড রিসেট ওটিপি পাঠাতে সমস্যা হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -258,17 +296,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     const otpCode = otpDigits.join('');
     if (otpCode.length !== 6) {
-      setErrorMsg('সম্পূর্ণ ৬-সংখ্যার ওটিপি কোডটি লিখুন।');
+      setErrorMsg(
+        language === 'en'
+          ? 'Please enter the complete 6-digit verification code.'
+          : 'সম্পূর্ণ ৬-সংখ্যার ওটিপি কোডটি লিখুন।'
+      );
       return;
     }
 
     if (!newPassword || newPassword.length < 6) {
-      setErrorMsg('নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।');
+      setErrorMsg(
+        language === 'en'
+          ? 'New password must be at least 6 characters.'
+          : 'নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।'
+      );
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setErrorMsg('নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+      setErrorMsg(
+        language === 'en'
+          ? 'New password and confirm password do not match.'
+          : 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।'
+      );
       return;
     }
 
@@ -284,14 +334,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       });
 
       if (res.success && res.user) {
-        setSuccessMsg('পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! আপনাকে স্বাগতম...');
+        setSuccessMsg(
+          language === 'en'
+            ? 'Password reset successful! Logging you in...'
+            : 'পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! আপনাকে স্বাগতম...'
+        );
         setTimeout(() => {
           onAuthSuccess(res.user!);
           onClose();
         }, 1200);
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Failed to reset password.' : 'পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -310,11 +368,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setExpiresSeconds(300);
         setOtpDigits(['', '', '', '', '', '']);
         if (res.debugNotice) setDebugNotice(res.debugNotice);
-        setSuccessMsg('নতুন ওটিপি কোড পাঠানো হয়েছে।');
+        setSuccessMsg(
+          language === 'en' ? 'A new verification code has been sent.' : 'নতুন ওটিপি কোড পাঠানো হয়েছে।'
+        );
         setTimeout(() => setSuccessMsg(null), 3000);
       }
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Failed to resend code.' : 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -328,7 +392,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const fbUser = await signInWithGoogle();
       if (!fbUser || !fbUser.email) {
-        throw new Error('Google থেকে ইমেইল পাওয়া যায়নি।');
+        throw new Error(
+          language === 'en' ? 'Could not retrieve email from Google.' : 'Google থেকে ইমেইল পাওয়া যায়নি।'
+        );
       }
 
       const syncRes = await api.googleAuthSync({
@@ -344,7 +410,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err: unknown) {
       console.error('Google Sign In Error:', err);
-      setErrorMsg(err instanceof Error ? err.message : 'Google সাইন-ইন সম্পন্ন করা যায়নি।');
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : (language === 'en' ? 'Google sign in could not be completed.' : 'Google সাইন-ইন সম্পন্ন করা যায়নি।')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -362,6 +432,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 cursor-pointer"
+          aria-label={language === 'en' ? 'Close' : 'বন্ধ করুন'}
         >
           <X className="w-5 h-5" />
         </button>
@@ -369,21 +440,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Header */}
         <div className="text-center mb-6 space-y-2">
           <div className="flex justify-center">
-            <BrandLogo size="lg" className="ring-4 ring-emerald-100 shadow-sm" />
+            <BrandLogo size="lg" language={language} className="ring-4 ring-emerald-100 shadow-sm" />
           </div>
           <h3 className="text-xl font-bold text-slate-900">
-            {mode === 'login' && 'গ্রাহক অ্যাকাউন্টে লগইন'}
-            {mode === 'signup' && 'নতুন গ্রাহক অ্যাকাউন্ট তৈরি'}
-            {mode === 'verify_otp' && 'ইমেইল ওটিপি (OTP) যাচাইকরণ'}
-            {mode === 'forgot_request' && 'পাসওয়ার্ড রিসেট করুন'}
-            {mode === 'forgot_verify' && 'ওটিপি যাচাই ও নতুন পাসওয়ার্ড'}
+            {mode === 'login' && (language === 'en' ? 'Customer Account Login' : 'গ্রাহক অ্যাকাউন্টে লগইন')}
+            {mode === 'signup' && (language === 'en' ? 'Create Customer Account' : 'নতুন গ্রাহক অ্যাকাউন্ট তৈরি')}
+            {mode === 'verify_otp' && (language === 'en' ? 'Email OTP Verification' : 'ইমেইল ওটিপি (OTP) যাচাইকরণ')}
+            {mode === 'forgot_request' && (language === 'en' ? 'Reset Your Password' : 'পাসওয়ার্ড রিসেট করুন')}
+            {mode === 'forgot_verify' && (language === 'en' ? 'Verify OTP & Set New Password' : 'ওটিপি যাচাই ও নতুন পাসওয়ার্ড')}
           </h3>
           <p className="text-xs text-slate-500">
             {mode === 'verify_otp' || mode === 'forgot_verify'
-              ? `${maskedEmail} ঠিকানায় ৬-সংখ্যার ওটিপি পাঠানো হয়েছে`
+              ? (language === 'en'
+                  ? `6-digit code has been sent to ${maskedEmail}`
+                  : `${maskedEmail} ঠিকানায় ৬-সংখ্যার ওটিপি পাঠানো হয়েছে`)
               : mode === 'forgot_request'
-              ? 'আপনার নিবন্ধিত ইমেইল দিন, আমরা পাসওয়ার্ড রিসেট কোড পাঠাবো'
-              : 'ঘরের স্বাদ • খাঁটি ঘরোয়া খাবারের নিশ্চয়তা'}
+              ? (language === 'en'
+                  ? 'Enter your registered email and we will send a password reset code'
+                  : 'আপনার নিবন্ধিত ইমেইল দিন, আমরা পাসওয়ার্ড রিসেট কোড পাঠাবো')
+              : (language === 'en'
+                  ? 'Ghorer Shad • Authentic Homemade Taste'
+                  : 'ঘরের স্বাদ • খাঁটি ঘরোয়া খাবারের নিশ্চয়তা')}
           </p>
         </div>
 
@@ -443,18 +520,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span>Google দিয়ে সহজে লগইন করুন</span>
+              <span>{language === 'en' ? 'Continue with Google' : 'Google দিয়ে সহজে লগইন করুন'}</span>
             </button>
 
             <div className="flex items-center gap-3 my-3">
               <div className="h-px bg-slate-200 flex-1" />
-              <span className="text-[11px] text-slate-400 font-medium">অথবা ইমেইল দিয়ে</span>
+              <span className="text-[11px] text-slate-400 font-medium">
+                {language === 'en' ? 'or with email' : 'অথবা ইমেইল দিয়ে'}
+              </span>
               <div className="h-px bg-slate-200 flex-1" />
             </div>
 
             <form onSubmit={handleLogin} className="space-y-3.5">
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">ইমেইল ঠিকানা</label>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {language === 'en' ? 'Email Address' : 'ইমেইল ঠিকানা'}
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -469,7 +550,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">পাসওয়ার্ড</label>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {language === 'en' ? 'Password' : 'পাসওয়ার্ড'}
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -477,7 +560,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="আপনার পাসওয়ার্ড..."
+                    placeholder={language === 'en' ? 'Enter password...' : 'আপনার পাসওয়ার্ড...'}
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                   />
                 </div>
@@ -491,7 +574,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     }}
                     className="text-[11px] text-emerald-700 hover:text-emerald-800 font-medium hover:underline cursor-pointer"
                   >
-                    পাসওয়ার্ড ভুলে গেছেন?
+                    {language === 'en' ? 'Forgot Password?' : 'পাসওয়ার্ড ভুলে গেছেন?'}
                   </button>
                 </div>
               </div>
@@ -504,16 +587,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>যাচাই হচ্ছে...</span>
+                    <span>{language === 'en' ? 'Verifying...' : 'যাচাই হচ্ছে...'}</span>
                   </>
                 ) : (
-                  <span>লগইন করুন</span>
+                  <span>{language === 'en' ? 'Log In' : 'লগইন করুন'}</span>
                 )}
               </button>
             </form>
 
             <div className="pt-2 text-center text-slate-500">
-              <span>অ্যাকাউন্ট নেই? </span>
+              <span>{language === 'en' ? "Don't have an account? " : 'অ্যাকাউন্ট নেই? '}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -522,7 +605,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="text-emerald-700 font-bold hover:underline cursor-pointer"
               >
-                নতুন অ্যাকাউন্ট খুলুন
+                {language === 'en' ? 'Create Account' : 'নতুন অ্যাকাউন্ট খুলুন'}
               </button>
             </div>
           </div>
@@ -556,18 +639,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span>Google দিয়ে এক ক্লিকে রেজিস্ট্রেশন</span>
+              <span>{language === 'en' ? 'Quick Sign Up with Google' : 'Google দিয়ে এক ক্লিকে রেজিস্ট্রেশন'}</span>
             </button>
 
             <div className="flex items-center gap-3 my-3">
               <div className="h-px bg-slate-200 flex-1" />
-              <span className="text-[11px] text-slate-400 font-medium">অথবা ওটিপি ভেরিফিকেশন সহ</span>
+              <span className="text-[11px] text-slate-400 font-medium">
+                {language === 'en' ? 'or with Email Verification' : 'অথবা ওটিপি ভেরিফিকেশন সহ'}
+              </span>
               <div className="h-px bg-slate-200 flex-1" />
             </div>
 
             <form onSubmit={handleSignupRequest} className="space-y-3">
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">আপনার পূর্ণ নাম</label>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {language === 'en' ? 'Your Full Name' : 'আপনার পূর্ণ নাম'}
+                </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -575,14 +662,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="যেমন: তানভীর আহমেদ"
+                    placeholder={language === 'en' ? 'e.g. Tanvir Ahmed' : 'যেমন: তানভীর আহমেদ'}
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">ইমেইল ঠিকানা</label>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {language === 'en' ? 'Email Address' : 'ইমেইল ঠিকানা'}
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -595,13 +684,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </div>
                 <span className="text-[11px] text-slate-400 mt-0.5 block">
-                  এই ইমেইলে ৬-সংখ্যার ওটিপি যাচাই কোড পাঠানো হবে।
+                  {language === 'en'
+                    ? 'A 6-digit verification code will be sent to this email.'
+                    : 'এই ইমেইলে ৬-সংখ্যার ওটিপি যাচাই কোড পাঠানো হবে।'}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">পাসওয়ার্ড</label>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    {language === 'en' ? 'Password' : 'পাসওয়ার্ড'}
+                  </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -609,14 +702,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      placeholder="কমপক্ষে ৬ অক্ষর"
+                      placeholder={language === 'en' ? 'Min 6 characters' : 'কমপক্ষে ৬ অক্ষর'}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">পাসওয়ার্ড নিশ্চিত করুন</label>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    {language === 'en' ? 'Confirm Password' : 'পাসওয়ার্ড নিশ্চিত করুন'}
+                  </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -624,7 +719,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       required
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
-                      placeholder="একই পাসওয়ার্ড দিন"
+                      placeholder={language === 'en' ? 'Re-type password' : 'একই পাসওয়ার্ড দিন'}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     />
                   </div>
@@ -639,11 +734,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>ওটিপি কোড পাঠানো হচ্ছে...</span>
+                    <span>{language === 'en' ? 'Sending code...' : 'ওটিপি কোড পাঠানো হচ্ছে...'}</span>
                   </>
                 ) : (
                   <>
-                    <span>ওটিপি কোড পাঠান ও এগিয়ে যান</span>
+                    <span>{language === 'en' ? 'Send Code & Continue' : 'ওটিপি কোড পাঠান ও এগিয়ে যান'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -651,7 +746,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </form>
 
             <div className="pt-2 text-center text-slate-500">
-              <span>ইতিমধ্যে অ্যাকাউন্ট আছে? </span>
+              <span>{language === 'en' ? 'Already have an account? ' : 'ইতিমধ্যে অ্যাকাউন্ট আছে? '}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -660,7 +755,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="text-emerald-700 font-bold hover:underline cursor-pointer"
               >
-                লগইন করুন
+                {language === 'en' ? 'Log In' : 'লগইন করুন'}
               </button>
             </div>
           </div>
@@ -671,7 +766,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="space-y-5 text-xs">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
               <span className="text-slate-600 block">
-                ভেরিফিকেশন কোড পাঠানো হয়েছে:
+                {language === 'en' ? 'Verification code sent to:' : 'ভেরিফিকেশন কোড পাঠানো হয়েছে:'}
               </span>
               <strong className="text-slate-900 font-mono text-sm block mt-0.5">
                 {maskedEmail}
@@ -679,10 +774,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <form onSubmit={handleVerifyOtp} className="space-y-4">
-              {/* 6-Digit Numeric OTP Inputs */}
               <div>
                 <label className="font-semibold text-slate-700 block text-center mb-3">
-                  ৬-সংখ্যার কোডটি প্রবেশ করান:
+                  {language === 'en' ? 'Enter 6-digit code:' : '৬-সংখ্যার কোডটি প্রবেশ করান:'}
                 </label>
                 <div className="flex items-center justify-center gap-2 sm:gap-2.5" onPaste={handlePasteOtp}>
                   {otpDigits.map((digit, idx) => (
@@ -707,11 +801,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Expiration Timer & Resend */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
                 <span>
-                  মেয়াদ বাকি: <strong className="font-mono text-emerald-800">{formatTimer(expiresSeconds)}</strong>
+                  {language === 'en' ? 'Expires in: ' : 'মেয়াদ বাকি: '}
+                  <strong className="font-mono text-emerald-800">{formatTimer(expiresSeconds)}</strong>
                 </span>
 
                 {cooldownSeconds > 0 ? (
-                  <span>পুনরায় পাঠানো যাবে: {cooldownSeconds} সে. পর</span>
+                  <span>
+                    {language === 'en' ? `Resend in: ${cooldownSeconds}s` : `পুনরায় পাঠানো যাবে: ${cooldownSeconds} সে. পর`}
+                  </span>
                 ) : (
                   <button
                     type="button"
@@ -719,7 +816,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     disabled={isLoading}
                     className="text-emerald-700 font-bold hover:underline cursor-pointer"
                   >
-                    আবার কোড পাঠান (Resend)
+                    {language === 'en' ? 'Resend Code' : 'আবার কোড পাঠান (Resend)'}
                   </button>
                 )}
               </div>
@@ -732,10 +829,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>যাচাই হচ্ছে...</span>
+                    <span>{language === 'en' ? 'Verifying...' : 'যাচাই হচ্ছে...'}</span>
                   </>
                 ) : (
-                  <span>ওটিপি যাচাই করে অ্যাকাউন্ট চালু করুন</span>
+                  <span>{language === 'en' ? 'Verify Code & Activate Account' : 'ওটিপি যাচাই করে অ্যাকাউন্ট চালু করুন'}</span>
                 )}
               </button>
             </form>
@@ -749,7 +846,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="text-[11px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
               >
-                ইমেইল ঠিকানা পরিবর্তন করুন
+                {language === 'en' ? 'Change Email Address' : 'ইমেইল ঠিকানা পরিবর্তন করুন'}
               </button>
             </div>
           </div>
@@ -759,12 +856,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {mode === 'forgot_request' && (
           <div className="space-y-4 text-xs">
             <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-emerald-800 text-[11px] leading-relaxed">
-              আপনার নিবন্ধিত ইমেইল ঠিকানা প্রদান করুন। আমরা আপনার পাসওয়ার্ড রিসেট করতে ৬-সংখ্যার ওটিপি কোড পাঠাবো।
+              {language === 'en'
+                ? 'Please provide your registered email address. We will send a 6-digit code to reset your password.'
+                : 'আপনার নিবন্ধিত ইমেইল ঠিকানা প্রদান করুন। আমরা আপনার পাসওয়ার্ড রিসেট করতে ৬-সংখ্যার ওটিপি কোড পাঠাবো।'}
             </div>
 
             <form onSubmit={handleForgotRequest} className="space-y-3.5">
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">নিবন্ধিত ইমেইল ঠিকানা</label>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  {language === 'en' ? 'Registered Email Address' : 'নিবন্ধিত ইমেইল ঠিকানা'}
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
@@ -786,10 +887,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>ওটিপি কোড পাঠানো হচ্ছে...</span>
+                    <span>{language === 'en' ? 'Sending code...' : 'ওটিপি কোড পাঠানো হচ্ছে...'}</span>
                   </>
                 ) : (
-                  <span>রিসেট ওটিপি কোড পাঠান</span>
+                  <span>{language === 'en' ? 'Send Reset Code' : 'রিসেট ওটিপি কোড পাঠান'}</span>
                 )}
               </button>
             </form>
@@ -804,7 +905,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="text-emerald-700 font-semibold hover:underline cursor-pointer"
               >
-                ← লগইনে ফিরে যান
+                {language === 'en' ? '← Back to Login' : '← লগইনে ফিরে যান'}
               </button>
             </div>
           </div>
@@ -814,15 +915,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {mode === 'forgot_verify' && (
           <div className="space-y-4 text-xs">
             <div className="text-center p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-slate-700">
-              <span className="text-[11px] block text-slate-500 mb-0.5">ওটিপি পাঠানো হয়েছে:</span>
+              <span className="text-[11px] block text-slate-500 mb-0.5">
+                {language === 'en' ? 'Verification code sent to:' : 'ওটিপি পাঠানো হয়েছে:'}
+              </span>
               <strong className="text-xs text-emerald-800 font-semibold">{maskedEmail}</strong>
             </div>
 
             <form onSubmit={handleForgotReset} className="space-y-4">
-              {/* 6-Digit Numeric OTP Inputs */}
               <div>
                 <label className="font-semibold text-slate-700 block text-center mb-2.5">
-                  ৬-সংখ্যার কোডটি প্রবেশ করান:
+                  {language === 'en' ? 'Enter 6-digit code:' : '৬-সংখ্যার কোডটি প্রবেশ করান:'}
                 </label>
                 <div className="flex items-center justify-center gap-2 sm:gap-2.5" onPaste={handlePasteOtp}>
                   {otpDigits.map((digit, idx) => (
@@ -847,11 +949,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Expiration Timer & Resend */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
                 <span>
-                  মেয়াদ বাকি: <strong className="font-mono text-emerald-800">{formatTimer(expiresSeconds)}</strong>
+                  {language === 'en' ? 'Expires in: ' : 'মেয়াদ বাকি: '}
+                  <strong className="font-mono text-emerald-800">{formatTimer(expiresSeconds)}</strong>
                 </span>
 
                 {cooldownSeconds > 0 ? (
-                  <span>পুনরায় পাঠানো যাবে: {cooldownSeconds} সে. পর</span>
+                  <span>
+                    {language === 'en' ? `Resend in: ${cooldownSeconds}s` : `পুনরায় পাঠানো যাবে: ${cooldownSeconds} সে. পর`}
+                  </span>
                 ) : (
                   <button
                     type="button"
@@ -859,7 +964,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     disabled={isLoading}
                     className="text-emerald-700 font-bold hover:underline cursor-pointer"
                   >
-                    আবার কোড পাঠান (Resend)
+                    {language === 'en' ? 'Resend Code' : 'আবার কোড পাঠান (Resend)'}
                   </button>
                 )}
               </div>
@@ -867,7 +972,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* New Password & Confirm */}
               <div className="space-y-3 pt-2 border-t border-slate-100">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)</label>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    {language === 'en' ? 'New Password (Min 6 characters)' : 'নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)'}
+                  </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -876,14 +983,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       minLength={6}
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
-                      placeholder="নতুন পাসওয়ার্ড লিখুন..."
+                      placeholder={language === 'en' ? 'Enter new password...' : 'নতুন পাসওয়ার্ড লিখুন...'}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    {language === 'en' ? 'Confirm New Password' : 'নতুন পাসওয়ার্ড নিশ্চিত করুন'}
+                  </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -892,7 +1001,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       minLength={6}
                       value={confirmNewPassword}
                       onChange={e => setConfirmNewPassword(e.target.value)}
-                      placeholder="পাসওয়ার্ড পুনরায় লিখুন..."
+                      placeholder={language === 'en' ? 'Re-type new password...' : 'পাসওয়ার্ড পুনরায় লিখুন...'}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     />
                   </div>
@@ -907,10 +1016,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>যাচাই ও রিসেট হচ্ছে...</span>
+                    <span>{language === 'en' ? 'Resetting...' : 'যাচাই ও রিসেট হচ্ছে...'}</span>
                   </>
                 ) : (
-                  <span>পাসওয়ার্ড রিসেট ও লগইন করুন</span>
+                  <span>{language === 'en' ? 'Reset Password & Log In' : 'পাসওয়ার্ড রিসেট ও লগইন করুন'}</span>
                 )}
               </button>
             </form>
@@ -924,7 +1033,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="hover:underline cursor-pointer"
               >
-                ইমেইল পরিবর্তন করুন
+                {language === 'en' ? 'Change Email' : 'ইমেইল পরিবর্তন করুন'}
               </button>
               <button
                 type="button"
@@ -934,7 +1043,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="text-emerald-700 font-bold hover:underline cursor-pointer"
               >
-                লগইনে ফিরে যান
+                {language === 'en' ? 'Back to Login' : 'লগইনে ফিরে যান'}
               </button>
             </div>
           </div>

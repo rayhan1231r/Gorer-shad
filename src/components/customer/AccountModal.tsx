@@ -7,8 +7,6 @@ import {
   Clock,
   Phone,
   Mail,
-  MapPin,
-  ExternalLink,
   ChevronRight
 } from 'lucide-react';
 import { AppUser, Order } from '../../types/index.ts';
@@ -33,7 +31,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onTrackOrder,
   onOpenAdmin,
 }) => {
-  const { language } = useLanguage();
+  const { language, formatPrice, formatDate, getOrderStatusText } = useLanguage();
   const [activeTab, setActiveTab] = useState<'profile' | 'orders'>('orders');
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -82,6 +80,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 cursor-pointer"
+          aria-label={language === 'en' ? 'Close' : 'বন্ধ করুন'}
         >
           <X className="w-5 h-5" />
         </button>
@@ -96,9 +95,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <h3 className="text-base font-bold text-slate-900 truncate">
                 {user.name}
               </h3>
-              {(user.role === 'admin' || user.role === 'staff') && (
+              {(user.role === 'admin' || user.role === 'staff' || user.role === 'owner') && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  {user.role === 'admin'
+                  {user.role === 'owner'
+                    ? (language === 'en' ? 'Owner' : 'মালিক')
+                    : user.role === 'admin'
                     ? (language === 'en' ? 'Admin' : 'অ্যাডমিন')
                     : (language === 'en' ? 'Staff' : 'স্টাফ')}
                 </span>
@@ -108,7 +109,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               {user.email}
             </span>
           </div>
-          {(user.role === 'admin' || user.role === 'staff') && onOpenAdmin && (
+          {(user.role === 'admin' || user.role === 'staff' || user.role === 'owner') && onOpenAdmin && (
             <button
               onClick={() => {
                 onClose();
@@ -123,7 +124,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           <button
             onClick={handleLogoutClick}
             className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-            title="লগআউট"
+            title={language === 'en' ? 'Log Out' : 'লগআউট'}
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -139,7 +140,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
-            আমার পূর্ববর্তী অর্ডার ({userOrders.length})
+            {language === 'en' ? `Order History (${userOrders.length})` : `আমার পূর্ববর্তী অর্ডার (${userOrders.length})`}
           </button>
           <button
             onClick={() => setActiveTab('profile')}
@@ -149,7 +150,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
-            অ্যাকাউন্ট তথ্য
+            {language === 'en' ? 'Account Details' : 'অ্যাকাউন্ট তথ্য'}
           </button>
         </div>
 
@@ -159,7 +160,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <div>
               {isLoadingOrders ? (
                 <div className="py-8 text-center text-slate-400">
-                  অর্ডার তালিকা লোড হচ্ছে...
+                  {language === 'en' ? 'Loading order history...' : 'অর্ডার তালিকা লোড হচ্ছে...'}
                 </div>
               ) : userOrders.length === 0 ? (
                 <div className="py-8 text-center space-y-2">
@@ -167,10 +168,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <p className="text-slate-600 font-semibold">
-                    এখনও কোনো অর্ডার করেননি
+                    {language === 'en' ? 'No orders placed yet' : 'এখনও কোনো অর্ডার করেননি'}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    মেনু থেকে সুস্বাদু খাবার পছন্দ করে অর্ডার করুন।
+                    {language === 'en'
+                      ? 'Browse our fresh homemade menu to place an order.'
+                      : 'মেনু থেকে সুস্বাদু খাবার পছন্দ করে অর্ডার করুন।'}
                   </p>
                 </div>
               ) : (
@@ -186,19 +189,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                             #{ord.orderNumber}
                           </span>
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                            {ord.orderStatus === 'placed' && 'গৃহীত হয়েছে'}
-                            {ord.orderStatus === 'preparing' && 'রান্না হচ্ছে'}
-                            {ord.orderStatus === 'ready' && 'প্রস্তুত'}
-                            {ord.orderStatus === 'out_for_delivery' && 'ডেলিভারিতে রয়েছে'}
-                            {ord.orderStatus === 'delivered' && 'ডেলিভারি সম্পন্ন'}
-                            {ord.orderStatus === 'cancelled' && 'বাতিল'}
+                            {getOrderStatusText(ord.orderStatus)}
                           </span>
                         </div>
                         <p className="text-slate-500 truncate text-[11px]">
-                          {ord.items.map(i => `${i.nameBn} × ${i.quantity}`).join(', ')}
+                          {ord.items.map(i => `${language === 'en' ? (i.nameEn || i.nameBn) : i.nameBn} × ${i.quantity}`).join(', ')}
                         </p>
                         <span className="font-bold text-slate-800 text-xs block">
-                          ৳{ord.totalAmount} • {new Date(ord.createdAt).toLocaleDateString('bn-BD')}
+                          {formatPrice(ord.totalAmount)} • {formatDate(ord.createdAt)}
                         </span>
                       </div>
 
@@ -208,9 +206,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                           onClose();
                         }}
                         className="p-2 bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 rounded-lg flex items-center gap-1 shrink-0 font-semibold cursor-pointer"
-                        title="ট্র্যাক করুন"
+                        title={language === 'en' ? 'Track order' : 'ট্র্যাক করুন'}
                       >
-                        <span>ট্র্যাক</span>
+                        <span>{language === 'en' ? 'Track' : 'ট্র্যাক'}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -225,21 +223,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
                 <div className="flex items-center gap-2 text-slate-700">
                   <User className="w-4 h-4 text-emerald-700" />
-                  <span>নাম: <strong>{user.name}</strong></span>
+                  <span>{language === 'en' ? 'Name:' : 'নাম:'} <strong>{user.name}</strong></span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-700">
                   <Mail className="w-4 h-4 text-emerald-700" />
-                  <span>ইমেইল: <strong className="font-mono">{user.email}</strong></span>
+                  <span>{language === 'en' ? 'Email:' : 'ইমেইল:'} <strong className="font-mono">{user.email}</strong></span>
                 </div>
                 {user.phone && (
                   <div className="flex items-center gap-2 text-slate-700">
                     <Phone className="w-4 h-4 text-emerald-700" />
-                    <span>ফোন: <strong className="font-mono">{user.phone}</strong></span>
+                    <span>{language === 'en' ? 'Phone:' : 'ফোন:'} <strong className="font-mono">{user.phone}</strong></span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-slate-700">
                   <Clock className="w-4 h-4 text-emerald-700" />
-                  <span>নিবন্ধন: {new Date(user.createdAt).toLocaleDateString('bn-BD')}</span>
+                  <span>{language === 'en' ? 'Registered:' : 'নিবন্ধন:'} {formatDate(user.createdAt)}</span>
                 </div>
               </div>
             </div>

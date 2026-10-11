@@ -106,7 +106,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             type="button"
             onClick={toggleLanguage}
             className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors"
-            title="ভাষা পরিবর্তন / Switch Language"
+            title={language === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
           >
             <Globe className="w-3.5 h-3.5" />
             <span>{language === 'en' ? 'বাংলা' : 'English'}</span>
@@ -260,7 +260,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
         <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
           <span>{language === 'en' ? 'Role restricted to: admin, staff' : 'অনুমোদিত রোল: admin, staff'}</span>
-          <span className="text-emerald-700 font-semibold">SSL 256-bit Encrypted</span>
+          <span className="text-emerald-700 font-semibold">{language === 'en' ? 'SSL 256-bit Encrypted' : 'এসএসএল ২৫৬-বিট সুরক্ষিত'}</span>
         </div>
       </div>
     </div>

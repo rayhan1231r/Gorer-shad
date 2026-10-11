@@ -83,8 +83,10 @@ const DEFAULT_SMTP_CONFIG: SmtpConfig = {
   user: process.env.SMTP_USER || "rmartbdltd@gmail.com",
   pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "",
   security: "STARTTLS",
-  senderEmail: process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com",
-  senderName: "R-Mart / ঘরের স্বাদ",
+  senderEmail: process.env.ADMIN_EMAIL || "ghorershad.arai@gmail.com",
+  senderName: "ঘরের স্বাদ (Ghorer Shad)",
+  logoUrl: "/logo.jpg",
+  websiteUrl: "",
   otpExpirationMinutes: 5,
   otpResendCooldownSeconds: 60,
   maxVerificationAttempts: 5,
@@ -666,6 +668,10 @@ class DatabaseStore {
           smtpConfig: {
             ...DEFAULT_SMTP_CONFIG,
             ...(parsed.smtpConfig || {}),
+            senderName: (parsed.smtpConfig?.senderName && !parsed.smtpConfig.senderName.toLowerCase().includes('r-mart') && !parsed.smtpConfig.senderName.toLowerCase().includes('r mart'))
+              ? parsed.smtpConfig.senderName
+              : 'ঘরের স্বাদ (Ghorer Shad)',
+            logoUrl: parsed.smtpConfig?.logoUrl || '/logo.jpg',
             pass: (parsed.smtpConfig && parsed.smtpConfig.pass) || DEFAULT_SMTP_CONFIG.pass,
             user: (parsed.smtpConfig && parsed.smtpConfig.user) || DEFAULT_SMTP_CONFIG.user,
             isConfigured: true

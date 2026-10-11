@@ -120,10 +120,10 @@ export const MenuPage: React.FC<MenuPageProps> = ({
                 onChange={e => setSpiceFilter(e.target.value)}
                 className="px-3 py-2.5 border border-slate-200 rounded-xl bg-white text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
               >
-                <option value="all">{language === 'en' ? 'All Spice Levels' : 'সকল ঝাল'}</option>
-                <option value="Mild">{language === 'en' ? 'Mild Spice' : 'ঝাল কম (Mild)'}</option>
-                <option value="Medium">{language === 'en' ? 'Medium Spice' : 'মাঝারি ঝাল (Medium)'}</option>
-                <option value="Spicy">{language === 'en' ? 'Spicy' : 'বেশি ঝাল (Spicy)'}</option>
+                <option value="all">{language === 'en' ? 'All Spice Levels' : 'সকল ঝালের মাত্রা'}</option>
+                <option value="Mild">{language === 'en' ? 'Mild Spice' : 'মৃদু ঝাল'}</option>
+                <option value="Medium">{language === 'en' ? 'Medium Spice' : 'মাঝারি ঝাল'}</option>
+                <option value="Spicy">{language === 'en' ? 'Spicy' : 'বেশি ঝাল'}</option>
               </select>
             </div>
           </div>

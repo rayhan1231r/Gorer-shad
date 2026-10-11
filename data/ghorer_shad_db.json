@@ -39,11 +39,12 @@
     "pass": "dcru jgid udnh aeel",
     "security": "STARTTLS",
     "senderEmail": "rmartbdltd@gmail.com",
-    "senderName": "R-Mart / ঘরের স্বাদ",
+    "senderName": "ঘরের স্বাদ (Ghorer Shad)",
     "otpExpirationMinutes": 5,
     "otpResendCooldownSeconds": 60,
     "maxVerificationAttempts": 5,
-    "isConfigured": true
+    "isConfigured": true,
+    "logoUrl": "/logo.jpg"
   },
   "categories": [
     {
@@ -352,6 +353,32 @@
         }
       ],
       "ingredientsBn": "ময়দা, আলু, চিনাবাদাম, ধনিয়া পাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা।"
+    },
+    {
+      "id": "food-1791740792587",
+      "sku": "GS-3800",
+      "nameBn": "Octopus ",
+      "nameEn": "Octopus ",
+      "categoryId": "fish-seafood",
+      "categoryNameBn": "মাছ ও সি-ফুড",
+      "shortDescBn": "খাঁটি সরিষার তেল ও ঘরোয়া মসলায় কষানো নরম ও লোভনীয় দেশি স্টাইলের অক্টোপাস ভুনা।",
+      "fullDescBn": "তাজা অক্টোপাস নিখুঁতভাবে পরিষ্কার করে পেঁয়াজ, রসুন ও আদা বাটার সাথে খাঁটি ঘানিভাঙা সরিষার তেলে কড়া আঁচে ভুনা করা হয়েছে। দেশি মসলা ও ভাজা জিরার দারুণ সুবাসে তৈরি এই মাঝারি ঝালের ঘন গ্রেভি গরম ভাতের সাথে সি-ফুডপ্রেমীদের মুখে এক অনন্য স্বাদ এনে দেবে।",
+      "image": "/uploads/1791740829899-213543jpg.jpg",
+      "price": 700,
+      "salePrice": 500,
+      "portionBn": "১ জনের পেটভরা মিল অথবা ২ জনের শেয়ারিং",
+      "portionEn": "1 Full Meal",
+      "prepTimeMinutes": 35,
+      "advanceNoticeRequiredHours": 4,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 25,
+      "currentStock": 24,
+      "minOrderQty": 1,
+      "isFeatured": false,
+      "isBestseller": false,
+      "variants": [],
+      "addons": []
     }
   ],
   "deliveryZones": [
@@ -528,9 +555,89 @@
       "usageCount": 22
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ord-1791740942000",
+      "orderNumber": "GS-2601",
+      "createdAt": "2026-10-11T17:49:02.000Z",
+      "customerName": "Rayhan",
+      "customerPhone": "01619415744",
+      "customerEmail": "ahmedskkawsar43@gmail.com",
+      "deliveryZoneId": "zone-1",
+      "deliveryZoneName": "আড়াইহাজার সদর (পৌরসভা এলাকা)",
+      "deliveryAddress": "Arihazar",
+      "requestedDate": "2026-10-11",
+      "requestedTimeSlot": "আজ দুপুর ১:৩০ - ২:৩০ (জরুরি অনুরোধ)",
+      "isUrgent": true,
+      "items": [
+        {
+          "foodId": "food-1791740792587",
+          "sku": "GS-3800",
+          "nameBn": "Octopus ",
+          "nameEn": "Octopus ",
+          "quantity": 1,
+          "selectedAddonsNames": [],
+          "unitPrice": 500,
+          "itemTotal": 500
+        }
+      ],
+      "subtotal": 500,
+      "discountAmount": 0,
+      "deliveryCharge": 40,
+      "totalAmount": 540,
+      "paymentMethod": "bkash",
+      "paymentStatus": "pending",
+      "paymentTransactionId": "Hekevg",
+      "orderStatus": "delivered",
+      "statusHistory": [
+        {
+          "status": "placed",
+          "timestamp": "2026-10-11T17:49:02.000Z",
+          "note": "ওয়েবসাইট থেকে নতুন অর্ডার গ্রহণ করা হয়েছে।"
+        },
+        {
+          "status": "preparing",
+          "timestamp": "2026-10-11T18:18:49.476Z",
+          "note": "Status updated to preparing"
+        },
+        {
+          "status": "ready",
+          "timestamp": "2026-10-11T18:18:55.856Z",
+          "note": "Status updated to ready"
+        },
+        {
+          "status": "out_for_delivery",
+          "timestamp": "2026-10-11T18:19:00.645Z",
+          "note": "Status updated to out_for_delivery"
+        },
+        {
+          "status": "delivered",
+          "timestamp": "2026-10-11T18:19:03.494Z",
+          "note": "Status updated to delivered"
+        }
+      ],
+      "kitchenStatus": "dispatched"
+    }
+  ],
   "cateringInquiries": [],
-  "customers": {},
+  "customers": {
+    "01619415744": {
+      "phone": "01619415744",
+      "name": "Rayhan",
+      "email": "ahmedskkawsar43@gmail.com",
+      "firstOrderDate": "2026-10-11T17:49:02.000Z",
+      "lastOrderDate": "2026-10-11T17:49:02.000Z",
+      "totalOrders": 1,
+      "totalSpent": 540,
+      "addresses": [
+        "Arihazar"
+      ],
+      "isBlocked": false,
+      "tags": [
+        "New"
+      ]
+    }
+  },
   "users": {
     "joynob.kakoly@ghorershad.com": {
       "id": "usr-admin-1",
@@ -729,6 +836,83 @@
       "action": "PAYMENT_METHOD_TOGGLED",
       "details": "Toggled রকেট (Personal - Send Money) to Inactive",
       "user": "Admin"
+    },
+    {
+      "id": "log-1791740654061-578",
+      "timestamp": "2026-10-11T17:44:14.061Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
+      "user": "rmartbdltd@gmail.com"
+    },
+    {
+      "id": "log-1791740658032-567",
+      "timestamp": "2026-10-11T17:44:18.032Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "rmartbdltd@gmail.com"
+    },
+    {
+      "id": "log-1791740661250-898",
+      "timestamp": "2026-10-11T17:44:21.250Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Rayhan (ahmedskkawsar43@gmail.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
+      "user": "rmartbdltd@gmail.com"
+    },
+    {
+      "id": "log-1791740691269-836",
+      "timestamp": "2026-10-11T17:44:51.269Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"admin\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791740692697-167",
+      "timestamp": "2026-10-11T17:44:52.697Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791740865720-473",
+      "timestamp": "2026-10-11T17:47:45.720Z",
+      "action": "CREATE_FOOD",
+      "details": "Created food Octopus  (GS-3800)",
+      "user": "Admin"
+    },
+    {
+      "id": "log-1791740942000-84",
+      "timestamp": "2026-10-11T17:49:02.000Z",
+      "action": "CREATE_ORDER",
+      "details": "New order created GS-2601 - ৳540",
+      "user": "Rayhan"
+    },
+    {
+      "id": "log-1791742729476-576",
+      "timestamp": "2026-10-11T18:18:49.476Z",
+      "action": "UPDATE_ORDER_STATUS",
+      "details": "Order GS-2601 changed to preparing",
+      "user": "Staff"
+    },
+    {
+      "id": "log-1791742735856-418",
+      "timestamp": "2026-10-11T18:18:55.856Z",
+      "action": "UPDATE_ORDER_STATUS",
+      "details": "Order GS-2601 changed to ready",
+      "user": "Staff"
+    },
+    {
+      "id": "log-1791742740645-564",
+      "timestamp": "2026-10-11T18:19:00.645Z",
+      "action": "UPDATE_ORDER_STATUS",
+      "details": "Order GS-2601 changed to out_for_delivery",
+      "user": "Staff"
+    },
+    {
+      "id": "log-1791742743494-655",
+      "timestamp": "2026-10-11T18:19:03.494Z",
+      "action": "UPDATE_ORDER_STATUS",
+      "details": "Order GS-2601 changed to delivered",
+      "user": "Staff"
     }
   ],
   "ownerEmail": "rmartbdltd@gmail.com",
@@ -780,6 +964,36 @@
       "role": "customer",
       "email": "user_test_999@gmail.com",
       "expiresAt": 1794330196954
+    },
+    "gs-tok-607773d81d756b637fdb5ddf5933f202150e67a36d0ba7052e1d571dd7b27b66": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794332344956
+    },
+    "gs-tok-c0be8a1a755a7de5b5348c3af38182a06205cf2f8fda3c684e129fcd49f80a0e": {
+      "userId": "usr-1791737729686-728",
+      "role": "customer",
+      "email": "ahmedskkawsar43@gmail.com",
+      "expiresAt": 1794332357953
+    },
+    "gs-tok-e37a5249b75ef3f5c58f4968a99394f1192ece6994dc68f47ce9db09bffb9163": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794332370882
+    },
+    "gs-tok-b017db35d428bd6df4daae5ebc22ca2fc5c27d64859ab8aef241c6d7d60ad0ce": {
+      "userId": "usr-1791737729686-728",
+      "role": "subadmin",
+      "email": "ahmedskkawsar43@gmail.com",
+      "expiresAt": 1794332678956
+    },
+    "gs-tok-ca930fa08c567625262740de071841c42c2c8cf8e413a0541807483a8ce286e7": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794334699741
     }
   }
 }

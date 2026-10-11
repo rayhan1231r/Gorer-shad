@@ -236,6 +236,7 @@ export interface BusinessConfig {
   bankDetails: string;
   primaryColor?: string;
   accentColor?: string;
+  logoUrl?: string;
 }
 
 export interface FinancialSummary {
@@ -279,6 +280,8 @@ export interface SmtpConfig {
   security: 'STARTTLS' | 'SSL' | 'NONE';
   senderEmail: string;
   senderName: string;
+  logoUrl?: string;
+  websiteUrl?: string;
   otpExpirationMinutes: number;
   otpResendCooldownSeconds: number;
   maxVerificationAttempts: number;

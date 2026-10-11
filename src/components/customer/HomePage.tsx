@@ -25,7 +25,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectFood,
   onQuickAdd
 }) => {
-  const { language, t } = useLanguage();
+  const { language, t, getCategoryTitle, getCategoryDescription } = useLanguage();
   const featuredFoods = foods.filter(f => f.isFeatured || f.isBestseller).slice(0, 6);
   const platterFoods = foods.filter(f => f.categoryId === 'platters-combos').slice(0, 3);
   const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
@@ -129,8 +129,8 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Quality Rating Badge (Top Right) */}
               <div className="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full shadow-lg border border-slate-200/90 z-20 flex items-center gap-1.5 text-xs font-bold text-slate-800">
                 <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>৪.৯ / ৫.০</span>
-                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">১০০% ফ্রেশ</span>
+                <span>{t('ratingLabel')}</span>
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">{t('freshTag')}</span>
               </div>
 
               {/* Main Feast Image Card */}
@@ -164,7 +164,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-100">
                   <img
                     src={ilishImg}
-                    alt="ইলিশ মাছ"
+                    alt={language === 'en' ? 'Hilsa Fish' : 'ইলিশ মাছ'}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/logo.jpg';
@@ -184,7 +184,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Delivery Advisory Badge (Bottom Right) */}
               <div className="hidden sm:flex absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-4 bg-emerald-800 text-white px-3 py-1.5 rounded-full shadow-lg border border-emerald-600/40 items-center gap-1.5 text-[11px] font-bold z-20">
                 <Truck className="w-3.5 h-3.5 text-emerald-300" />
-                <span>আড়াইহাজারে হোম ডেলিভারি</span>
+                <span>{t('homeDeliveryBadge')}</span>
               </div>
             </div>
           </div>
@@ -224,10 +224,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </div>
                 <div>
                   <h3 className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
-                    {language === 'en' && cat.nameEn ? cat.nameEn : cat.nameBn}
+                    {getCategoryTitle(cat)}
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                    {cat.descriptionBn}
+                    {getCategoryDescription(cat)}
                   </p>
                 </div>
               </button>

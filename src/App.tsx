@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { LanguageProvider } from './context/LanguageContext.tsx';
+import { LanguageProvider, useLanguage } from './context/LanguageContext.tsx';
 import { CartProvider } from './context/CartContext.tsx';
 import { Header } from './components/common/Header.tsx';
 import { Footer } from './components/common/Footer.tsx';
@@ -52,7 +52,8 @@ const FALLBACK_CONFIG: BusinessConfig = {
   bankDetails: "Islami Bank Bangladesh Ltd, Araihazar Branch"
 };
 
-export default function App() {
+function AppContent() {
+  const { language } = useLanguage();
   const [activePage, setActivePage] = useState('home');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [config, setConfig] = useState<BusinessConfig>(FALLBACK_CONFIG);
@@ -76,8 +77,23 @@ export default function App() {
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [trackingOrderNumber, setTrackingOrderNumber] = useState('');
 
-  const handleRequireLogin = (reason = 'অর্ডার বা কার্টে খাবার যোগ করতে অনুগ্রহ করে আগে লগইন করুন।') => {
-    setAuthModalNotice(reason);
+  // Dynamically update document title & language tag
+  useEffect(() => {
+    document.documentElement.lang = language;
+    if (language === 'en') {
+      document.title = 'Ghorer Shad — Authentic Homemade Food & Catering';
+      document.body.className = 'bg-white text-slate-900 antialiased font-sans';
+    } else {
+      document.title = 'ঘরের স্বাদ (Ghorer Shad) — ঘরোয়া খাবার অর্ডার ও ক্যাটারিং';
+      document.body.className = 'bg-white text-slate-900 antialiased font-bengali';
+    }
+  }, [language]);
+
+  const handleRequireLogin = (reason?: string) => {
+    const defaultReason = language === 'en'
+      ? 'Please log in to add food to your bag or place an order.'
+      : 'কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।';
+    setAuthModalNotice(reason || defaultReason);
     setIsAuthModalOpen(true);
   };
 
@@ -148,7 +164,7 @@ export default function App() {
 
   const handleQuickAdd = (food: FoodItem) => {
     if (!currentUser) {
-      handleRequireLogin('কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।');
+      handleRequireLogin();
       return;
     }
     setSelectedFoodForModal(food);
@@ -176,7 +192,6 @@ export default function App() {
     } else {
       setIsAdminLoggedIn(false);
     }
-    // Normal user stays on current storefront page, never redirected to admin panel
   };
 
   const handleLogout = () => {
@@ -186,180 +201,204 @@ export default function App() {
   };
 
   return (
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden">
+      {activePage === 'admin' && isAdminLoggedIn ? (
+        /* Admin Panel View */
+        <AdminLayout
+          config={config}
+          onRefreshConfig={loadInitialData}
+          onExitAdmin={() => {
+            loadInitialData();
+            setActivePage('home');
+          }}
+          onLogout={() => {
+            setIsAdminLoggedIn(false);
+            loadInitialData();
+            setActivePage('home');
+          }}
+          adminUserName={adminUserName}
+        />
+      ) : (
+        /* Customer Facing Interface */
+        <>
+          <Header
+            config={config}
+            activeTab={activePage}
+            setActiveTab={handleNavigate}
+            onOpenSearch={() => setIsSearchOpen(true)}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onAdminClick={handleAdminClick}
+            currentUser={currentUser}
+            onOpenAuth={() => {
+              setAuthModalNotice(null);
+              setIsAuthModalOpen(true);
+            }}
+            onOpenAccount={() => setIsAccountModalOpen(true)}
+          />
+
+          <main className="flex-1">
+            {activePage === 'home' && (
+              <HomePage
+                config={config}
+                categories={categories}
+                foods={foods}
+                onNavigate={handleNavigate}
+                onSelectFood={food => setSelectedFoodForModal(food)}
+                onQuickAdd={handleQuickAdd}
+              />
+            )}
+
+            {(activePage === 'menu' || activePage === 'platters') && (
+              <MenuPage
+                categories={categories}
+                foods={activePage === 'platters' ? foods.filter(f => f.categoryId === 'platters-combos') : foods}
+                selectedCategoryId={activePage === 'platters' ? 'platters-combos' : selectedCategoryId}
+                onSelectCategory={setSelectedCategoryId}
+                onSelectFood={food => setSelectedFoodForModal(food)}
+                onQuickAdd={handleQuickAdd}
+              />
+            )}
+
+            {activePage === 'catering' && (
+              <CateringPage config={config} />
+            )}
+
+            {activePage === 'checkout' && (
+              <CheckoutPage
+                config={config}
+                onBackToMenu={() => setActivePage('menu')}
+                onOrderSuccess={handleOrderSuccess}
+                currentUser={currentUser}
+                onRequireLogin={() =>
+                  handleRequireLogin(
+                    language === 'en'
+                      ? 'Please log in to complete your order.'
+                      : 'অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।'
+                  )
+                }
+              />
+            )}
+
+            {activePage === 'confirmation' && confirmedOrder && (
+              <OrderConfirmationPage
+                order={confirmedOrder}
+                config={config}
+                onTrackOrder={handleTrackOrderFromConfirmation}
+                onBackToHome={() => setActivePage('home')}
+              />
+            )}
+
+            {activePage === 'track' && (
+              <TrackOrderPage
+                initialOrderNumber={trackingOrderNumber}
+                config={config}
+              />
+            )}
+
+            {(activePage === 'about' ||
+              activePage === 'faq' ||
+              activePage === 'delivery-policy' ||
+              activePage === 'refund-policy' ||
+              activePage === 'privacy-policy' ||
+              activePage === 'terms') && (
+              <PolicyPages
+                pageType={activePage as any}
+                config={config}
+                onNavigateMenu={() => setActivePage('menu')}
+              />
+            )}
+          </main>
+
+          <Footer
+            config={config}
+            onNavigate={handleNavigate}
+          />
+
+          {/* Persistent Customer Utilities */}
+          <WhatsAppButton phone={config.whatsapp} />
+          <AiCustomerSupport
+            config={config}
+            onNavigate={handleNavigate}
+            foods={foods}
+          />
+          <CartDrawer
+            onProceedToCheckout={() => {
+              setActivePage('checkout');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            currentUser={currentUser}
+            onRequireLogin={() =>
+              handleRequireLogin(
+                language === 'en'
+                  ? 'Please log in to complete your order.'
+                  : 'অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।'
+              )
+            }
+          />
+        </>
+      )}
+
+      {/* Global Modals */}
+      {selectedFoodForModal && (
+        <FoodDetailModal
+          food={selectedFoodForModal}
+          onClose={() => setSelectedFoodForModal(null)}
+          whatsappNumber={config.whatsapp}
+          currentUser={currentUser}
+          onRequireLogin={() =>
+            handleRequireLogin(
+              language === 'en'
+                ? 'Please log in to add items to your cart or place an order.'
+                : 'কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।'
+            )
+          }
+        />
+      )}
+
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        foods={foods}
+        onSelectFood={food => setSelectedFoodForModal(food)}
+        onQuickAdd={handleQuickAdd}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setAuthModalNotice(null);
+        }}
+        onAuthSuccess={handleAuthSuccess}
+        customNotice={authModalNotice}
+      />
+
+      {currentUser && (
+        <AccountModal
+          isOpen={isAccountModalOpen}
+          onClose={() => setIsAccountModalOpen(false)}
+          user={currentUser}
+          onLogout={handleLogout}
+          onTrackOrder={handleTrackOrderFromConfirmation}
+          onOpenAdmin={handleAdminClick}
+        />
+      )}
+
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <LanguageProvider>
       <CartProvider>
-      <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden">
-        {activePage === 'admin' && isAdminLoggedIn ? (
-          /* Admin Panel View */
-          <AdminLayout
-            config={config}
-            onRefreshConfig={loadInitialData}
-            onExitAdmin={() => {
-              loadInitialData();
-              setActivePage('home');
-            }}
-            onLogout={() => {
-              setIsAdminLoggedIn(false);
-              loadInitialData();
-              setActivePage('home');
-            }}
-            adminUserName={adminUserName}
-          />
-        ) : (
-          /* Customer Facing Interface */
-          <>
-            <Header
-              config={config}
-              activeTab={activePage}
-              setActiveTab={handleNavigate}
-              onOpenSearch={() => setIsSearchOpen(true)}
-              isAdminLoggedIn={isAdminLoggedIn}
-              onAdminClick={handleAdminClick}
-              currentUser={currentUser}
-              onOpenAuth={() => {
-                setAuthModalNotice(null);
-                setIsAuthModalOpen(true);
-              }}
-              onOpenAccount={() => setIsAccountModalOpen(true)}
-            />
-
-            <main className="flex-1">
-              {activePage === 'home' && (
-                <HomePage
-                  config={config}
-                  categories={categories}
-                  foods={foods}
-                  onNavigate={handleNavigate}
-                  onSelectFood={food => setSelectedFoodForModal(food)}
-                  onQuickAdd={handleQuickAdd}
-                />
-              )}
-
-              {(activePage === 'menu' || activePage === 'platters') && (
-                <MenuPage
-                  categories={categories}
-                  foods={activePage === 'platters' ? foods.filter(f => f.categoryId === 'platters-combos') : foods}
-                  selectedCategoryId={activePage === 'platters' ? 'platters-combos' : selectedCategoryId}
-                  onSelectCategory={setSelectedCategoryId}
-                  onSelectFood={food => setSelectedFoodForModal(food)}
-                  onQuickAdd={handleQuickAdd}
-                />
-              )}
-
-              {activePage === 'catering' && (
-                <CateringPage config={config} />
-              )}
-
-              {activePage === 'checkout' && (
-                <CheckoutPage
-                  config={config}
-                  onBackToMenu={() => setActivePage('menu')}
-                  onOrderSuccess={handleOrderSuccess}
-                  currentUser={currentUser}
-                  onRequireLogin={() => handleRequireLogin('অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।')}
-                />
-              )}
-
-              {activePage === 'confirmation' && confirmedOrder && (
-                <OrderConfirmationPage
-                  order={confirmedOrder}
-                  config={config}
-                  onTrackOrder={handleTrackOrderFromConfirmation}
-                  onBackToHome={() => setActivePage('home')}
-                />
-              )}
-
-              {activePage === 'track' && (
-                <TrackOrderPage
-                  initialOrderNumber={trackingOrderNumber}
-                  config={config}
-                />
-              )}
-
-              {(activePage === 'about' ||
-                activePage === 'faq' ||
-                activePage === 'delivery-policy' ||
-                activePage === 'refund-policy' ||
-                activePage === 'privacy-policy' ||
-                activePage === 'terms') && (
-                <PolicyPages
-                  pageType={activePage as any}
-                  config={config}
-                  onNavigateMenu={() => setActivePage('menu')}
-                />
-              )}
-            </main>
-
-            <Footer
-              config={config}
-              onNavigate={handleNavigate}
-            />
-
-            {/* Persistent Customer Utilities */}
-            <WhatsAppButton phone={config.whatsapp} />
-            <AiCustomerSupport
-              config={config}
-              onNavigate={handleNavigate}
-              foods={foods}
-            />
-            <CartDrawer
-              onProceedToCheckout={() => {
-                setActivePage('checkout');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              currentUser={currentUser}
-              onRequireLogin={() => handleRequireLogin('অর্ডার সম্পন্ন করতে অনুগ্রহ করে আগে লগইন করুন।')}
-            />
-          </>
-        )}
-
-        {/* Global Modals */}
-        {selectedFoodForModal && (
-          <FoodDetailModal
-            food={selectedFoodForModal}
-            onClose={() => setSelectedFoodForModal(null)}
-            whatsappNumber={config.whatsapp}
-            currentUser={currentUser}
-            onRequireLogin={() => handleRequireLogin('কার্টে খাবার যোগ করতে বা অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।')}
-          />
-        )}
-
-        <SearchModal
-          isOpen={isSearchOpen}
-          onClose={() => setIsSearchOpen(false)}
-          foods={foods}
-          onSelectFood={food => setSelectedFoodForModal(food)}
-          onQuickAdd={handleQuickAdd}
-        />
-
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => {
-            setIsAuthModalOpen(false);
-            setAuthModalNotice(null);
-          }}
-          onAuthSuccess={handleAuthSuccess}
-          customNotice={authModalNotice}
-        />
-
-        {currentUser && (
-          <AccountModal
-            isOpen={isAccountModalOpen}
-            onClose={() => setIsAccountModalOpen(false)}
-            user={currentUser}
-            onLogout={handleLogout}
-            onTrackOrder={handleTrackOrderFromConfirmation}
-            onOpenAdmin={handleAdminClick}
-          />
-        )}
-
-        <AdminLoginModal
-          isOpen={isAdminLoginOpen}
-          onClose={() => setIsAdminLoginOpen(false)}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      </div>
-    </CartProvider>
-  </LanguageProvider>
+        <AppContent />
+      </CartProvider>
+    </LanguageProvider>
   );
 }

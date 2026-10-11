@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Package, Clock, CheckCircle2, Truck, Check, AlertCircle, Phone, MessageSquare } from 'lucide-react';
+import { Search, Check, AlertCircle, Phone, MessageSquare, Truck } from 'lucide-react';
 import { Order, OrderStatus, BusinessConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
+import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface TrackOrderPageProps {
   initialOrderNumber?: string;
@@ -9,6 +10,7 @@ interface TrackOrderPageProps {
 }
 
 export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumber, config }) => {
+  const { language, t, formatPrice, getOrderStatusText, getOrderStatusDesc } = useLanguage();
   const [query, setQuery] = useState(initialOrderNumber || '');
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +25,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
   const handleSearch = async (targetQuery?: string) => {
     const q = (targetQuery || query).trim();
     if (!q) {
-      setErrorMsg('অর্ডার নম্বর অথবা মোবাইল নম্বর লিখুন।');
+      setErrorMsg(language === 'en' ? 'Please enter Order Number or Phone Number.' : 'অর্ডার নম্বর অথবা মোবাইল নম্বর লিখুন।');
       return;
     }
     setErrorMsg(null);
@@ -39,24 +41,24 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
           setOrder(results[0]);
         } else {
           setOrder(null);
-          setErrorMsg('এই নম্বরে কোনো অর্ডার পাওয়া যায়নি।');
+          setErrorMsg(language === 'en' ? 'No order found with this phone number.' : 'এই নম্বরে কোনো অর্ডার পাওয়া যায়নি।');
         }
       }
     } catch {
       setOrder(null);
-      setErrorMsg('অর্ডারটি খুঁজে পাওয়া যায়নি। সঠিক অর্ডার নম্বর দিন (যেমন: GS-2601)।');
+      setErrorMsg(language === 'en' ? 'Order not found. Please enter valid Order Number (e.g. GS-2601).' : 'অর্ডারটি খুঁজে পাওয়া যায়নি। সঠিক অর্ডার নম্বর দিন (যেমন: GS-2601)।');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const steps: { key: OrderStatus; labelBn: string; descBn: string }[] = [
-    { key: 'placed', labelBn: 'অর্ডার গৃহীত', descBn: 'অর্ডার সিস্টেমে গৃহীত হয়েছে' },
-    { key: 'accepted', labelBn: 'নিশ্চিত করা হয়েছে', descBn: 'কিচেন টিম নিশ্চিত করেছে' },
-    { key: 'preparing', labelBn: 'রান্না হচ্ছে', descBn: 'খাঁটি ঘরোয়া মশলায় রান্না চলছে' },
-    { key: 'ready', labelBn: 'প্যাকেজিং প্রস্তুত', descBn: 'ডেলিভারি ব্যাগে প্যাক করা হচ্ছে' },
-    { key: 'out_for_delivery', labelBn: 'ডেলিভারির পথে', descBn: 'রাইডার আপনার ঠিকানার দিকে রওনা দিয়েছেন' },
-    { key: 'delivered', labelBn: 'ডেলিভার সম্পন্ন', descBn: 'গ্রাহকের নিকট সফলভাবে পৌঁছেছে' },
+  const steps: OrderStatus[] = [
+    'placed',
+    'accepted',
+    'preparing',
+    'ready',
+    'out_for_delivery',
+    'delivered'
   ];
 
   const getStepIndex = (status: OrderStatus): number => {
@@ -82,10 +84,12 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
         {/* Title */}
         <div className="mb-8 text-center space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-            অর্ডার ট্র্যাকিং
+            {language === 'en' ? 'Track Your Order Live' : 'অর্ডার ট্র্যাকিং'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            আপনার অর্ডার নম্বর (যেমন: GS-2601) বা ফোন নম্বর দিয়ে বর্তমান অবস্থা জানুন
+            {language === 'en'
+              ? 'Enter your Order Number (e.g. GS-2601) or Mobile Number to check real-time status'
+              : 'আপনার অর্ডার নম্বর (যেমন: GS-2601) বা ফোন নম্বর দিয়ে বর্তমান অবস্থা জানুন'}
           </p>
         </div>
 
@@ -104,16 +108,16 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="অর্ডার নম্বর (GS-2601) অথবা মোবাইল নম্বর..."
+                placeholder={t('orderSearchPlaceholder')}
                 className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-600 bg-white"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-colors shadow-xs"
+              className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl transition-colors shadow-xs cursor-pointer"
             >
-              {isLoading ? 'খোঁজা হচ্ছে...' : 'অবস্থা দেখুন'}
+              {isLoading ? (language === 'en' ? 'Searching...' : 'খোঁজা হচ্ছে...') : t('trackNowBtn')}
             </button>
           </form>
 
@@ -131,21 +135,21 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
-                <span className="text-xs text-slate-400 block">অর্ডার নং:</span>
+                <span className="text-xs text-slate-400 block">{language === 'en' ? 'Order No:' : 'অর্ডার নং:'}</span>
                 <span className="text-xl font-mono font-bold text-emerald-800">
                   {order.orderNumber}
                 </span>
                 <p className="text-xs text-slate-500 mt-1">
-                  গ্রাহক: <strong>{order.customerName}</strong> ({order.customerPhone})
+                  {language === 'en' ? 'Customer:' : 'গ্রাহক:'} <strong>{order.customerName}</strong> ({order.customerPhone})
                 </p>
               </div>
 
               <div className="text-left sm:text-right">
-                <span className="text-xs text-slate-400 block">কাঙ্ক্ষিত সময়:</span>
+                <span className="text-xs text-slate-400 block">{language === 'en' ? 'Preferred Delivery Time:' : 'কাঙ্ক্ষিত সময়:'}</span>
                 <span className="text-sm font-semibold text-slate-900 block">
                   {order.requestedTimeSlot}
                 </span>
-                <span className="text-xs text-slate-500">তারিখ: {order.requestedDate}</span>
+                <span className="text-xs text-slate-500">{language === 'en' ? 'Date:' : 'তারিখ:'} {order.requestedDate}</span>
               </div>
             </div>
 
@@ -153,27 +157,33 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             {isTerminated ? (
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs">
                 <span className="font-bold block text-sm mb-1">
-                  অর্ডারটি {order.orderStatus === 'cancelled' ? 'বাতিল' : 'প্রত্যাখ্যাত'} করা হয়েছে
+                  {language === 'en'
+                    ? `This order was ${order.orderStatus === 'cancelled' ? 'Cancelled' : 'Rejected'}`
+                    : `অর্ডারটি ${order.orderStatus === 'cancelled' ? 'বাতিল' : 'প্রত্যাখ্যাত'} করা হয়েছে`}
                 </span>
                 <p>
-                  বিস্তারিত জানতে আমাদের হটলাইনে (01857-220603) অথবা হোয়াটসঅ্যাপে যোগাযোগ করুন।
+                  {language === 'en'
+                    ? `For inquiries, please contact our hotline directly (${config.phone}) or message us on WhatsApp.`
+                    : `বিস্তারিত জানতে আমাদের হটলাইনে (${config.phone}) অথবা হোয়াটসঅ্যাপে যোগাযোগ করুন।`}
                 </p>
               </div>
             ) : (
               /* Timeline */
               <div>
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-6">
-                  লাইভ ডেলিভারি অগ্রগতি
+                  {language === 'en' ? 'Live Delivery Progress Timeline' : 'লাইভ ডেলিভারি অগ্রগতি'}
                 </h4>
                 <div className="relative">
                   {/* Vertical / Responsive Stepper */}
                   <div className="space-y-6">
-                    {steps.map((step, idx) => {
+                    {steps.map((stepKey, idx) => {
                       const isCompleted = idx <= currentStepIdx;
                       const isCurrent = idx === currentStepIdx;
+                      const label = getOrderStatusText(stepKey);
+                      const desc = getOrderStatusDesc(stepKey);
 
                       return (
-                        <div key={step.key} className="flex items-start gap-4 relative">
+                        <div key={stepKey} className="flex items-start gap-4 relative">
                           {/* Indicator line */}
                           {idx < steps.length - 1 && (
                             <div
@@ -199,16 +209,16 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                           <div className="flex-1 min-w-0 pt-0.5">
                             <div className="flex items-center justify-between gap-2">
                               <h5 className={`text-sm font-semibold ${isCurrent ? 'text-emerald-800 font-bold' : isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
-                                {step.labelBn}
+                                {label}
                               </h5>
                               {isCurrent && (
                                 <span className="bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                                  চলমান অবস্থা
+                                  {language === 'en' ? 'In Progress' : 'চলমান অবস্থা'}
                                 </span>
                               )}
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              {step.descBn}
+                              {desc}
                             </p>
                           </div>
                         </div>
@@ -227,7 +237,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                     <Truck className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">দায়িত্বপ্রাপ্ত ডেলিভারিম্যান:</span>
+                    <span className="text-slate-400 block text-[11px]">{language === 'en' ? 'Assigned Delivery Rider:' : 'দায়িত্বপ্রাপ্ত ডেলিভারিম্যান:'}</span>
                     <span className="font-semibold text-slate-900">{order.assignedDeliveryPerson}</span>
                   </div>
                 </div>
@@ -235,7 +245,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                   href={`tel:${config.phone}`}
                   className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 font-medium"
                 >
-                  হেল্পলাইন কল
+                  {language === 'en' ? 'Call Helpline' : 'হেল্পলাইন কল'}
                 </a>
               </div>
             )}
@@ -243,35 +253,39 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             {/* Order Items & Breakdown */}
             <div className="border-t border-slate-100 pt-6 space-y-3">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                অর্ডার সংক্ষেপ
+                {language === 'en' ? 'Order Summary' : 'অর্ডার সংক্ষেপ'}
               </h4>
               <div className="divide-y divide-slate-100 text-xs">
                 {order.items.map((it, idx) => (
                   <div key={idx} className="py-2 flex justify-between">
                     <div>
-                      <span className="font-medium text-slate-800">{it.nameBn}</span>
+                      <span className="font-medium text-slate-800">
+                        {language === 'en' ? (it.nameEn || it.nameBn) : it.nameBn}
+                      </span>
                       <span className="text-slate-500 ml-2">× {it.quantity}</span>
                       {it.selectedVariantName && (
                         <span className="text-[11px] text-slate-400 block">{it.selectedVariantName}</span>
                       )}
                     </div>
-                    <span className="font-bold text-slate-900 tabular-nums">৳{it.itemTotal}</span>
+                    <span className="font-bold text-slate-900 tabular-nums">{formatPrice(it.itemTotal)}</span>
                   </div>
                 ))}
               </div>
 
               <div className="pt-2 flex justify-between text-sm font-bold text-slate-900 border-t border-slate-200">
-                <span>সর্বমোট পরিশোধযোগ্য:</span>
-                <span className="text-emerald-800 tabular-nums">৳{order.totalAmount}</span>
+                <span>{language === 'en' ? 'Total Payable:' : 'সর্বমোট পরিশোধযোগ্য:'}</span>
+                <span className="text-emerald-800 tabular-nums">{formatPrice(order.totalAmount)}</span>
               </div>
               <p className="text-[11px] text-slate-500">
-                পেমেন্ট: {order.paymentMethod.toUpperCase()} • অবস্থা: {order.paymentStatus === 'paid' ? 'পরিশোধিত' : 'অপেক্ষমান'}
+                {language === 'en' ? 'Payment:' : 'পেমেন্ট:'} {order.paymentMethod.toUpperCase()} • {language === 'en' ? 'Status:' : 'অবস্থা:'} {order.paymentStatus === 'paid' ? (language === 'en' ? 'Paid' : 'পরিশোধিত') : (language === 'en' ? 'Pending' : 'অপেক্ষমান')}
               </p>
             </div>
 
             {/* Contact Support Footer */}
             <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <span className="text-slate-600">কোনো জিজ্ঞাসা বা সংশোধনের জন্য কল করুন:</span>
+              <span className="text-slate-600">
+                {language === 'en' ? 'For any inquiry or changes, contact us directly:' : 'কোনো জিজ্ঞাসা বা সংশোধনের জন্য কল করুন:'}
+              </span>
               <div className="flex items-center gap-2">
                 <a
                   href={`tel:${config.phone}`}
@@ -284,10 +298,10 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                   href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  <span>হোয়াটসঅ্যাপ</span>
+                  <span>{language === 'en' ? 'WhatsApp' : 'হোয়াটসঅ্যাপ'}</span>
                 </a>
               </div>
             </div>
