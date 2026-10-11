@@ -698,17 +698,48 @@ app.post('/api/coupons/validate', (req: Request, res: Response) => {
 });
 
 // 9. Orders
+app.get('/api/orders/my-orders', authMiddleware, (req: Request, res: Response) => {
+  const sessionUser = (req as any).user;
+  const user = db.getUserById(sessionUser.userId) || sessionUser;
+  const allOrders = db.getOrders();
+  const myOrders = allOrders.filter(o =>
+    (o.customerId && (o.customerId === sessionUser.userId || o.customerId === user.id)) ||
+    (user.email && o.customerEmail?.toLowerCase().trim() === user.email.toLowerCase().trim()) ||
+    (user.phone && o.customerPhone === user.phone)
+  );
+  res.json(myOrders);
+});
+
 app.get('/api/orders', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  let session = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    session = db.verifySession(authHeader.split(' ')[1]);
+  }
+  const isElevated = session && ['owner', 'admin', 'subadmin', 'staff'].includes(session.role);
+
   let orders = db.getOrders();
   const phone = req.query.phone as string;
   const status = req.query.status as string;
   const customerId = req.query.customerId as string;
 
+  if (isElevated) {
+    if (customerId) orders = orders.filter(o => o.customerId === customerId);
+    if (phone) orders = orders.filter(o => o.customerPhone.includes(phone));
+    if (status && status !== 'all') orders = orders.filter(o => o.orderStatus === status);
+    return res.json(orders);
+  }
+
+  // Non-elevated callers MUST explicitly provide customerId or exact phone to avoid leaking orders
+  if (!customerId && !phone) {
+    return res.json([]);
+  }
+
   if (customerId) {
     orders = orders.filter(o => o.customerId === customerId);
   }
   if (phone) {
-    orders = orders.filter(o => o.customerPhone.includes(phone));
+    orders = orders.filter(o => o.customerPhone === phone);
   }
   if (status && status !== 'all') {
     orders = orders.filter(o => o.orderStatus === status);
@@ -724,14 +755,34 @@ app.get('/api/orders/:identifier', (req: Request, res: Response) => {
   res.json(order);
 });
 
-app.post('/api/orders', (req: Request, res: Response) => {
+app.post('/api/orders', async (req: Request, res: Response) => {
   try {
     const newOrder = db.createOrder(req.body);
+
+    // Trigger instant email notification to configured admin notification emails
+    const rawSmtp = db.getRawSmtpConfig();
+    const notificationEmails = db.getNotificationEmails();
+    if (rawSmtp.isConfigured && notificationEmails.length > 0) {
+      smtpService.sendNewOrderAdminNotification(rawSmtp, notificationEmails, newOrder)
+        .catch(err => console.warn('Admin new order email notification error:', err));
+    }
+
     res.status(201).json(newOrder);
   } catch (err: unknown) {
     console.error('Order creation error:', err);
     res.status(500).json({ error: 'অর্ডার সংরক্ষণ করতে সমস্যা হয়েছে।' });
   }
+});
+
+// Leaderboard route
+app.get('/api/leaderboard', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  let currentUserId: string | undefined = undefined;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const session = db.verifySession(authHeader.split(' ')[1]);
+    if (session) currentUserId = session.userId;
+  }
+  res.json(db.getLeaderboard(currentUserId));
 });
 
 app.patch('/api/orders/:id/status', adminOnlyMiddleware, (req: Request, res: Response) => {
@@ -833,7 +884,7 @@ app.post('/api/upload', (req: Request, res: Response) => {
   }
 });
 
-// 15. User & Role Management (Owner, Admin, Sub-admin)
+// 15. User & Role Management (Strictly Owner-Only for role mutation)
 app.get('/api/admin/users', adminOnlyMiddleware, (_req: Request, res: Response) => {
   res.json({
     users: db.getUsers(),
@@ -841,25 +892,26 @@ app.get('/api/admin/users', adminOnlyMiddleware, (_req: Request, res: Response) 
   });
 });
 
-app.post('/api/admin/users', adminOnlyMiddleware, (req: Request, res: Response) => {
+app.post('/api/admin/users', ownerOnlyMiddleware, (req: Request, res: Response) => {
   const { name, email, phone, role, password } = req.body;
   if (!name || !email || !role) {
     return res.status(400).json({ error: 'নাম, ইমেইল ও ভূমিকা প্রদান করুন।' });
   }
+  const callerUser = (req as any).user;
   const result = db.createAdminOrStaffUser({
     name,
     email,
     phone,
     role: role === 'owner' ? 'admin' : role,
     password
-  });
+  }, callerUser?.email);
   if (!result.success) {
     return res.status(400).json({ error: result.message });
   }
   res.status(201).json(result);
 });
 
-app.patch('/api/admin/users/:id/role', adminOnlyMiddleware, (req: Request, res: Response) => {
+app.patch('/api/admin/users/:id/role', ownerOnlyMiddleware, (req: Request, res: Response) => {
   const { role } = req.body;
   if (!role || !['admin', 'subadmin', 'staff', 'customer'].includes(role)) {
     return res.status(400).json({ error: 'সঠিক রোল নির্বাচন করুন (admin, subadmin, customer)।' });
@@ -883,6 +935,196 @@ app.post('/api/admin/transfer-ownership', ownerOnlyMiddleware, (req: Request, re
     return res.status(400).json({ error: result.message });
   }
   res.json(result);
+});
+
+// 15.1 Order Notification Emails Configuration
+app.get('/api/admin/notification-emails', adminOnlyMiddleware, (_req: Request, res: Response) => {
+  res.json({ emails: db.getNotificationEmails() });
+});
+
+app.post('/api/admin/notification-emails', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'সঠিক ইমেইল এড্রেস প্রদান করুন।' });
+  }
+  const updated = db.addNotificationEmail(email);
+  res.json({ success: true, emails: updated });
+});
+
+app.delete('/api/admin/notification-emails/:email', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const emailParam = decodeURIComponent(req.params.email);
+  const updated = db.removeNotificationEmail(emailParam);
+  res.json({ success: true, emails: updated });
+});
+
+app.post('/api/admin/notification-emails/test', adminOnlyMiddleware, async (req: Request, res: Response) => {
+  try {
+    const rawSmtp = db.getRawSmtpConfig();
+    const emails = db.getNotificationEmails();
+    if (!rawSmtp.isConfigured || !rawSmtp.pass) {
+      return res.status(400).json({ success: false, message: 'SMTP সার্ভার কনফিগার করা নেই। অনুগ্রহ করে প্রথমে SMTP সেটআপ করুন।' });
+    }
+    const sampleOrder: any = {
+      orderNumber: 'TEST-2601',
+      totalAmount: 520,
+      customerName: 'Joynob Islam (টেস্ট কাস্টমার)',
+      customerPhone: '01857-220603',
+      customerEmail: 'customer@test.com',
+      deliveryZoneName: 'আড়াইহাজার সদর ও বাজার এলাকা',
+      deliveryAddress: 'আড়াইহাজার বাজার রোড, ঢাকা/নারায়ণগঞ্জ',
+      requestedTimeSlot: 'আজ দুপুর ২:০০ - ৩:০০ (জরুরি)',
+      paymentMethod: 'bKash Personal',
+      paymentStatus: 'pending',
+      paymentTransactionId: 'TRX987654321',
+      paymentSenderPhone: '01912-838891',
+      subtotal: 480,
+      deliveryCharge: 40,
+      discountAmount: 0,
+      items: [
+        {
+          nameBn: 'সরষে ইলিশ ও জাফরানি পোলাও কম্বো',
+          quantity: 1,
+          selectedVariantName: 'সুগন্ধি জাফরানি পোলাও সাথে',
+          selectedAddonsNames: ['বেগুন ভাজা (২ পিস)'],
+          itemTotal: 480
+        }
+      ]
+    };
+    const result = await smtpService.sendNewOrderAdminNotification(rawSmtp, emails, sampleOrder);
+    res.json(result);
+  } catch (err: unknown) {
+    res.status(500).json({ success: false, message: err instanceof Error ? err.message : 'টেস্ট নোটিফিকেশন পাঠাতে সমস্যা হয়েছে।' });
+  }
+});
+
+// 15.2 Broadcast Email Engine & Campaign
+app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { subject, headline, contentText, contentHtml, targetAudience, foodId, ctaUrl } = req.body;
+    if (!subject || !contentText) {
+      return res.status(400).json({ error: 'বিষয় এবং বার্তার বিবরণ আবশ্যক।' });
+    }
+
+    const rawSmtp = db.getRawSmtpConfig();
+    if (!rawSmtp.isConfigured || !rawSmtp.pass) {
+      return res.status(400).json({ error: 'SMTP সেটিংস কনফিগার করা নেই। অনুগ্রহ করে প্রথমে SMTP সেটআপ করুন।' });
+    }
+
+    const customers = db.getCustomers();
+    const users = db.getUsers();
+    const emailSet = new Set<string>();
+
+    if (targetAudience === 'admins') {
+      users.filter(u => u.role !== 'customer').forEach(u => emailSet.add(u.email));
+    } else if (targetAudience === 'with_orders') {
+      customers.filter(c => c.totalOrders > 0 && c.email).forEach(c => emailSet.add(c.email!));
+    } else {
+      customers.filter(c => c.email).forEach(c => emailSet.add(c.email!));
+      users.filter(u => u.email).forEach(u => emailSet.add(u.email));
+    }
+
+    const recipients = Array.from(emailSet);
+    if (recipients.length === 0) {
+      return res.status(400).json({ error: 'কোনো গ্রাহকের ইমেইল খুঁজে পাওয়া যায়নি।' });
+    }
+
+    let foodItem = undefined;
+    if (foodId) {
+      foodItem = db.getFoodById(foodId);
+    }
+
+    const broadcastRes = await smtpService.sendBroadcastEmail(rawSmtp, recipients, {
+      subject,
+      headline: headline || subject,
+      contentText,
+      contentHtml,
+      foodItem,
+      ctaUrl: ctaUrl || 'https://ghorershad.com'
+    });
+
+    db.logAction('BROADCAST_EMAIL', `ইমেইল ব্রডকাস্ট পাঠানো হয়েছে: "${subject}" (${broadcastRes.sentCount} জন প্রাপক)`, (req as any).user?.email || 'Admin');
+
+    res.json({
+      success: true,
+      sentCount: broadcastRes.sentCount,
+      totalRecipients: recipients.length,
+      message: `${broadcastRes.sentCount} জন গ্রাহকের কাছে ব্রডকাস্ট ইমেইল সফলভাবে পাঠানো হয়েছে!`
+    });
+  } catch (err: unknown) {
+    console.error('Broadcast email error:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'ব্রডকাস্ট ইমেইল পাঠাতে ব্যর্থ হয়েছে।' });
+  }
+});
+
+// 15.3 AI Promotional Email Generator
+app.post('/api/ai/compose-email', adminOnlyMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { prompt, tone, foodId } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'প্রম্পট বা অফারের বিবরণ দিন।' });
+    }
+
+    const food = foodId ? db.getFoodById(foodId) : null;
+    const config = db.getConfig();
+    const foodContext = food ? `খাবারের তথ্য:
+- পদ: ${food.nameBn} (${food.nameEn})
+- বিবরণ: ${food.fullDescBn || food.shortDescBn}
+- মূল্য: ৳${food.salePrice || food.price}` : '';
+
+    const systemPrompt = `আপনি "ঘরের স্বাদ" (Ghorer Shad) ঐতিহ্যবাহী হোমমেড বাঙালি খাদ্য প্রস্তুতকারী ক্লাউড কিচেন ও ক্যাটারিং সার্ভিসের সিনিয়র বাংলা কপিরাইটার (Email Marketing Specialist)।
+ব্র্যান্ড তথ্য:
+- নাম: ${config.brandNameBn} (${config.brandNameEn}) — "${config.taglineBn}"
+- হটলাইন: ${config.phone}
+- ঠিকানা: ${config.fullAddressBn || config.primaryLocation}
+
+আপনার কাজ হল গ্রাহকদের জন্য অত্যন্ত মুখরোচক, লোভনীয়, আন্তরিক ও আকর্ষণীয় বাংলা প্রমোশনাল ইমেইল তৈরি করা।
+টোন: ${tone || 'আকর্ষণীয় ও রসালো'}
+${foodContext}
+
+নিচের JSON ফরম্যাটে উত্তর দিন:
+{
+  "subject": "একটি আকর্ষণীয় ইমেইল সাবজেক্ট লাইন (ইমোজি সহ)",
+  "headline": "প্রধান শিরোনাম",
+  "contentText": "৩-৪ অনুচ্ছেদের বিস্তারিত আন্তরিক ও সুস্বাদু বর্ণনা, ব্যবহৃত ঘরোয়া মশলা, খাঁটি স্বাদ এবং অগ্রিম অর্ডারের আহ্বান সহ।"
+}`;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
+      try {
+        const genAi = new GoogleGenAI({
+          apiKey,
+          httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+        });
+
+        const resAi = await genAi.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+          config: {
+            systemInstruction: systemPrompt,
+            responseMimeType: 'application/json'
+          }
+        });
+
+        const text = resAi.text || '{}';
+        return res.json(JSON.parse(text));
+      } catch (genErr) {
+        console.warn('AI Email generate fallback:', genErr);
+      }
+    }
+
+    res.json({
+      subject: `🎉 [ঘরের স্বাদ] স্পেশাল আয়োজন: ${prompt}!`,
+      headline: `ঘরে তৈরি খাঁটি বাঙালি খাবারের সেরা স্বাদ এবার আপনার ডাইনিংয়ে!`,
+      contentText: `প্রিয় খাদ্যপ্রেমী ভাই ও বোনেরা,
+আসসালামু আলাইকুম। ঘরের স্বাদ-এ আমরা বিশ্বাস করি খাবারের আসল আনন্দ লুকিয়ে থাকে মায়ের হাতের খাঁটি বাটা মশলা আর নিখাদ ভালোবাসায়।
+
+আজকের এই বিশেষ আয়োজনে আমরা আপনাদের জন্য নিয়ে এসেছি বিশেষ স্পেশাল ঘরোয়া মেনু। সম্পূর্ণ তাজা উপাদান ও খাঁটি সরিষার তেলে অর্ডারের পর তাজা রান্না করে সরাসরি গরম গরম আপনার ঠিকানায় পৌঁছে দিচ্ছি।
+
+খাবারের গুণমান ও ফ্রেশনেস নিশ্চিত করতে দয়া করে অগ্রিম ৪-৬ ঘন্টা পূর্বে আপনার অর্ডারটি বুক করুন। যেকোনো প্রয়োজনে সরাসরি কল করুন: ${config.phone}।`
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: 'এআই ইমেইল তৈরি করতে পারেনি।' });
+  }
 });
 
 // 16. AI Customer Support & Admin AI Tools

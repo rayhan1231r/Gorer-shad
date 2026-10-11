@@ -41,6 +41,7 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isAiFilling, setIsAiFilling] = useState(false);
+  const [broadcastToAllUsers, setBroadcastToAllUsers] = useState(false);
 
   const handleAiFillDescription = async () => {
     if (!editingFood?.nameBn?.trim()) return;
@@ -131,8 +132,19 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
       };
 
       await api.saveFood(payload);
+
+      if (broadcastToAllUsers) {
+        api.broadcastEmail({
+          subject: `🍲 [নতুন খাবার] ${payload.nameBn} এখন ঘরের স্বাদ-এ প্রস্তুত!`,
+          headline: `${payload.nameBn} — জিভে জল আনা খাঁটি ঘরোয়া স্বাদের নতুন আয়োজন!`,
+          contentText: `প্রিয় খাদ্যপ্রেমী,\n\nঘরের স্বাদ-এ আপনাদের জন্য যুক্ত হয়েছে নতুন মুখরোচক খাবার "${payload.nameBn}"। খাঁটি ঘরোয়া মশলা আর নিখাদ ভালোবাসায় তৈরি এই পদটি এখন অর্ডার করা যাচ্ছে।\n\n• খাবারের নাম: ${payload.nameBn} (${payload.nameEn || ''})\n• সংক্ষিপ্ত বিবরণ: ${payload.shortDescBn || payload.fullDescBn || 'ঘরোয়া তাজা রান্না'}\n• মূল্য: ৳${payload.salePrice || payload.price}\n\nদেরি না করে এখনই ভিজিট করুন এবং অগ্রিম অর্ডার দিন!`,
+          foodId: payload.id
+        }).catch(err => console.warn('Product add broadcast error:', err));
+      }
+
       setIsSaving(false);
       setEditingFood(null);
+      setBroadcastToAllUsers(false);
       onRefreshData();
     } catch (err) {
       console.error(err);
@@ -1048,6 +1060,30 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Broadcast Announcement Option */}
+              <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">📢</span>
+                  <div>
+                    <span className="font-bold text-slate-900 block text-xs">
+                      নতুন খাবারের ঘোষণা ইমেইল ব্রডকাস্ট করুন
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      সেভ করার সাথে সাথে সকল নিবন্ধিত গ্রাহকের কাছে এই খাবারের সুস্বাদু বিবরণী সহ ইমেইল চলে যাবে।
+                    </span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={broadcastToAllUsers}
+                    onChange={e => setBroadcastToAllUsers(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-700"></div>
+                </label>
+              </div>
 
               {/* Bottom Form Actions */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">

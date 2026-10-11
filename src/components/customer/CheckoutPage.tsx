@@ -77,6 +77,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<PaymentMethodConfig[]>([]);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>('pm-cod');
   const [paymentTransactionId, setPaymentTransactionId] = useState('');
+  const [paymentSenderPhone, setPaymentSenderPhone] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -217,9 +218,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     try {
       setIsSubmitting(true);
       const orderPayload: Partial<Order> = {
+        customerId: currentUser?.id,
         customerName: customerName.trim(),
         customerPhone: cleanPhone,
-        customerEmail: customerEmail.trim() || undefined,
+        customerEmail: currentUser?.email || customerEmail.trim() || undefined,
         deliveryZoneId: selectedZone?.id || 'zone-1',
         deliveryZoneName: selectedZone?.nameBn || 'আড়াইহাজার সদর',
         deliveryAddress: deliveryAddress.trim(),
@@ -250,7 +252,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         totalAmount: total,
         paymentMethod: activeMethod ? (activeMethod.type as PaymentMethod) : 'cod',
         paymentMethodTitle: activeMethod ? getPaymentMethodTitle(activeMethod) : (language === 'en' ? 'Cash on Delivery' : 'ক্যাশ অন ডেলিভারি'),
-        paymentTransactionId: paymentTransactionId.trim() || undefined
+        paymentTransactionId: paymentTransactionId.trim() || undefined,
+        paymentSenderPhone: paymentSenderPhone.trim() || undefined
       };
 
       const createdOrder = await api.createOrder(orderPayload);
@@ -701,18 +704,33 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     </p>
 
                     {activeMethod.requiresTransactionId && (
-                      <div>
-                        <label className="font-bold text-slate-800 block mb-1">
-                          {t('trxIdLabel')}
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={paymentTransactionId}
-                          onChange={e => setPaymentTransactionId(e.target.value)}
-                          placeholder={t('trxIdPlaceholder')}
-                          className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white font-mono uppercase"
-                        />
+                      <div className="space-y-3 pt-2">
+                        <div>
+                          <label className="font-bold text-slate-800 block mb-1">
+                            {language === 'en' ? 'Sender Mobile Number (Which number you paid from):' : 'যে নম্বর থেকে টাকা পাঠিয়েছেন (প্রেরক মোবাইল নম্বর):'}
+                          </label>
+                          <input
+                            type="tel"
+                            value={paymentSenderPhone}
+                            onChange={e => setPaymentSenderPhone(e.target.value)}
+                            placeholder={language === 'en' ? 'e.g. 017XXXXXXXX' : 'যেমন: ০১৭XXXXXXXX'}
+                            className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white font-mono text-xs sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-bold text-slate-800 block mb-1">
+                            {t('trxIdLabel')} <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={paymentTransactionId}
+                            onChange={e => setPaymentTransactionId(e.target.value)}
+                            placeholder={t('trxIdPlaceholder')}
+                            className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white font-mono uppercase text-xs sm:text-sm"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

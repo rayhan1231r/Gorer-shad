@@ -21,6 +21,7 @@ import { PolicyPages } from './components/customer/PolicyPages.tsx';
 import { SearchModal } from './components/customer/SearchModal.tsx';
 import { AuthModal } from './components/customer/AuthModal.tsx';
 import { AccountModal } from './components/customer/AccountModal.tsx';
+import { ProfilePage } from './components/customer/ProfilePage.tsx';
 import { AdminLoginModal } from './components/admin/AdminLoginModal.tsx';
 import { AdminLayout } from './components/admin/AdminLayout.tsx';
 import { AiCustomerSupport } from './components/customer/AiCustomerSupport.tsx';
@@ -295,6 +296,25 @@ function AppContent() {
               />
             )}
 
+            {activePage === 'profile' && (
+              <ProfilePage
+                currentUser={currentUser}
+                onNavigateMenu={() => {
+                  setActivePage('menu');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onTrackOrder={handleTrackOrderFromConfirmation}
+                onRequireLogin={() =>
+                  handleRequireLogin(
+                    language === 'en'
+                      ? 'Please log in to view your profile and rankings.'
+                      : 'প্রোফাইল ও র‌্যাঙ্কিং দেখতে অনুগ্রহ করে লগইন করুন।'
+                  )
+                }
+                onProfileUpdated={updatedUser => setCurrentUser(updatedUser)}
+              />
+            )}
+
             {(activePage === 'about' ||
               activePage === 'faq' ||
               activePage === 'delivery-policy' ||
@@ -381,6 +401,11 @@ function AppContent() {
           onLogout={handleLogout}
           onTrackOrder={handleTrackOrderFromConfirmation}
           onOpenAdmin={handleAdminClick}
+          onNavigateProfile={() => {
+            setIsAccountModalOpen(false);
+            setActivePage('profile');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
       )}
 

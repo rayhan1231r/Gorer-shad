@@ -62,9 +62,66 @@ export const SmtpSettings: React.FC = () => {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [testLogs, setTestLogs] = useState<TestLogItem[]>([]);
 
+  // Notification emails state
+  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
+  const [newNotifyEmail, setNewNotifyEmail] = useState('');
+  const [isAddingNotifyEmail, setIsAddingNotifyEmail] = useState(false);
+  const [isTestingNotify, setIsTestingNotify] = useState(false);
+  const [notifyTestResult, setNotifyTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
   useEffect(() => {
     loadSettings();
+    loadNotificationEmails();
   }, []);
+
+  const loadNotificationEmails = async () => {
+    try {
+      const data = await api.getNotificationEmails();
+      setNotificationEmails(data || []);
+    } catch (err) {
+      console.warn('Failed to load notification emails:', err);
+    }
+  };
+
+  const handleAddNotificationEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNotifyEmail.trim() || !newNotifyEmail.includes('@')) return;
+    try {
+      setIsAddingNotifyEmail(true);
+      const res = await api.addNotificationEmail(newNotifyEmail.trim());
+      setNotificationEmails(res.emails || []);
+      setNewNotifyEmail('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAddingNotifyEmail(false);
+    }
+  };
+
+  const handleRemoveNotificationEmail = async (email: string) => {
+    try {
+      const res = await api.removeNotificationEmail(email);
+      setNotificationEmails(res.emails || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleTestNotificationEmail = async () => {
+    try {
+      setIsTestingNotify(true);
+      setNotifyTestResult(null);
+      const res = await api.testNotificationEmail();
+      setNotifyTestResult(res);
+    } catch (err: unknown) {
+      setNotifyTestResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'টেস্ট নোটিফিকেশন পাঠাতে সমস্যা হয়েছে'
+      });
+    } finally {
+      setIsTestingNotify(false);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -703,6 +760,103 @@ export const SmtpSettings: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* 5. Order Notification Emails Configuration */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Mail className="w-4 h-4 text-emerald-700" />
+              <span>অর্ডার অ্যালার্ট নোটিফিকেশন ইমেইল তালিকা (Order Notification Recipients)</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              যেকোনো গ্রাহক অর্ডার করলে নিচের সকল ইমেইলে তাৎক্ষণিক নতুন অর্ডারের বিস্তারিত তথ্য সম্বলিত নোটিফিকেশন ইমেইল চলে যাবে।
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTestNotificationEmail}
+            disabled={isTestingNotify || notificationEmails.length === 0}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs shrink-0"
+          >
+            {isTestingNotify ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>টেস্ট অ্যালার্ট পাঠানো হচ্ছে...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5" />
+                <span>টেস্ট অর্ডার অ্যালার্ট পাঠান</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {notifyTestResult && (
+          <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+            notifyTestResult.success ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-rose-50 text-rose-900 border-rose-200'
+          }`}>
+            {notifyTestResult.success ? <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />}
+            <span>{notifyTestResult.message}</span>
+          </div>
+        )}
+
+        {/* Add Email Form */}
+        <form onSubmit={handleAddNotificationEmail} className="flex gap-2">
+          <input
+            type="email"
+            required
+            value={newNotifyEmail}
+            onChange={e => setNewNotifyEmail(e.target.value)}
+            placeholder="নতুন নোটিফিকেশন ইমেইল যোগ করুন (যেমন: owner@gmail.com বা manager@gmail.com)"
+            className="flex-1 p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+          />
+          <button
+            type="submit"
+            disabled={isAddingNotifyEmail || !newNotifyEmail.trim()}
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          >
+            <span>যোগ করুন</span>
+          </button>
+        </form>
+
+        {/* List of configured notification emails */}
+        <div className="space-y-2 pt-2">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+            সক্রিয় প্রাপক ইমেইলসমূহ ({notificationEmails.length}):
+          </span>
+
+          {notificationEmails.length === 0 ? (
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-400 text-center">
+              কোনো নোটিফিকেশন ইমেইল যুক্ত করা নেই। উপরে ইমেইল লিখে &quot;যোগ করুন&quot; বাটনে চাপুন।
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {notificationEmails.map(email => (
+                <div
+                  key={email}
+                  className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="font-mono text-slate-800 truncate font-semibold">{email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNotificationEmail(email)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                    title="ডিলিট করুন"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Helpful Instructions Guide Card */}

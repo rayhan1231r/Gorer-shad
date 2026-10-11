@@ -23,7 +23,9 @@ import {
   Bell,
   MessageSquare,
   Sparkles,
-  Crown
+  Crown,
+  Image as ImageIcon,
+  Megaphone
 } from 'lucide-react';
 import {
   BusinessConfig,
@@ -54,6 +56,7 @@ import { SmtpSettings } from './SmtpSettings.tsx';
 import { ReviewManagement } from './ReviewManagement.tsx';
 import { UserRoleManagement } from './UserRoleManagement.tsx';
 import { AdminAiHub } from './AdminAiHub.tsx';
+import { BannerManagement } from './BannerManagement.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AdminLayoutProps {
@@ -168,9 +171,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       icon: CreditCard
     },
     {
+      id: 'banners',
+      labelBn: 'অ্যাডভান্সড ব্যানার ও অফার',
+      labelEn: 'Banners & Hero Offers',
+      icon: Megaphone
+    },
+    {
       id: 'zones',
-      labelBn: 'সারা বাংলাদেশ ডেলিভারি',
-      labelEn: 'Nationwide Delivery',
+      labelBn: 'ডেলিভারি এরিয়া ও চার্জ',
+      labelEn: 'Delivery Areas & Charges',
       icon: Truck
     },
     {
@@ -488,6 +497,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             <PaymentManagement
               paymentMethods={paymentMethods}
               onRefreshData={fetchAllData}
+            />
+          )}
+
+          {activeTab === 'banners' && (
+            <BannerManagement
+              config={config}
+              onRefreshConfig={onRefreshConfig}
             />
           )}
 

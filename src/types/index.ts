@@ -160,6 +160,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   paymentTransactionId?: string;
+  paymentSenderPhone?: string;
   orderStatus: OrderStatus;
   statusHistory: {
     status: OrderStatus;
@@ -237,6 +238,7 @@ export interface BusinessConfig {
   primaryColor?: string;
   accentColor?: string;
   logoUrl?: string;
+  orderNotificationEmails?: string[];
 }
 
 export interface FinancialSummary {
@@ -316,4 +318,35 @@ export interface HomepageContent {
   ctaMenuBtnBn: string;
   ctaCateringBtnBn: string;
   bannerImage?: string;
+  offerBadgeBn?: string;
+  offerBadgeEn?: string;
+  secondaryBannerImage?: string;
+  showDiscountBanner?: boolean;
+  discountBannerTextBn?: string;
 }
+
+export interface LeaderboardUser {
+  rank: number;
+  userId: string;
+  name: string;
+  maskedName: string;
+  avatarSeed: string;
+  totalOrders: number;
+  totalSpent: number;
+  points: number;
+  tier: 'Bronze Foodie' | 'Silver Connoisseur' | 'Gold Gourmand' | 'Platinum Feast Master';
+  tierBn: string;
+  badge: string;
+  isCurrentUser?: boolean;
+}
+
+export interface BroadcastEmailPayload {
+  subject: string;
+  headline?: string;
+  contentHtml?: string;
+  contentText: string;
+  targetAudience?: 'all' | 'with_orders' | 'admins';
+  foodId?: string;
+  ctaUrl?: string;
+}
+

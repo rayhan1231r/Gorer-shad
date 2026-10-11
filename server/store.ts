@@ -16,7 +16,8 @@ import type {
   SmtpConfig,
   CustomerReview,
   HomepageContent,
-  PaymentMethodConfig
+  PaymentMethodConfig,
+  LeaderboardUser
 } from '../src/types/index.ts';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
@@ -64,7 +65,8 @@ const DEFAULT_CONFIG: BusinessConfig = {
   bkashNumber: "01912-838891 (Personal)",
   nagadNumber: "01857-220603 (Personal)",
   rocketNumber: "01857-220603-9",
-  bankDetails: "Islami Bank Bangladesh Ltd, Araihazar Branch, A/C: 205012345678"
+  bankDetails: "Islami Bank Bangladesh Ltd, Araihazar Branch, A/C: 205012345678",
+  orderNotificationEmails: [process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com"]
 };
 
 const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
@@ -872,6 +874,149 @@ class DatabaseStore {
     return this.getSmtpConfig(true);
   }
 
+  // ---------------- Order Notification Emails ----------------
+  public getNotificationEmails(): string[] {
+    const list = this.data.config.orderNotificationEmails;
+    if (Array.isArray(list) && list.length > 0) return list;
+    return [(this.data.ownerEmail || process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim()];
+  }
+
+  public addNotificationEmail(email: string): string[] {
+    const clean = email.toLowerCase().trim();
+    if (!clean || !clean.includes('@')) return this.getNotificationEmails();
+    const current = [...this.getNotificationEmails()];
+    if (!current.includes(clean)) {
+      current.push(clean);
+      this.data.config.orderNotificationEmails = current;
+      this.logAction('ADD_NOTIFICATION_EMAIL', `অর্ডার অ্যালার্ট ইমেইল যোগ করা হয়েছে: ${clean}`, 'Admin');
+      this.saveData();
+    }
+    return current;
+  }
+
+  public removeNotificationEmail(email: string): string[] {
+    const clean = email.toLowerCase().trim();
+    let current = this.getNotificationEmails().filter(e => e.toLowerCase() !== clean);
+    if (current.length === 0) {
+      current = [(this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase()];
+    }
+    this.data.config.orderNotificationEmails = current;
+    this.logAction('REMOVE_NOTIFICATION_EMAIL', `অর্ডার অ্যালার্ট ইমেইল মুছে ফেলা হয়েছে: ${clean}`, 'Admin');
+    this.saveData();
+    return current;
+  }
+
+  // ---------------- Customer Ranking & Top 10 Leaderboard ----------------
+  public getLeaderboard(currentUserId?: string): LeaderboardUser[] {
+    const userStats = new Map<string, {
+      userId: string;
+      name: string;
+      email: string;
+      phone: string;
+      totalOrders: number;
+      totalSpent: number;
+    }>();
+
+    // Index from customers list
+    for (const [phone, cust] of Object.entries(this.data.customers || {})) {
+      const key = cust.email?.toLowerCase().trim() || phone;
+      userStats.set(key, {
+        userId: key,
+        name: cust.name,
+        email: cust.email || '',
+        phone: cust.phone,
+        totalOrders: cust.totalOrders || 0,
+        totalSpent: cust.totalSpent || 0,
+      });
+    }
+
+    // Index from placed/completed orders
+    for (const ord of (this.data.orders || [])) {
+      if (ord.orderStatus === 'cancelled' || ord.orderStatus === 'rejected') continue;
+      const key = ord.customerId || ord.customerEmail?.toLowerCase().trim() || ord.customerPhone;
+      if (!key) continue;
+      const existing = userStats.get(key) || {
+        userId: key,
+        name: ord.customerName,
+        email: ord.customerEmail || '',
+        phone: ord.customerPhone,
+        totalOrders: 0,
+        totalSpent: 0,
+      };
+      existing.totalOrders += 1;
+      existing.totalSpent += (ord.totalAmount || 0);
+      userStats.set(key, existing);
+    }
+
+    // Index from registered users
+    for (const [email, u] of Object.entries(this.data.users || {})) {
+      if (u.role === 'customer') {
+        const key = u.id || email;
+        if (!userStats.has(key) && !userStats.has(email)) {
+          userStats.set(key, {
+            userId: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone || '',
+            totalOrders: 0,
+            totalSpent: 0
+          });
+        }
+      }
+    }
+
+    const sorted = Array.from(userStats.values()).sort((a, b) => {
+      if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders;
+      return b.totalSpent - a.totalSpent;
+    });
+
+    const getTierInfo = (ordersCount: number, spent: number) => {
+      if (ordersCount >= 16 || spent >= 10000) {
+        return { tier: 'Platinum Feast Master' as const, tierBn: 'প্লাটিনাম ভোজরাজ 👑', badge: '👑' };
+      }
+      if (ordersCount >= 8 || spent >= 5000) {
+        return { tier: 'Gold Gourmand' as const, tierBn: 'গোল্ড ভোজনরসিক 🥇', badge: '🥇' };
+      }
+      if (ordersCount >= 3 || spent >= 1500) {
+        return { tier: 'Silver Connoisseur' as const, tierBn: 'সিলভার রসনাবিদ 🥈', badge: '🥈' };
+      }
+      return { tier: 'Bronze Foodie' as const, tierBn: 'ব্রোঞ্জ ফুডি 🥉', badge: '🥉' };
+    };
+
+    return sorted.slice(0, 10).map((u, index) => {
+      const rank = index + 1;
+      const tierInfo = getTierInfo(u.totalOrders, u.totalSpent);
+      const points = (u.totalOrders * 30) + Math.floor(u.totalSpent / 20);
+
+      const parts = u.name.trim().split(' ');
+      const maskedName = parts.length > 1
+        ? `${parts[0]} ${parts[parts.length - 1][0]}.`
+        : u.name;
+
+      const isCurrentUser = Boolean(
+        currentUserId && (
+          u.userId === currentUserId ||
+          (u.email && u.email.toLowerCase() === currentUserId.toLowerCase())
+        )
+      );
+
+      return {
+        rank,
+        userId: u.userId,
+        name: isCurrentUser ? u.name : maskedName,
+        maskedName,
+        avatarSeed: u.name,
+        totalOrders: u.totalOrders,
+        totalSpent: u.totalSpent,
+        points,
+        tier: tierInfo.tier,
+        tierBn: tierInfo.tierBn,
+        badge: tierInfo.badge,
+        isCurrentUser
+      };
+    });
+  }
+
   public createPendingSignupOtp(name: string, email: string, passwordPlain: string): { otp: string; cooldownSeconds: number } {
     const cleanEmail = email.toLowerCase().trim();
     const otp = crypto.randomInt(100000, 999999).toString(); // Cryptographic 6-digit numeric OTP
@@ -1303,7 +1448,19 @@ class DatabaseStore {
       return { success: false, message: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি।' };
     }
     const user = this.data.users[userKey];
-    const currentOwnerEmail = (this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const currentOwner = this.getOwner();
+    const currentOwnerEmail = (currentOwner?.email || this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const currentOwnerId = currentOwner?.id;
+
+    // Strict security rule: Only the Owner can modify admin/user roles
+    const isCallerOwner = callerEmail && (
+      callerEmail.toLowerCase().trim() === currentOwnerEmail ||
+      (currentOwnerId && callerEmail.trim() === currentOwnerId)
+    );
+
+    if (callerEmail && !isCallerOwner) {
+      return { success: false, message: 'অননুমোদিত প্রবেশাধিকার! শুধুমাত্র প্রধান মালিক (Owner) অ্যাডমিন রোল পরিবর্তন বা প্রত্যাহার করতে পারেন।' };
+    }
 
     if (user.email.toLowerCase().trim() === currentOwnerEmail) {
       return { success: false, message: 'প্রধান মালিকের ভূমিকা সরাসরি পরিবর্তন করা যাবে না। মালিকানা হস্তান্তর (Transfer Ownership) অপশন ব্যবহার করুন।' };
@@ -1391,7 +1548,19 @@ class DatabaseStore {
     };
   }
 
-  public createAdminOrStaffUser(payload: { name: string; email: string; phone?: string; role: 'admin' | 'subadmin' | 'staff'; password?: string }): { success: boolean; user?: AppUser; message?: string } {
+  public createAdminOrStaffUser(payload: { name: string; email: string; phone?: string; role: 'admin' | 'subadmin' | 'staff'; password?: string }, callerEmail?: string): { success: boolean; user?: AppUser; message?: string } {
+    const currentOwner = this.getOwner();
+    const currentOwnerEmail = (currentOwner?.email || this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const currentOwnerId = currentOwner?.id;
+    const isCallerOwner = !callerEmail || (
+      callerEmail.toLowerCase().trim() === currentOwnerEmail ||
+      (currentOwnerId && callerEmail.trim() === currentOwnerId)
+    );
+
+    if (!isCallerOwner) {
+      return { success: false, message: 'অননুমোদিত প্রবেশাধিকার! শুধুমাত্র প্রধান মালিক (Owner) নতুন অ্যাডমিন বা স্টাফ যোগ করতে পারেন।' };
+    }
+
     const cleanEmail = payload.email.toLowerCase().trim();
     if (this.data.users[cleanEmail]) {
       return { success: false, message: 'এই ইমেইল দিয়ে ইতিমধ্যে একজন ব্যবহারকারী রয়েছে।' };
@@ -1788,6 +1957,9 @@ class DatabaseStore {
       deliveryZoneName: zone.nameBn,
       deliveryAddress: orderData.deliveryAddress || "",
       deliveryLandmark: orderData.deliveryLandmark,
+      division: orderData.division,
+      district: orderData.district,
+      courierPartner: orderData.courierPartner,
       requestedDate: orderData.requestedDate || new Date().toISOString().split('T')[0],
       requestedTimeSlot: orderData.requestedTimeSlot || "যথাশীঘ্র সম্ভব (৪-৬ ঘন্টা পর)",
       isUrgent: Boolean(orderData.isUrgent),
@@ -1799,8 +1971,10 @@ class DatabaseStore {
       deliveryCharge,
       totalAmount,
       paymentMethod: orderData.paymentMethod || 'cod',
+      paymentMethodTitle: orderData.paymentMethodTitle,
       paymentStatus: 'pending',
       paymentTransactionId: orderData.paymentTransactionId,
+      paymentSenderPhone: orderData.paymentSenderPhone,
       orderStatus: 'placed',
       statusHistory: [
         {

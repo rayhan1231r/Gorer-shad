@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Clock, MessageSquare, Heart } from 'lucide-react';
+import { Phone, MapPin, Clock, MessageSquare, Heart, Lock } from 'lucide-react';
 import { BusinessConfig } from '../../types/index.ts';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { BrandLogo } from './BrandLogo.tsx';
@@ -110,6 +110,14 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('profile')}
+                  className="hover:text-white transition-colors text-left cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>🏆 {language === 'en' ? 'Customer Profile & Leaderboard' : 'গ্রাহক প্রোফাইল ও লিডারবোর্ড'}</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('track')}
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
@@ -130,6 +138,15 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
                   {language === 'en' ? 'Our Story & Mission' : 'আমাদের পরিচিতি ও লক্ষ্য'}
+                </button>
+              </li>
+              <li className="pt-1.5 border-t border-slate-800/80">
+                <button
+                  onClick={() => onNavigate('admin')}
+                  className="text-xs text-slate-400 hover:text-amber-400 transition-colors text-left cursor-pointer flex items-center gap-1.5"
+                >
+                  <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>{language === 'en' ? 'Admin / Staff Login' : 'অ্যাডমিন / স্টাফ লগইন'}</span>
                 </button>
               </li>
             </ul>

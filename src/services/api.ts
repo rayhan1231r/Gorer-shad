@@ -13,7 +13,10 @@ import {
   SmtpConfig,
   CustomerReview,
   AppUser,
-  PaymentMethodConfig
+  PaymentMethodConfig,
+  LeaderboardUser,
+  BroadcastEmailPayload,
+  HomepageContent
 } from '../types/index.ts';
 
 const API_BASE = '/api';
@@ -428,11 +431,27 @@ export const api = {
   },
 
   // Orders
+  async getMyOrders(): Promise<Order[]> {
+    const res = await fetch(`${API_BASE}/orders/my-orders`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  },
+  async getLeaderboard(): Promise<LeaderboardUser[]> {
+    const res = await fetch(`${API_BASE}/leaderboard`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  },
   async getOrders(phone?: string, status?: string): Promise<Order[]> {
     const params = new URLSearchParams();
     if (phone) params.append('phone', phone);
     if (status && status !== 'all') params.append('status', status);
-    const res = await fetch(`${API_BASE}/orders?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/orders?${params.toString()}`, {
+      headers: authHeaders(),
+    });
     return res.json();
   },
   async getOrder(identifier: string): Promise<Order> {
@@ -660,13 +679,64 @@ export const api = {
     return res.json();
   },
 
-  async askAdminAi(message: string): Promise<{ reply: string }> {
-    const res = await fetch(`${API_BASE}/ai/admin-chat`, {
+  // 17. Notifications & Broadcast
+  async getNotificationEmails(): Promise<string[]> {
+    const res = await fetch(`${API_BASE}/admin/notification-emails`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.emails || [];
+  },
+  async addNotificationEmail(email: string): Promise<{ success: boolean; emails: string[] }> {
+    const res = await fetch(`${API_BASE}/admin/notification-emails`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ email }),
     });
-    if (!res.ok) throw new Error('Failed to consult Admin AI');
+    return res.json();
+  },
+  async deleteNotificationEmail(email: string): Promise<{ success: boolean; emails: string[] }> {
+    const res = await fetch(`${API_BASE}/admin/notification-emails/${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
+  async testNotificationEmail(): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/admin/notification-emails/test`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    return res.json();
+  },
+  async broadcastEmail(payload: BroadcastEmailPayload): Promise<{ success: boolean; sentCount: number; message: string }> {
+    const res = await fetch(`${API_BASE}/admin/broadcast-email`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'ব্রডকাস্ট পাঠাতে ব্যর্থ');
+    return data;
+  },
+  async composeEmailWithAi(prompt: string, tone?: string, foodId?: string): Promise<{ subject: string; headline: string; contentText: string }> {
+    const res = await fetch(`${API_BASE}/ai/compose-email`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ prompt, tone, foodId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'এআই ইমেইল তৈরি ব্যর্থ');
+    return data;
+  },
+  async updateHomepageContent(data: Partial<HomepageContent>): Promise<HomepageContent> {
+    const res = await fetch(`${API_BASE}/homepage`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update homepage content');
     return res.json();
   }
 };

@@ -21,6 +21,7 @@ interface AccountModalProps {
   onLogout: () => void;
   onTrackOrder: (orderNumber: string) => void;
   onOpenAdmin?: () => void;
+  onNavigateProfile?: () => void;
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
@@ -30,6 +31,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onLogout,
   onTrackOrder,
   onOpenAdmin,
+  onNavigateProfile,
 }) => {
   const { language, formatPrice, formatDate, getOrderStatusText } = useLanguage();
   const [activeTab, setActiveTab] = useState<'profile' | 'orders'>('orders');
@@ -45,13 +47,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const loadOrders = async () => {
     try {
       setIsLoadingOrders(true);
-      const orders = await api.getOrders(user.phone || undefined);
-      // Filter orders matching customer email or phone
-      const matched = orders.filter(
-        o => (user.email && o.customerEmail?.toLowerCase() === user.email.toLowerCase()) ||
-             (user.phone && o.customerPhone === user.phone)
-      );
-      setUserOrders(matched);
+      const orders = await api.getMyOrders();
+      setUserOrders(orders);
     } catch (err) {
       console.warn('Failed to fetch user orders:', err);
     } finally {
@@ -218,6 +215,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           )}
 
+          {/* Profile Details */}
           {activeTab === 'profile' && (
             <div className="space-y-3 p-1">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
@@ -240,6 +238,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   <span>{language === 'en' ? 'Registered:' : 'নিবন্ধন:'} {formatDate(user.createdAt)}</span>
                 </div>
               </div>
+
+              {onNavigateProfile && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onNavigateProfile();
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-800 hover:to-teal-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <span>🏆 {language === 'en' ? 'View Profile & Leaderboard' : 'আমার পূর্ণ প্রোফাইল, ফুডি ব্যাজ ও শীর্ষ ১০ লিডারবোর্ড'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           )}
         </div>

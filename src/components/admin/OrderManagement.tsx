@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
-import { Search, Filter, Eye, Printer, CheckCircle, Clock, Truck, XCircle, AlertTriangle, UserCheck } from 'lucide-react';
-import { Order, OrderStatus, BusinessConfig } from '../../types/index.ts';
+import {
+  Search,
+  Filter,
+  Eye,
+  Printer,
+  CheckCircle,
+  Clock,
+  Truck,
+  XCircle,
+  AlertTriangle,
+  UserCheck,
+  Copy,
+  Check,
+  Phone,
+  MessageSquare,
+  CreditCard,
+  MapPin,
+  Calendar,
+  Tag,
+  ShieldCheck
+} from 'lucide-react';
+import { Order, OrderStatus, PaymentStatus, BusinessConfig } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { PrintSlipModal } from './PrintSlipModal.tsx';
@@ -22,9 +42,11 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
 
   // Drawer update state
   const [editStatus, setEditStatus] = useState<OrderStatus>('placed');
+  const [editPaymentStatus, setEditPaymentStatus] = useState<PaymentStatus>('pending');
   const [deliveryPerson, setDeliveryPerson] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [copiedTrx, setCopiedTrx] = useState(false);
 
   const filteredOrders = orders.filter(o => {
     if (statusFilter !== 'all' && o.orderStatus !== statusFilter) return false;
@@ -34,7 +56,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
       const matchName = o.customerName.toLowerCase().includes(q);
       const matchPhone = o.customerPhone.includes(q);
       const matchZone = o.deliveryZoneName.toLowerCase().includes(q);
-      if (!matchNo && !matchName && !matchPhone && !matchZone) return false;
+      const matchTrx = o.paymentTransactionId?.toLowerCase().includes(q);
+      if (!matchNo && !matchName && !matchPhone && !matchZone && !matchTrx) return false;
     }
     return true;
   });
@@ -42,8 +65,15 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
   const openOrderDrawer = (order: Order) => {
     setSelectedOrder(order);
     setEditStatus(order.orderStatus);
+    setEditPaymentStatus(order.paymentStatus || 'pending');
     setDeliveryPerson(order.assignedDeliveryPerson || '');
     setAdminNotes(order.adminNotes || '');
+  };
+
+  const handleCopyTrx = (trx: string) => {
+    navigator.clipboard.writeText(trx);
+    setCopiedTrx(true);
+    setTimeout(() => setCopiedTrx(false), 2000);
   };
 
   const handleSaveOrderUpdates = async () => {
@@ -52,7 +82,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
       setIsUpdating(true);
       await api.updateOrderStatus(selectedOrder.id, editStatus, 'Updated via Admin Order Manager', {
         assignedDeliveryPerson: deliveryPerson.trim() || undefined,
-        adminNotes: adminNotes.trim() || undefined
+        adminNotes: adminNotes.trim() || undefined,
+        paymentStatus: editPaymentStatus
       });
       setIsUpdating(false);
       setSelectedOrder(null);
@@ -227,68 +258,215 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
                 </button>
               </div>
 
-              {/* Customer Info */}
-              <div className="py-4 border-b border-slate-100 space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{language === 'en' ? 'Customer Name:' : 'গ্রাহকের নাম:'}</span>
-                  <span className="font-semibold text-slate-900">{selectedOrder.customerName}</span>
+              {/* Online Payment & TrxID Card */}
+              <div className="p-4 rounded-2xl border bg-gradient-to-br from-amber-50/80 via-white to-amber-50/40 border-amber-200/90 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-amber-500 text-white shadow-2xs">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider block">
+                        {language === 'en' ? 'Payment Method & Status' : 'পেমেন্ট মাধ্যম ও অবস্থা'}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900">
+                        {selectedOrder.paymentMethodTitle || selectedOrder.paymentMethod.toUpperCase()}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    editPaymentStatus === 'paid' || editPaymentStatus === 'verified'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : editPaymentStatus === 'failed'
+                      ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                      : 'bg-amber-100 text-amber-900 border border-amber-300'
+                  }`}>
+                    {editPaymentStatus === 'paid' || editPaymentStatus === 'verified' ? '✓ পরিশোধিত (Paid)' : 'অপেক্ষমাণ (Pending)'}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{language === 'en' ? 'Phone Number:' : 'ফোন নম্বর:'}</span>
-                  <a href={`tel:${selectedOrder.customerPhone}`} className="font-mono text-emerald-700 underline font-semibold">
-                    {selectedOrder.customerPhone}
-                  </a>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">{language === 'en' ? 'Delivery Zone:' : 'ডেলিভারি এলাকা:'}</span>
-                  <span className="font-semibold text-slate-900">{selectedOrder.deliveryZoneName}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">{language === 'en' ? 'Full Address:' : 'সম্পূর্ণ ঠিকানা:'}</span>
-                  <span className="font-medium text-slate-800 block mt-0.5">{selectedOrder.deliveryAddress}</span>
-                </div>
-                {selectedOrder.deliveryLandmark && (
-                  <div>
-                    <span className="text-slate-500 block">{language === 'en' ? 'Landmark:' : 'ল্যান্ডমার্ক:'}</span>
-                    <span className="text-slate-700">{selectedOrder.deliveryLandmark}</span>
+
+                {/* Prominent Transaction ID & Sender Phone */}
+                {(selectedOrder.paymentTransactionId || selectedOrder.paymentSenderPhone || selectedOrder.paymentMethod !== 'cod') && (
+                  <div className="p-3 bg-white rounded-xl border border-amber-200/70 space-y-2">
+                    {selectedOrder.paymentTransactionId ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] text-slate-500 font-semibold block uppercase">
+                            ট্রানজেকশন আইডি (Transaction ID / TrxID):
+                          </span>
+                          <span className="font-mono text-sm font-bold text-emerald-800 tracking-wider">
+                            {selectedOrder.paymentTransactionId}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyTrx(selectedOrder.paymentTransactionId!)}
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          {copiedTrx ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedTrx ? 'কপি হয়েছে' : 'কপি'}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-amber-800">
+                        ক্যাশ অন ডেলিভারি (পণ্য হাতে পেয়ে রাইডারকে মূল্য পরিশোধ করবেন)
+                      </div>
+                    )}
+
+                    {selectedOrder.paymentSenderPhone && (
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span className="text-slate-500">প্রেরকের বিকাশ/নগদ নম্বর:</span>
+                        <a href={`tel:${selectedOrder.paymentSenderPhone}`} className="font-mono font-bold text-slate-900 underline">
+                          {selectedOrder.paymentSenderPhone}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
-                <div className="flex justify-between pt-1">
-                  <span className="text-slate-500">{language === 'en' ? 'Requested Time:' : 'অনুরোধকৃত সময়:'}</span>
-                  <span className="font-semibold text-slate-900">{selectedOrder.requestedTimeSlot}</span>
+
+                {/* Quick Payment Status Toggle for Admin */}
+                <div className="flex items-center justify-between pt-1 text-xs">
+                  <span className="font-semibold text-slate-700">পেমেন্ট স্ট্যাটাস আপডেট:</span>
+                  <select
+                    value={editPaymentStatus}
+                    onChange={e => setEditPaymentStatus(e.target.value as PaymentStatus)}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white font-bold text-xs focus:outline-none focus:border-emerald-600"
+                  >
+                    <option value="pending">অপেক্ষমাণ (Pending)</option>
+                    <option value="paid">পরিশোধিত (Paid)</option>
+                    <option value="verified">যাচাইকৃত (Verified)</option>
+                    <option value="failed">ব্যর্থ / বাতিল (Failed)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Customer Info & Contact */}
+              <div className="py-4 border-b border-slate-100 space-y-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    {language === 'en' ? 'Customer & Contact Details:' : 'গ্রাহক ও ডেলিভারি তথ্য:'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`tel:${selectedOrder.customerPhone}`}
+                      className="px-2 py-1 bg-emerald-50 text-emerald-800 rounded-lg font-bold flex items-center gap-1 border border-emerald-200 hover:bg-emerald-100"
+                      title="কল করুন"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>কল</span>
+                    </a>
+                    <a
+                      href={`https://wa.me/88${selectedOrder.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`আসসালামু আলাইকুম ${selectedOrder.customerName}, আপনার "ঘরের স্বাদ" অর্ডার #${selectedOrder.orderNumber} সম্পর্কে:`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-1 bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 hover:bg-emerald-800"
+                      title="হোয়াটসঅ্যাপে মেসেজ পাঠান"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+                  <div>
+                    <span className="text-slate-400 text-[10px] uppercase font-bold block">{language === 'en' ? 'Customer Name' : 'গ্রাহকের নাম'}</span>
+                    <span className="font-bold text-slate-900">{selectedOrder.customerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] uppercase font-bold block">{language === 'en' ? 'Phone Number' : 'ফোন নম্বর'}</span>
+                    <span className="font-mono font-bold text-emerald-700">{selectedOrder.customerPhone}</span>
+                  </div>
+                  {selectedOrder.customerEmail && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 text-[10px] uppercase font-bold block">{language === 'en' ? 'Email' : 'ইমেইল'}</span>
+                      <span className="font-mono text-slate-700">{selectedOrder.customerEmail}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-500 font-semibold">{selectedOrder.deliveryZoneName}</span>
+                      {(selectedOrder.district || selectedOrder.division) && (
+                        <span className="text-slate-400 ml-1">({[selectedOrder.district, selectedOrder.division].filter(Boolean).join(', ')})</span>
+                      )}
+                      <p className="font-medium text-slate-800 mt-0.5">{selectedOrder.deliveryAddress}</p>
+                      {selectedOrder.deliveryLandmark && (
+                        <p className="text-slate-500 text-[11px] mt-0.5">ল্যান্ডমার্ক: {selectedOrder.deliveryLandmark}</p>
+                      )}
+                      {selectedOrder.courierPartner && (
+                        <p className="text-emerald-800 font-semibold text-[11px] mt-0.5">কুরিয়ার পার্টনার: {selectedOrder.courierPartner}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="text-slate-700">অনুরোধকৃত সময়: <strong>{selectedOrder.requestedTimeSlot}</strong> ({selectedOrder.requestedDate})</span>
+                  </div>
+
+                  {selectedOrder.customerNotes && (
+                    <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200/80 text-amber-900">
+                      <span className="font-bold block text-[10px] uppercase">গ্রাহকের বিশেষ নির্দেশনা:</span>
+                      <p className="mt-0.5">{selectedOrder.customerNotes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Items List */}
               <div className="py-4 border-b border-slate-100 space-y-2 text-xs">
                 <span className="font-bold text-slate-900 uppercase tracking-wider block">
-                  {language === 'en' ? 'Ordered Items:' : 'খাবারের তালিকা:'}
+                  {language === 'en' ? 'Ordered Items Breakdown:' : 'অর্ডারকৃত খাবারের বিস্তারিত তালিকা:'}
                 </span>
                 <div className="divide-y divide-slate-100">
                   {selectedOrder.items.map((it, idx) => (
-                    <div key={idx} className="py-1.5 flex justify-between">
-                      <div>
-                        <span className="font-semibold text-slate-900">{language === 'en' ? (it.nameEn || it.nameBn) : it.nameBn}</span>
-                        <span className="text-slate-500 ml-1">× {it.quantity}</span>
+                    <div key={idx} className="py-2 flex justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900">{language === 'en' ? (it.nameEn || it.nameBn) : it.nameBn}</span>
+                          <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">× {it.quantity}</span>
+                        </div>
                         {it.selectedVariantName && (
-                          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Variant: ' : 'ভ্যারিয়েন্ট: '}{it.selectedVariantName}</span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">ভ্যারিয়েন্ট: {it.selectedVariantName}</span>
                         )}
                         {it.selectedAddonsNames && it.selectedAddonsNames.length > 0 && (
-                          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Addons: ' : 'যুক্ত: '}{it.selectedAddonsNames.join(', ')}</span>
+                          <span className="text-[11px] text-slate-500 block">যুক্ত আইটেম: {it.selectedAddonsNames.join(', ')}</span>
                         )}
+                        {it.specialNotes && (
+                          <span className="text-[11px] text-amber-700 italic block">নোট: {it.specialNotes}</span>
+                        )}
+                        <span className="text-[10px] text-slate-400 block font-mono">একক মূল্য: ৳{it.unitPrice}</span>
                       </div>
-                      <span className="font-bold tabular-nums">৳{it.itemTotal}</span>
+                      <span className="font-bold tabular-nums text-slate-900 shrink-0 text-sm">৳{it.itemTotal}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm">
-                  <span>{language === 'en' ? 'Total Payable:' : 'সর্বমোট প্রদেয়:'}</span>
-                  <span className="text-emerald-800 tabular-nums">৳{selectedOrder.totalAmount}</span>
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {language === 'en' ? 'Payment Method: ' : 'পেমেন্ট পদ্ধতি: '}<strong>{selectedOrder.paymentMethod.toUpperCase()}</strong> ({selectedOrder.paymentStatus})
-                  {selectedOrder.paymentTransactionId && <span> • TrxID: {selectedOrder.paymentTransactionId}</span>}
+                {/* Subtotal, Discount & Total Breakdown */}
+                <div className="pt-3 border-t border-slate-200 space-y-1.5">
+                  <div className="flex justify-between text-slate-600">
+                    <span>খাবারের মোট মূল্য (Subtotal):</span>
+                    <span className="tabular-nums font-semibold">৳{selectedOrder.subtotal}</span>
+                  </div>
+                  {selectedOrder.discountAmount > 0 && (
+                    <div className="flex justify-between text-rose-600">
+                      <span>কুপন ছাড় ({selectedOrder.couponCode || 'Promo'}):</span>
+                      <span className="tabular-nums font-semibold">-৳{selectedOrder.discountAmount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-slate-600">
+                    <span>ডেলিভারি চার্জ:</span>
+                    <span className="tabular-nums font-semibold">৳{selectedOrder.deliveryCharge}</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-base text-slate-900">
+                    <span>সর্বমোট প্রদেয় বিল:</span>
+                    <span className="text-emerald-800 tabular-nums">৳{selectedOrder.totalAmount}</span>
+                  </div>
                 </div>
               </div>
 

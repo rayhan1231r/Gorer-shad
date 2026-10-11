@@ -213,25 +213,46 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => onNavigate('menu', cat.id)}
-                className="p-4 rounded-xl border border-slate-200/80 hover:border-emerald-600 hover:shadow-xs transition-all text-left bg-white group flex flex-col justify-between cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                  <UtensilsCrossed className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
-                    {getCategoryTitle(cat)}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                    {getCategoryDescription(cat)}
-                  </p>
-                </div>
-              </button>
-            ))}
+            {categories.map(cat => {
+              const getCategoryEmoji = (id: string) => {
+                if (id.includes('fish') || id.includes('mach')) return '🐟';
+                if (id.includes('meat') || id.includes('gosht') || id.includes('chicken')) return '🍗';
+                if (id.includes('platter') || id.includes('combo')) return '🍱';
+                if (id.includes('snack') || id.includes('dessert') || id.includes('mist')) return '🍯';
+                if (id.includes('biryani') || id.includes('pulao') || id.includes('rice')) return '🍚';
+                if (id.includes('vorta') || id.includes('bhorta')) return '🥗';
+                return '🍛';
+              };
+
+              const count = foods.filter(f => f.categoryId === cat.id).length;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onNavigate('menu', cat.id)}
+                  className="p-4 rounded-2xl border border-slate-200/90 hover:border-emerald-600 hover:shadow-md transition-all text-left bg-gradient-to-b from-white to-slate-50/50 hover:to-emerald-50/20 group flex flex-col justify-between cursor-pointer relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold text-lg group-hover:bg-emerald-700 group-hover:text-white group-hover:scale-105 transition-all shadow-2xs">
+                      {getCategoryEmoji(cat.id)}
+                    </div>
+                    {count > 0 && (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                        {count} পদ
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-emerald-800 transition-colors line-clamp-1">
+                      {getCategoryTitle(cat)}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                      {getCategoryDescription(cat)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -75,6 +75,10 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isCurrentCallerOwner) {
+      showNotification('error', 'অননুমোদিত! শুধুমাত্র প্রধান মালিক (Owner) নতুন অ্যাডমিন তৈরি করতে পারেন।');
+      return;
+    }
     if (!newUserName.trim() || !newUserEmail.trim()) return;
 
     try {
@@ -101,6 +105,10 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
   };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    if (!isCurrentCallerOwner) {
+      showNotification('error', 'অননুমোদিত! শুধুমাত্র প্রধান মালিক (Owner) অ্যাডমিন রোল পরিবর্তন বা বাতিল করতে পারেন।');
+      return;
+    }
     try {
       const res = await api.updateUserRole(userId, newRole);
       if (res.success) {
@@ -171,22 +179,30 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => setIsAddUserOpen(true)}
-            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>নতুন অ্যাডমিন / সাব-অ্যাডমিন যোগ করুন</span>
-          </button>
+          {isCurrentCallerOwner ? (
+            <>
+              <button
+                onClick={() => setIsAddUserOpen(true)}
+                className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>নতুন অ্যাডমিন / সাব-অ্যাডমিন যোগ করুন</span>
+              </button>
 
-          <button
-            onClick={() => setIsTransferOpen(true)}
-            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-            title="শুধুমাত্র প্রধান মালিক মালিকানা বদল করতে পারেন"
-          >
-            <Crown className="w-4 h-4" />
-            <span>মালিকানা হস্তান্তর (Transfer Ownership)</span>
-          </button>
+              <button
+                onClick={() => setIsTransferOpen(true)}
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="শুধুমাত্র প্রধান মালিক মালিকানা বদল করতে পারেন"
+              >
+                <Crown className="w-4 h-4" />
+                <span>মালিকানা হস্তান্তর (Transfer Ownership)</span>
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200">
+              <span>🔒 শুধুমাত্র মালিকের নিয়ন্ত্রণাধিকার</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -354,12 +370,12 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
                         <span className="text-[11px] text-amber-700 font-semibold bg-amber-50 px-2 py-1 rounded-lg">
                           মালিকানা হস্তান্তরযোগ্য
                         </span>
-                      ) : (
+                      ) : isCurrentCallerOwner ? (
                         <div className="inline-flex items-center gap-1.5">
                           {user.role !== 'admin' && (
                             <button
                               onClick={() => handleRoleChange(user.id, 'admin')}
-                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-200 transition-colors"
+                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-200 transition-colors cursor-pointer"
                             >
                               🛡️ অ্যাডমিন করুন
                             </button>
@@ -368,7 +384,7 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
                           {user.role !== 'subadmin' && user.role !== 'staff' && (
                             <button
                               onClick={() => handleRoleChange(user.id, 'subadmin')}
-                              className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 rounded-lg text-[11px] font-bold border border-teal-200 transition-colors"
+                              className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 rounded-lg text-[11px] font-bold border border-teal-200 transition-colors cursor-pointer"
                             >
                               👨‍🍳 সাব-অ্যাডমিন করুন
                             </button>
@@ -377,12 +393,16 @@ export const UserRoleManagement: React.FC<UserRoleManagementProps> = ({
                           {user.role !== 'customer' && (
                             <button
                               onClick={() => handleRoleChange(user.id, 'customer')}
-                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-lg text-[11px] font-bold border border-rose-200 transition-colors"
+                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-lg text-[11px] font-bold border border-rose-200 transition-colors cursor-pointer"
                             >
                               গ্রাহক করুন
                             </button>
                           )}
                         </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.8 rounded-md font-medium border border-slate-200/80">
+                          🔒 শুধুমাত্র মালিক নিয়ন্ত্রণ করতে পারেন
+                        </span>
                       )}
                     </td>
                   </tr>

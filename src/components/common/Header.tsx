@@ -38,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'menu', labelBn: 'খাবারের তালিকা', labelEn: 'Menu' },
     { id: 'platters', labelBn: 'প্ল্যাটার ও প্যাকেজ', labelEn: 'Platters' },
     { id: 'catering', labelBn: 'ক্যাটারিং ও বড় আয়োজন', labelEn: 'Catering' },
+    { id: 'profile', labelBn: 'প্রোফাইল ও লিডারবোর্ড', labelEn: 'Profile & Leaderboard' },
     { id: 'track', labelBn: 'অর্ডার ট্র্যাক', labelEn: 'Track Order' },
     { id: 'about', labelBn: 'আমাদের কথা', labelEn: 'About' }
   ];
