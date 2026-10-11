@@ -23,6 +23,7 @@ import { AuthModal } from './components/customer/AuthModal.tsx';
 import { AccountModal } from './components/customer/AccountModal.tsx';
 import { AdminLoginModal } from './components/admin/AdminLoginModal.tsx';
 import { AdminLayout } from './components/admin/AdminLayout.tsx';
+import { AiCustomerSupport } from './components/customer/AiCustomerSupport.tsx';
 import { BusinessConfig, Category, FoodItem, Order, AppUser } from './types/index.ts';
 import { api } from './services/api.ts';
 
@@ -93,9 +94,12 @@ export default function App() {
       setFoods(fds);
       if (user) {
         setCurrentUser(user);
-        if (user.role === 'admin' || user.role === 'staff') {
+        const isElevated = ['owner', 'admin', 'subadmin', 'staff'].includes(user.role);
+        if (isElevated) {
           setIsAdminLoggedIn(true);
           setAdminUserName(user.name);
+        } else {
+          setIsAdminLoggedIn(false);
         }
       }
     } catch (err) {
@@ -108,8 +112,8 @@ export default function App() {
   }, []);
 
   const handleAdminClick = async () => {
-    if (isAdminLoggedIn || currentUser?.role === 'admin' || currentUser?.role === 'staff') {
-      setIsAdminLoggedIn(true);
+    const isElevated = currentUser && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role);
+    if (isAdminLoggedIn && isElevated) {
       setActivePage('admin');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -126,9 +130,11 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = (_token: string, userName: string) => {
+  const handleLoginSuccess = (token: string, userName: string) => {
+    if (token) api.setToken(token);
     setIsAdminLoggedIn(true);
     setAdminUserName(userName);
+    loadInitialData();
     setActivePage('admin');
   };
 
@@ -163,12 +169,14 @@ export default function App() {
   const handleAuthSuccess = (user: AppUser) => {
     setCurrentUser(user);
     setAuthModalNotice(null);
-    if (user.role === 'admin' || user.role === 'staff') {
+    const isElevated = ['owner', 'admin', 'subadmin', 'staff'].includes(user.role);
+    if (isElevated) {
       setIsAdminLoggedIn(true);
       setAdminUserName(user.name);
-      setActivePage('admin');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setIsAdminLoggedIn(false);
     }
+    // Normal user stays on current storefront page, never redirected to admin panel
   };
 
   const handleLogout = () => {
@@ -180,15 +188,19 @@ export default function App() {
   return (
     <LanguageProvider>
       <CartProvider>
-      <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900">
+      <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden">
         {activePage === 'admin' && isAdminLoggedIn ? (
           /* Admin Panel View */
           <AdminLayout
             config={config}
             onRefreshConfig={loadInitialData}
-            onExitAdmin={() => setActivePage('home')}
+            onExitAdmin={() => {
+              loadInitialData();
+              setActivePage('home');
+            }}
             onLogout={() => {
               setIsAdminLoggedIn(false);
+              loadInitialData();
               setActivePage('home');
             }}
             adminUserName={adminUserName}
@@ -285,6 +297,11 @@ export default function App() {
 
             {/* Persistent Customer Utilities */}
             <WhatsAppButton phone={config.whatsapp} />
+            <AiCustomerSupport
+              config={config}
+              onNavigate={handleNavigate}
+              foods={foods}
+            />
             <CartDrawer
               onProceedToCheckout={() => {
                 setActivePage('checkout');

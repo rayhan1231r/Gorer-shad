@@ -78,7 +78,6 @@ export const ReviewManagement: React.FC<ReviewManagementProps> = ({ onRefreshSta
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('আপনি কি নিশ্চিত যে এই রিভিউটি স্থায়ীভাবে মুছে ফেলতে চান?')) return;
     try {
       await api.deleteReview(id);
       setReviews(prev => prev.filter(r => r.id !== id));

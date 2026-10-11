@@ -20,7 +20,10 @@ import {
   Globe,
   RefreshCw,
   ShieldCheck,
-  Bell
+  Bell,
+  MessageSquare,
+  Sparkles,
+  Crown
 } from 'lucide-react';
 import {
   BusinessConfig,
@@ -49,6 +52,8 @@ import { FinanceReports } from './FinanceReports.tsx';
 import { SettingsManagement } from './SettingsManagement.tsx';
 import { SmtpSettings } from './SmtpSettings.tsx';
 import { ReviewManagement } from './ReviewManagement.tsx';
+import { UserRoleManagement } from './UserRoleManagement.tsx';
+import { AdminAiHub } from './AdminAiHub.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AdminLayoutProps {
@@ -100,7 +105,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         api.getFoods(),
         api.getCategories(),
         api.getDeliveryZones(),
-        api.getPaymentMethods(false),
+        api.getPaymentMethods(true),
         api.getCoupons(),
         api.getCateringInquiries(),
         api.getCustomers(),
@@ -117,6 +122,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       setCustomers(custList);
       setFinancialSummary(rep.summary);
       setExpenses(rep.expenses);
+      onRefreshConfig();
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
@@ -203,6 +209,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       labelBn: 'Email / SMTP সেটিংস',
       labelEn: 'Email / SMTP Setup',
       icon: Mail
+    },
+    {
+      id: 'roles',
+      labelBn: 'ভূমিকা ও অ্যাডমিন কন্ট্রোল',
+      labelEn: 'Roles & Admins',
+      icon: Crown
+    },
+    {
+      id: 'ai-hub',
+      labelBn: 'এআই অ্যাসিস্ট্যান্ট হাব',
+      labelEn: 'AI Intelligence Hub',
+      icon: Sparkles
     },
     {
       id: 'settings',
@@ -518,6 +536,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           {activeTab === 'smtp' && (
             <SmtpSettings />
+          )}
+
+          {activeTab === 'roles' && (
+            <UserRoleManagement
+              currentAdminEmail={adminUserName}
+              onRefreshData={fetchAllData}
+            />
+          )}
+
+          {activeTab === 'ai-hub' && (
+            <AdminAiHub
+              categories={categories}
+              foods={foods}
+              onRefreshData={fetchAllData}
+              onNavigateTab={tab => setActiveTab(tab)}
+            />
           )}
 
           {activeTab === 'settings' && (

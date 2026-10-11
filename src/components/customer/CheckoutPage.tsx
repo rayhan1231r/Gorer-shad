@@ -76,7 +76,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   useEffect(() => {
     Promise.all([
       api.getCurrentUser().catch(() => null),
-      api.getPaymentMethods(true).catch(() => [])
+      api.getPaymentMethods(false).catch(() => [])
     ]).then(([user, methods]) => {
       if (user) {
         if (user.name) setCustomerName(user.name);
@@ -84,10 +84,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         if (user.phone) setCustomerPhone(user.phone);
         if (user.addresses && user.addresses[0]) setDeliveryAddress(user.addresses[0]);
       }
-      if (methods && methods.length > 0) {
-        setAvailablePaymentMethods(methods);
-        const defaultMethod = methods.find(m => m.isActive) || methods[0];
-        setSelectedPaymentMethodId(defaultMethod.id);
+      const activeMethods = (methods || []).filter(m => m.isActive);
+      if (activeMethods.length > 0) {
+        setAvailablePaymentMethods(activeMethods);
+        setSelectedPaymentMethodId(activeMethods[0].id);
+      } else {
+        setAvailablePaymentMethods([]);
       }
     });
   }, []);

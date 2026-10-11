@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
               <LanguageToggle variant="compact" className="bg-emerald-900/80 border-emerald-700/80 text-white" />
 
               {/* Admin Panel button - STRICTLY visible ONLY when authenticated with Admin Gmail/account */}
-              {currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff') && isAdminLoggedIn && (
+              {currentUser && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role) && isAdminLoggedIn && (
                 <>
                   <span className="hidden sm:inline text-emerald-500">·</span>
                   <button
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Customer Account & Admin Button */}
             {currentUser ? (
               <div className="flex items-center gap-1.5">
-                {isAdminLoggedIn && (currentUser.role === 'admin' || currentUser.role === 'staff') && (
+                {isAdminLoggedIn && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role) && (
                   <button
                     onClick={onAdminClick}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 border border-amber-500 rounded-lg transition-colors cursor-pointer shadow-xs"
@@ -252,7 +252,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </button>
 
-                  {isAdminLoggedIn && (currentUser.role === 'admin' || currentUser.role === 'staff') && (
+                  {isAdminLoggedIn && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role) && (
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);

@@ -45,7 +45,8 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // 1. Authorized Admin: Render Full Admin Layout
-  if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff') && isAdminLoggedIn) {
+  const isElevated = currentUser && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role);
+  if (isElevated && isAdminLoggedIn) {
     return (
       <AdminLayout
         config={config}
@@ -58,7 +59,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   }
 
   // 2. Authenticated but Unauthorized (Normal customer): Show Strict Access Denied
-  if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'staff') {
+  if (currentUser && !isElevated) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-100">
         <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-6">

@@ -588,5 +588,85 @@ export const api = {
     } catch {
       return { success: false, verified: false };
     }
+  },
+
+  // 15. User & Role Management
+  async getUsers(): Promise<{ users: AppUser[]; owner: AppUser | null }> {
+    const res = await fetch(`${API_BASE}/admin/users`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch users');
+    return res.json();
+  },
+
+  async createAdminUser(payload: { name: string; email: string; phone?: string; role: 'admin' | 'subadmin' | 'staff'; password?: string }): Promise<{ success: boolean; user?: AppUser; message?: string }> {
+    const res = await fetch(`${API_BASE}/admin/users`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create user');
+    return data;
+  },
+
+  async updateUserRole(userId: string, role: string): Promise<{ success: boolean; message: string; user?: AppUser }> {
+    const res = await fetch(`${API_BASE}/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ role }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update user role');
+    return data;
+  },
+
+  async transferOwnership(newOwnerEmailOrId: string): Promise<{ success: boolean; message: string; newOwner?: AppUser; previousOwner?: AppUser }> {
+    const res = await fetch(`${API_BASE}/admin/transfer-ownership`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ newOwnerEmailOrId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to transfer ownership');
+    return data;
+  },
+
+  // 16. AI Services
+  async askCustomerSupportAi(message: string, history?: { role: 'user' | 'model'; text: string }[]): Promise<{ reply: string; suggestedActions?: { label: string; action: string; targetId?: string }[] }> {
+    const res = await fetch(`${API_BASE}/ai/customer-support`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history }),
+    });
+    if (!res.ok) throw new Error('Failed to get AI response');
+    return res.json();
+  },
+
+  async adminGenerateFoodWithAi(nameBn: string, categoryName: string, spiceLevel?: string): Promise<{
+    shortDescBn: string;
+    fullDescBn: string;
+    portionBn: string;
+    suggestedPrice: number;
+    prepTimeMinutes: number;
+    advanceNoticeRequiredHours?: number;
+  }> {
+    const res = await fetch(`${API_BASE}/ai/admin-generate-food`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ nameBn, categoryName, spiceLevel }),
+    });
+    if (!res.ok) throw new Error('Failed to generate food description');
+    return res.json();
+  },
+
+  async askAdminAi(message: string): Promise<{ reply: string }> {
+    const res = await fetch(`${API_BASE}/ai/admin-chat`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error('Failed to consult Admin AI');
+    return res.json();
   }
 };

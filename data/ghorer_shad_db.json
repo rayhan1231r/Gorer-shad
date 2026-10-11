@@ -448,7 +448,7 @@
       "chargePercentage": 0,
       "instructionsBn": "বিকাশ অ্যাপ থেকে 'Make Payment' অপশন ব্যবহার করুন। কোনো অতিরিক্ত ক্যাশ-আউট চার্জ প্রযোজ্য নয়।",
       "instructionsEn": "Use 'Make Payment' option in bKash app. No extra cash-out fee applies.",
-      "isActive": true,
+      "isActive": false,
       "requiresTransactionId": true,
       "sortOrder": 3
     },
@@ -476,7 +476,7 @@
       "chargePercentage": 1,
       "instructionsBn": "ডাচ-বাংলা রকেটে Send Money করুন এবং ১২ ডিজিটের ট্রানজেকশন আইডি দিন।",
       "instructionsEn": "Send Money to our Rocket account and input the TrxID.",
-      "isActive": true,
+      "isActive": false,
       "requiresTransactionId": true,
       "sortOrder": 5
     },
@@ -490,7 +490,7 @@
       "chargePercentage": 1,
       "instructionsBn": "ইউসিবি উপায় একাউন্টে Send Money করে ট্রানজেকশন আইডি নিচে প্রদান করুন।",
       "instructionsEn": "Send Money via Upay and provide the transaction ID.",
-      "isActive": true,
+      "isActive": false,
       "requiresTransactionId": true,
       "sortOrder": 6
     },
@@ -502,7 +502,7 @@
       "accountNumber": "205012345678",
       "instructionsBn": "ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, আড়াইহাজার শাখা। হিসাব নাম: Joynob Islam Kakoly। রাউটিং: 125270189। ট্রান্সফারের পর রেফারেন্স স্লট দিন।",
       "instructionsEn": "Islami Bank Bangladesh Ltd, Araihazar Branch. A/C: 205012345678. Routing: 125270189.",
-      "isActive": true,
+      "isActive": false,
       "requiresTransactionId": true,
       "sortOrder": 7
     }
@@ -537,7 +537,7 @@
       "name": "Joynob Islam Kakoly",
       "email": "joynob.kakoly@ghorershad.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "password",
       "createdAt": "2026-10-11T14:28:40.712Z",
@@ -551,7 +551,7 @@
       "name": "Rayhan Ahamad",
       "email": "rayhanahamad50@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T14:28:40.772Z",
@@ -561,24 +561,21 @@
       "passwordHash": "3af3d9430b9fcf9a984e741e1e9340d8:ecc2bb2b85e5ac9fcba3c994d74431b6520b0ebd10350dee30d3b376dfbdee1600da243f71cdfd7523ff7563ee74e37c8570462463a58a1b9c8dc18ecd35ec2b"
     },
     "ahmedskkawsar43@gmail.com": {
-      "id": "usr-admin-kawsar",
-      "name": "Ahmed Kawsar",
+      "id": "usr-1791737729686-728",
+      "name": "Rayhan",
       "email": "ahmedskkawsar43@gmail.com",
-      "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
-      "provider": "google",
-      "createdAt": "2026-10-11T14:55:34.105Z",
-      "addresses": [
-        "ঢাকা, বাংলাদেশ"
-      ],
-      "passwordHash": "b352744f301314ec9b489c7eea08788c:10104def373881f6f92ff627fbab26ac2b9de97221d4cd5552425463d71e72933dd27506c539a742e10cf99267bc151acb119f845e4702075226cb0df0b9baa9"
+      "provider": "email_otp",
+      "createdAt": "2026-10-11T16:55:29.686Z",
+      "addresses": [],
+      "passwordHash": "ee6f30d83dec039627425f42768239ea:8f6867708b2b483a34b3875faa696f03ef37a98bfe913827638ae8a0032c3eda074b5c3d3757e8f62379faec08967dc8c96f757fbdaacfb861c8f11dcdbf3532"
     },
     "rmartbdltd@gmail.com": {
-      "id": "usr-1791733951104-566",
+      "id": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
       "name": "Rayhan",
       "email": "rmartbdltd@gmail.com",
-      "role": "admin",
+      "role": "owner",
       "isEmailVerified": true,
       "provider": "email_otp",
       "createdAt": "2026-10-11T15:52:31.104Z",
@@ -590,7 +587,7 @@
       "name": "Admin User",
       "email": "proxy6726@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
@@ -603,7 +600,7 @@
       "name": "Ghorer Shad Admin",
       "email": "ghorershad.arai@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
@@ -648,5 +645,141 @@
     }
   ],
   "expenses": [],
-  "auditLogs": []
+  "auditLogs": [
+    {
+      "id": "log-1791737522771-946",
+      "timestamp": "2026-10-11T16:52:02.771Z",
+      "action": "CREATE_FOOD",
+      "details": "Created food স্পেশাল হাঁসের মাংস ভুনা (GS-9999)",
+      "user": "Admin"
+    },
+    {
+      "id": "log-1791737529235-474",
+      "timestamp": "2026-10-11T16:52:09.235Z",
+      "action": "DELETE_FOOD",
+      "details": "Deleted food item স্পেশাল হাঁসের মাংস ভুনা",
+      "user": "Admin"
+    },
+    {
+      "id": "log-1791737729687-54",
+      "timestamp": "2026-10-11T16:55:29.687Z",
+      "action": "USER_SIGNUP",
+      "details": "Customer account verified and created: ahmedskkawsar43@gmail.com",
+      "user": "Rayhan"
+    },
+    {
+      "id": "log-1791737868792-569",
+      "timestamp": "2026-10-11T16:57:48.792Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791737876393-700",
+      "timestamp": "2026-10-11T16:57:56.393Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791737880762-600",
+      "timestamp": "2026-10-11T16:58:00.762Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Rayhan (ahmedskkawsar43@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791737903849-434",
+      "timestamp": "2026-10-11T16:58:23.849Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791737906901-494",
+      "timestamp": "2026-10-11T16:58:26.901Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Admin User (proxy6726@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791737907819-777",
+      "timestamp": "2026-10-11T16:58:27.819Z",
+      "action": "UPDATE_USER_ROLE",
+      "details": "Ghorer Shad Admin (ghorershad.arai@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
+      "user": "ahmedskkawsar43@gmail.com"
+    },
+    {
+      "id": "log-1791738105831-748",
+      "timestamp": "2026-10-11T17:01:45.831Z",
+      "action": "PAYMENT_METHOD_TOGGLED",
+      "details": "Toggled ব্যাংক ট্রান্সফার (Bank Deposit / EFT) to Inactive",
+      "user": "Admin"
+    },
+    {
+      "id": "log-1791738107698-94",
+      "timestamp": "2026-10-11T17:01:47.698Z",
+      "action": "PAYMENT_METHOD_TOGGLED",
+      "details": "Toggled উপায় (Upay - Send Money) to Inactive",
+      "user": "Admin"
+    },
+    {
+      "id": "log-1791738109496-378",
+      "timestamp": "2026-10-11T17:01:49.496Z",
+      "action": "PAYMENT_METHOD_TOGGLED",
+      "details": "Toggled রকেট (Personal - Send Money) to Inactive",
+      "user": "Admin"
+    }
+  ],
+  "ownerEmail": "rmartbdltd@gmail.com",
+  "sessions": {
+    "gs-tok-a224d1344600120031037e23269a38f3dce59260cc7961aa42ae11a7ff3ea00f": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794329509022
+    },
+    "gs-tok-a6fe24fdccbaff1354207856824522f4a75a46dc55b16c934a6b19422f156cb9": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794329514382
+    },
+    "gs-tok-235c3e66bb7716f9280dc4c4b4e5704e64fd2bace3fc6a85ed38bd5c0e8ae662": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794329522751
+    },
+    "gs-tok-8544cf722473b4c7c92a1f80ad8caa7935a012b7c6d95de3dad1344899f19606": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794329529216
+    },
+    "gs-tok-6fd15415390c060dfc7f0a4fd0d422e90da9862beed86332c80f028aedd7f073": {
+      "userId": "usr-1791737729686-728",
+      "role": "admin",
+      "email": "ahmedskkawsar43@gmail.com",
+      "expiresAt": 1794329729687
+    },
+    "gs-tok-c86433c5400f66e1fc61699b2fa2cb63d90aa793bd9e670af9909b79197cc02c": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "admin",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794330062917
+    },
+    "gs-tok-18ad8d86b5bb6e04d57ecbf3706d3055eb2ac4a57d945511d5dc3d9d6dc59199": {
+      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
+      "role": "owner",
+      "email": "rmartbdltd@gmail.com",
+      "expiresAt": 1794330175891
+    },
+    "gs-tok-f9897849fbd35402012a2570d7e14e0692b9ae6628e229823e0114a65fc3c839": {
+      "userId": "usr-1791738196953-716",
+      "role": "customer",
+      "email": "user_test_999@gmail.com",
+      "expiresAt": 1794330196954
+    }
+  }
 }

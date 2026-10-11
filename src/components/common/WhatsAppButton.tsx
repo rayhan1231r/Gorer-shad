@@ -11,7 +11,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phone }) => {
   const url = `https://wa.me/${cleanPhone}?text=${message}`;
 
   return (
-    <aside aria-label="হোয়াটসঅ্যাপ যোগাযোগ" className="fixed bottom-6 right-6 z-30">
+    <aside aria-label="হোয়াটসঅ্যাপ যোগাযোগ" className="fixed bottom-5 left-5 z-30">
       <a
         href={url}
         target="_blank"

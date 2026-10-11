@@ -40,6 +40,29 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [isAiFilling, setIsAiFilling] = useState(false);
+
+  const handleAiFillDescription = async () => {
+    if (!editingFood?.nameBn?.trim()) return;
+    setIsAiFilling(true);
+    try {
+      const cat = categories.find(c => c.id === editingFood.categoryId);
+      const res = await api.adminGenerateFoodWithAi(editingFood.nameBn, cat?.nameBn || 'বাঙালি খাবার', editingFood.spiceLevel);
+      setEditingFood(prev => prev ? {
+        ...prev,
+        shortDescBn: res.shortDescBn || prev.shortDescBn,
+        fullDescBn: res.fullDescBn || prev.fullDescBn,
+        portionBn: res.portionBn || prev.portionBn,
+        price: prev.price || res.suggestedPrice || 250,
+        prepTimeMinutes: res.prepTimeMinutes || prev.prepTimeMinutes || 30,
+        advanceNoticeRequiredHours: res.advanceNoticeRequiredHours || prev.advanceNoticeRequiredHours || 4
+      } : null);
+    } catch (err) {
+      console.error('AI fill error:', err);
+    } finally {
+      setIsAiFilling(false);
+    }
+  };
 
   // Category state
   const [newCatNameBn, setNewCatNameBn] = useState('');
@@ -118,9 +141,11 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   };
 
   const handleDeleteFood = async (id: string) => {
-    if (window.confirm(language === 'en' ? 'Are you sure you want to delete this food item?' : 'আপনি কি নিশ্চিতভাবে এই খাবারটি ডিলিট করতে চান?')) {
+    try {
       await api.deleteFood(id);
       onRefreshData();
+    } catch (err) {
+      console.error('Delete food error:', err);
     }
   };
 
@@ -196,9 +221,11 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (window.confirm(language === 'en' ? 'Are you sure you want to delete this category?' : 'আপনি কি নিশ্চিতভাবে এই ক্যাটাগরি ডিলিট করতে চান?')) {
+    try {
       await api.deleteCategory(id);
       onRefreshData();
+    } catch (err) {
+      console.error('Delete category error:', err);
     }
   };
 
@@ -630,6 +657,19 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                         className="w-full p-2.5 rounded-xl border border-slate-200 font-mono"
                       />
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-bold text-slate-700">খাবারের বিবরণ ও রেসিপি</span>
+                    <button
+                      type="button"
+                      disabled={isAiFilling || !editingFood.nameBn?.trim()}
+                      onClick={handleAiFillDescription}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <Sparkles className={`w-3.5 h-3.5 text-amber-500 ${isAiFilling ? 'animate-spin' : ''}`} />
+                      <span>{isAiFilling ? 'এআই দিয়ে লেখা হচ্ছে...' : '✨ এআই দিয়ে বিবরণ পূরণ করুন'}</span>
+                    </button>
                   </div>
 
                   <div>

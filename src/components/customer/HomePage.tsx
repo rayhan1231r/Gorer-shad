@@ -1,10 +1,12 @@
 import React from 'react';
-import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck } from 'lucide-react';
 import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';
 import { FoodCard } from './FoodCard.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { LanguageToggle } from '../common/LanguageToggle.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
+import heroFeastImg from '../../assets/images/hero_ghorer_shad_feast_1791709454258.jpg';
+import ilishImg from '../../assets/images/food_ilish_bhapa_fish_1791709467165.jpg';
 
 interface HomePageProps {
   config: BusinessConfig;
@@ -29,7 +31,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
 
   return (
-    <div className="bg-white min-h-screen text-left">
+    <div className="bg-white min-h-screen text-left overflow-x-clip">
       {/* 1. HERO SECTION (With English / Bangla Switcher & Bilingual Typography) */}
       <section className="relative bg-gradient-to-b from-[#F8F9F7] via-white to-white border-b border-slate-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-18">
@@ -115,22 +117,36 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             {/* Right Media Column (5 cols) */}
-            <div className="lg:col-span-5 relative">
-              {/* Floating Verified Brand Seal */}
-              <div className="absolute -top-4 -left-4 sm:-top-5 sm:-left-5 bg-white p-1 rounded-full shadow-xl border border-emerald-100 z-20 hidden sm:block">
+            <div className="lg:col-span-5 relative mt-6 lg:mt-0">
+              {/* Balanced ambient glow */}
+              <div className="absolute -inset-3 sm:-inset-4 bg-gradient-to-tr from-emerald-500/20 via-amber-500/10 to-teal-500/15 rounded-3xl blur-2xl -z-10" />
+
+              {/* Floating Verified Brand Seal (Top Left) */}
+              <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 bg-white p-1 rounded-full shadow-xl border border-emerald-100 z-20 hidden sm:block">
                 <BrandLogo size="lg" className="ring-2 ring-emerald-600/30 shadow-sm" />
               </div>
 
-              <div className="relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-100 group">
+              {/* Quality Rating Badge (Top Right) */}
+              <div className="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full shadow-lg border border-slate-200/90 z-20 flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                <span>৪.৯ / ৫.০</span>
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">১০০% ফ্রেশ</span>
+              </div>
+
+              {/* Main Feast Image Card */}
+              <div className="relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-slate-200/90 bg-slate-100 group">
                 <img
-                  src="/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg"
+                  src={heroFeastImg}
                   alt={language === 'en' ? 'Ghorer Shad Authentic Feast' : 'ঘরের স্বাদ ঐতিহ্যবাহী বাংলা ভোজ'}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/logo.jpg';
+                  }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/20 to-transparent flex items-end p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-transparent flex items-end p-5 sm:p-6">
                   <div className="text-white space-y-1">
-                    <span className="text-xs font-semibold text-emerald-300 block uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-emerald-300 block uppercase tracking-wider">
                       {t('specialFeastTag')}
                     </span>
                     <h3 className="text-lg sm:text-xl font-bold leading-snug">
@@ -143,13 +159,16 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </div>
               </div>
 
-              {/* Mini Food Card Overlay Badge */}
-              <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-white p-3.5 rounded-2xl shadow-lg border border-slate-200/90 items-center gap-3">
-                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-100">
+              {/* Mini Food Card Overlay Badge (Bottom Left) */}
+              <div className="hidden sm:flex absolute -bottom-4 -left-4 sm:-bottom-5 sm:-left-5 bg-white p-3 rounded-2xl shadow-xl border border-slate-200/90 items-center gap-3 z-20">
+                <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-100">
                   <img
-                    src="/src/assets/images/food_ilish_bhapa_fish_1791709467165.jpg"
+                    src={ilishImg}
                     alt="ইলিশ মাছ"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/logo.jpg';
+                    }}
                   />
                 </div>
                 <div>
@@ -160,6 +179,12 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {t('specialIlishDesc')}
                   </span>
                 </div>
+              </div>
+
+              {/* Delivery Advisory Badge (Bottom Right) */}
+              <div className="hidden sm:flex absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-4 bg-emerald-800 text-white px-3 py-1.5 rounded-full shadow-lg border border-emerald-600/40 items-center gap-1.5 text-[11px] font-bold z-20">
+                <Truck className="w-3.5 h-3.5 text-emerald-300" />
+                <span>আড়াইহাজারে হোম ডেলিভারি</span>
               </div>
             </div>
           </div>

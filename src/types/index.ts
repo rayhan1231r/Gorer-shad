@@ -249,16 +249,25 @@ export interface FinancialSummary {
   estimatedNetProfit: number;
 }
 
+export type UserRole = 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer';
+
 export interface AppUser {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  role: 'customer' | 'admin' | 'staff';
+  role: UserRole;
   isEmailVerified: boolean;
   provider: 'email_otp' | 'google' | 'password';
   createdAt: string;
   addresses: string[];
+}
+
+export interface AiChatMessage {
+  role: 'user' | 'model';
+  text: string;
+  timestamp?: string;
+  suggestedActions?: { label: string; action: string; targetId?: string }[];
 }
 
 export interface SmtpConfig {

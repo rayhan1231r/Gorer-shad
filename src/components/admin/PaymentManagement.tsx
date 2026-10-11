@@ -33,6 +33,12 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const showNotification = (type: 'success' | 'error', text: string) => {
+    setNotice({ type, text });
+    setTimeout(() => setNotice(null), 3500);
+  };
 
   const handleOpenAdd = () => {
     setEditingMethod({
@@ -53,15 +59,40 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingMethod || !editingMethod.nameBn || !editingMethod.accountNumber) return;
+    if (!editingMethod || !editingMethod.nameBn) {
+      showNotification('error', 'পেমেন্ট মাধ্যমের নাম প্রদান করুন।');
+      return;
+    }
+
+    if (editingMethod.type !== 'cod' && !editingMethod.accountNumber?.trim()) {
+      showNotification('error', 'এই মাধ্যমের জন্য একাউন্ট বা মোবাইল নম্বর আবশ্যক।');
+      return;
+    }
+
+    const payload: PaymentMethodConfig = {
+      id: editingMethod.id || `pm-${Date.now()}`,
+      nameBn: editingMethod.nameBn.trim(),
+      nameEn: editingMethod.nameEn?.trim() || editingMethod.nameBn.trim(),
+      type: editingMethod.type || 'bkash',
+      accountType: editingMethod.accountType || 'Personal',
+      accountNumber: editingMethod.type === 'cod' ? (editingMethod.accountNumber?.trim() || 'N/A') : (editingMethod.accountNumber?.trim() || ''),
+      chargePercentage: Number(editingMethod.chargePercentage) || 0,
+      instructionsBn: editingMethod.instructionsBn?.trim() || '',
+      instructionsEn: editingMethod.instructionsEn?.trim() || '',
+      isActive: editingMethod.isActive !== undefined ? editingMethod.isActive : true,
+      requiresTransactionId: editingMethod.type === 'cod' ? false : (editingMethod.requiresTransactionId ?? true),
+      sortOrder: Number(editingMethod.sortOrder) || (paymentMethods.length + 1)
+    };
 
     try {
       setIsSaving(true);
-      await api.savePaymentMethod(editingMethod as PaymentMethodConfig);
+      await api.savePaymentMethod(payload);
       setEditingMethod(null);
+      showNotification('success', `পেমেন্ট মাধ্যম "${payload.nameBn}" সফলভাবে সংরক্ষণ করা হয়েছে!`);
       onRefreshData();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to save payment method:', err);
+      showNotification('error', err instanceof Error ? err.message : 'পেমেন্ট মাধ্যম সংরক্ষণ করতে সমস্যা হয়েছে।');
     } finally {
       setIsSaving(false);
     }
@@ -71,18 +102,24 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
     try {
       await api.deletePaymentMethod(id);
       setIsDeletingId(null);
+      showNotification('success', 'পেমেন্ট মাধ্যমটি সফলভাবে মুছে ফেলা হয়েছে।');
       onRefreshData();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to delete payment method:', err);
+      showNotification('error', err instanceof Error ? err.message : 'পেমেন্ট মাধ্যম ডিলিট করতে সমস্যা হয়েছে।');
     }
   };
 
   const handleToggle = async (id: string) => {
     try {
+      const pm = paymentMethods.find(p => p.id === id);
       await api.togglePaymentMethod(id);
+      const nextStatus = pm ? !pm.isActive : true;
+      showNotification('success', `"${pm?.nameBn || 'পেমেন্ট মাধ্যম'}" এখন ${nextStatus ? 'সক্রিয় (Active)' : 'নিষ্ক্রিয় (Inactive)'} করা হয়েছে।`);
       onRefreshData();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to toggle payment method:', err);
+      showNotification('error', err instanceof Error ? err.message : 'পেমেন্ট মাধ্যম টগল করতে সমস্যা হয়েছে।');
     }
   };
 
@@ -127,12 +164,30 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors shrink-0"
+          className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>{language === 'en' ? 'Add Payment Method' : 'নতুন পেমেন্ট মেথড যোগ'}</span>
         </button>
       </div>
+
+      {/* Action Notification Banner */}
+      {notice && (
+        <div
+          className={`p-3.5 rounded-xl text-xs font-medium border flex items-center gap-2 transition-all ${
+            notice.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
+          }`}
+        >
+          {notice.type === 'success' ? (
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
+          <span>{notice.text}</span>
+        </div>
+      )}
 
       {/* Grid of Payment Method Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

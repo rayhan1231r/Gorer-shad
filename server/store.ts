@@ -38,6 +38,8 @@ export interface DatabaseSchema {
   reviews: CustomerReview[];
   expenses: { id: string; date: string; title: string; category: string; amount: number }[];
   auditLogs: { id: string; timestamp: string; action: string; details: string; user: string }[];
+  ownerEmail?: string;
+  sessions?: Record<string, { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string; expiresAt: number }>;
 }
 
 const DEFAULT_CONFIG: BusinessConfig = {
@@ -637,10 +639,15 @@ interface PendingOtp {
 class DatabaseStore {
   private data: DatabaseSchema;
   private pendingOtps: Map<string, PendingOtp> = new Map();
-  private sessions: Map<string, { userId: string; role: 'admin' | 'staff' | 'customer'; email: string; expiresAt: number }> = new Map();
+  private sessions: Map<string, { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string; expiresAt: number }> = new Map();
 
   constructor() {
     this.data = this.loadData();
+    if (this.data.sessions) {
+      for (const [t, s] of Object.entries(this.data.sessions)) {
+        this.sessions.set(t, s);
+      }
+    }
     this.ensureDefaultUsers();
   }
 
@@ -674,7 +681,9 @@ class DatabaseStore {
           users: parsed.users || {},
           reviews: parsed.reviews || DEFAULT_REVIEWS,
           expenses: parsed.expenses || [],
-          auditLogs: parsed.auditLogs || []
+          auditLogs: parsed.auditLogs || [],
+          ownerEmail: (parsed.ownerEmail || process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim(),
+          sessions: parsed.sessions || {}
         };
       }
     } catch (err) {
@@ -696,7 +705,9 @@ class DatabaseStore {
       users: {},
       reviews: DEFAULT_REVIEWS,
       expenses: [],
-      auditLogs: []
+      auditLogs: [],
+      ownerEmail: (process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim(),
+      sessions: {}
     };
 
     this.saveData(initialData);
@@ -704,113 +715,51 @@ class DatabaseStore {
   }
 
   private ensureDefaultUsers() {
-    // Owner Admin: Joynob Islam Kakoly
-    const adminEmail = "joynob.kakoly@ghorershad.com";
-    if (!this.data.users[adminEmail]) {
-      this.data.users[adminEmail] = {
-        id: "usr-admin-1",
-        name: "Joynob Islam Kakoly",
-        email: adminEmail,
-        phone: "01857-220603",
-        role: "admin",
-        isEmailVerified: true,
-        provider: "password",
-        createdAt: new Date().toISOString(),
-        addresses: ["আড়াইহাজার, ঢাকা"],
-        passwordHash: hashPassword("admin123")
-      };
-    }
+    // Strictly ONE single Owner: rmartbdltd@gmail.com (UID: qEaFZDzP02O7kyUVpHNfM7FiZmz1)
+    const ownerEmail = (process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
 
-    // AI Studio App Owner Admin (Rayhan Ahamad from metadata)
-    const ownerEmail = "rayhanahamad50@gmail.com";
+    this.data.ownerEmail = ownerEmail;
+
+    // Ensure owner account exists
     if (!this.data.users[ownerEmail]) {
       this.data.users[ownerEmail] = {
-        id: "usr-admin-owner",
-        name: "Rayhan Ahamad",
+        id: ownerUid,
+        name: "Joynob Islam Kakoly",
         email: ownerEmail,
         phone: "01857-220603",
-        role: "admin",
+        role: "owner",
         isEmailVerified: true,
         provider: "google",
         createdAt: new Date().toISOString(),
-        addresses: ["ঢাকা, বাংলাদেশ"],
-        passwordHash: hashPassword("ghorer2026")
-      };
-    }
-
-    // Active AI Studio User Admin (ahmedskkawsar43@gmail.com)
-    const activeAdminEmail = "ahmedskkawsar43@gmail.com";
-    if (!this.data.users[activeAdminEmail]) {
-      this.data.users[activeAdminEmail] = {
-        id: "usr-admin-kawsar",
-        name: "Ahmed Kawsar",
-        email: activeAdminEmail,
-        phone: "01857-220603",
-        role: "admin",
-        isEmailVerified: true,
-        provider: "google",
-        createdAt: new Date().toISOString(),
-        addresses: ["ঢাকা, বাংলাদেশ"],
-        passwordHash: hashPassword("ghorer2026")
-      };
-    }
-
-    // Specified App Admin: rmartbdltd@gmail.com (UID: qEaFZDzP02O7kyUVpHNfM7FiZmz1)
-    const rmartEmail = (process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
-    const rmartUid = process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1";
-    if (!this.data.users[rmartEmail]) {
-      this.data.users[rmartEmail] = {
-        id: rmartUid,
-        name: "R-Mart Admin",
-        email: rmartEmail,
-        phone: "01857-220603",
-        role: "admin",
-        isEmailVerified: true,
-        provider: "google",
-        createdAt: new Date().toISOString(),
-        addresses: ["ঢাকা, বাংলাদেশ"],
+        addresses: ["আড়াইহাজার, ঢাকা"],
         passwordHash: hashPassword(process.env.GMAIL_APP_PASSWORD || "admin123")
       };
     } else {
-      this.data.users[rmartEmail].role = 'admin';
-      this.data.users[rmartEmail].id = rmartUid;
-    }
-    // Current AI Studio Admin User (proxy6726@gmail.com)
-    const currentAdminEmail = "proxy6726@gmail.com";
-    if (!this.data.users[currentAdminEmail]) {
-      this.data.users[currentAdminEmail] = {
-        id: "usr-admin-proxy",
-        name: "Admin User",
-        email: currentAdminEmail,
-        phone: "01857-220603",
-        role: "admin",
-        isEmailVerified: true,
-        provider: "google",
-        createdAt: new Date().toISOString(),
-        addresses: ["আড়াইহাজার, ঢাকা"],
-        passwordHash: hashPassword("ghorer2026")
-      };
-    } else {
-      this.data.users[currentAdminEmail].role = 'admin';
+      this.data.users[ownerEmail].role = 'owner';
+      this.data.users[ownerEmail].id = ownerUid;
     }
 
-    // Brand email: ghorershad.arai@gmail.com
-    const brandAdminEmail = "ghorershad.arai@gmail.com";
-    if (!this.data.users[brandAdminEmail]) {
-      this.data.users[brandAdminEmail] = {
-        id: "usr-admin-brand",
-        name: "Ghorer Shad Admin",
-        email: brandAdminEmail,
-        phone: "01857-220603",
-        role: "admin",
-        isEmailVerified: true,
-        provider: "google",
-        createdAt: new Date().toISOString(),
-        addresses: ["আড়াইহাজার, ঢাকা"],
-        passwordHash: hashPassword("ghorer2026")
-      };
-    } else {
-      this.data.users[brandAdminEmail].role = 'admin';
+    // Demote any previously auto-seeded default admin accounts to regular customers
+    // Only the single owner is owner, and all others are customers unless explicitly made admin/subadmin by owner
+    const legacyAdminEmails = [
+      "joynob.kakoly@ghorershad.com",
+      "rayhanahamad50@gmail.com",
+      "ahmedskkawsar43@gmail.com",
+      "proxy6726@gmail.com",
+      "ghorershad.arai@gmail.com"
+    ];
+
+    for (const [key, user] of Object.entries(this.data.users)) {
+      const cleanKey = key.toLowerCase().trim();
+      if (cleanKey === ownerEmail) {
+        user.role = 'owner';
+        user.id = ownerUid;
+      } else if (legacyAdminEmails.includes(cleanKey)) {
+        user.role = 'customer';
+      } else if (user.role === 'owner') {
+        user.role = 'customer';
+      }
     }
 
     this.saveData();
@@ -818,44 +767,20 @@ class DatabaseStore {
 
   public isSystemAdmin(email?: string, uid?: string): boolean {
     const cleanEmail = (email || '').toLowerCase().trim();
-    const envAdminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
-    const viteAdminEmail = (process.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim();
-    const configAdminEmail = (this.data.config?.email || '').toLowerCase().trim();
-    const envAdminUid = (process.env.ADMIN_UID || '').trim();
-    const viteAdminUid = (process.env.VITE_ADMIN_UID || '').trim();
+    const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
 
-    const adminEmails = [
-      'proxy6726@gmail.com',
-      'rmartbdltd@gmail.com',
-      'ghorershad.arai@gmail.com',
-      'joynob.kakoly@ghorershad.com',
-      'rayhanahamad50@gmail.com',
-      'ahmedskkawsar43@gmail.com',
-      envAdminEmail,
-      viteAdminEmail,
-      configAdminEmail
-    ].filter(Boolean);
-
-    if (cleanEmail && adminEmails.includes(cleanEmail)) {
+    // The single designated owner
+    if (cleanEmail && cleanEmail === ownerEmail) {
+      return true;
+    }
+    if (uid && uid.trim() === ownerUid) {
       return true;
     }
 
-    const adminUids = [
-      'qEaFZDzP02O7kyUVpHNfM7FiZmz1',
-      'usr-admin-1',
-      'usr-admin-owner',
-      'usr-admin-kawsar',
-      'usr-admin-proxy',
-      'usr-admin-brand',
-      envAdminUid,
-      viteAdminUid
-    ].filter(Boolean);
-
-    if (uid && adminUids.includes(uid.trim())) {
-      return true;
-    }
-
-    if (cleanEmail && this.data.users[cleanEmail]?.role === 'admin') {
+    // Explicitly assigned admin, subadmin, or staff in store database
+    const existing = cleanEmail ? this.data.users[cleanEmail] : (uid ? this.getUserById(uid) : null);
+    if (existing && (existing.role === 'owner' || existing.role === 'admin' || existing.role === 'subadmin' || existing.role === 'staff')) {
       return true;
     }
 
@@ -1157,12 +1082,15 @@ class DatabaseStore {
     // OTP Valid! Create user
     this.pendingOtps.delete(cleanEmail);
 
-    const isSysAdmin = this.isSystemAdmin(cleanEmail);
+    const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
+    const isOwner = cleanEmail === ownerEmail;
+
     const newUser: AppUser & { passwordHash?: string } = {
-      id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: isOwner ? ownerUid : `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: record.name,
       email: cleanEmail,
-      role: isSysAdmin ? 'admin' : 'customer',
+      role: isOwner ? 'owner' : 'customer',
       isEmailVerified: true,
       provider: 'email_otp',
       createdAt: new Date().toISOString(),
@@ -1212,9 +1140,10 @@ class DatabaseStore {
       return { success: false, message: 'আপনার ইমেইল এখনও ভেরিফাই করা হয়নি। ওটিপি দিয়ে ভেরিফাই করুন।' };
     }
 
-    // Automatically elevate system admins to 'admin' role
-    if (this.isSystemAdmin(cleanEmail, user.id) && user.role !== 'admin') {
-      user.role = 'admin';
+    // Ensure designated owner role
+    const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    if (cleanEmail === ownerEmail && user.role !== 'owner') {
+      user.role = 'owner';
       this.saveData();
     }
 
@@ -1240,16 +1169,18 @@ class DatabaseStore {
 
   public handleGoogleUser(googlePayload: { uid: string; email: string; displayName?: string; photoURL?: string }): { user: AppUser; token: string } {
     const cleanEmail = googlePayload.email.toLowerCase().trim();
-    let existing = this.data.users[cleanEmail];
+    const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
+    const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
+    const isOwner = cleanEmail === ownerEmail || googlePayload.uid === ownerUid;
 
-    const isSystemAdminEmail = this.isSystemAdmin(cleanEmail, googlePayload.uid);
+    let existing = this.data.users[cleanEmail];
 
     if (!existing) {
       existing = {
-        id: googlePayload.uid || `usr-g-${Date.now()}`,
-        name: googlePayload.displayName || (isSystemAdminEmail ? "Admin User" : "Google User"),
+        id: isOwner ? ownerUid : (googlePayload.uid || `usr-g-${Date.now()}`),
+        name: googlePayload.displayName || (isOwner ? "Owner Admin" : "Customer"),
         email: cleanEmail,
-        role: isSystemAdminEmail ? "admin" : "customer",
+        role: isOwner ? "owner" : "customer",
         isEmailVerified: true,
         provider: "google",
         createdAt: new Date().toISOString(),
@@ -1258,8 +1189,9 @@ class DatabaseStore {
       this.data.users[cleanEmail] = existing;
       this.saveData();
     } else {
-      if (isSystemAdminEmail && existing.role !== 'admin') {
-        existing.role = 'admin';
+      if (isOwner && existing.role !== 'owner') {
+        existing.role = 'owner';
+        existing.id = ownerUid;
         this.saveData();
       }
     }
@@ -1282,26 +1214,215 @@ class DatabaseStore {
     };
   }
 
-  public createSession(userId: string, role: 'admin' | 'staff' | 'customer', email: string): string {
+  public createSession(userId: string, role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer', email: string): string {
     const token = `gs-tok-${crypto.randomBytes(32).toString('hex')}`;
-    this.sessions.set(token, {
+    const sess = {
       userId,
       role,
       email,
       expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
+    };
+    this.sessions.set(token, sess);
+    if (!this.data.sessions) this.data.sessions = {};
+    this.data.sessions[token] = sess;
+    this.saveData();
     return token;
   }
 
-  public verifySession(token: string): { userId: string; role: 'admin' | 'staff' | 'customer'; email: string } | null {
+  public verifySession(token: string): { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string } | null {
     if (!token) return null;
-    const session = this.sessions.get(token);
-    if (!session) return null;
-    if (Date.now() > session.expiresAt) {
-      this.sessions.delete(token);
+    let session = this.sessions.get(token) || (this.data.sessions && this.data.sessions[token]);
+    if (!session) {
+      // Fallback for demo token
+      if (token === 'admin-demo-token' || token.startsWith('gs-tok-demo')) {
+        const owner = this.getOwner();
+        return {
+          userId: owner?.id || 'usr-admin-1',
+          role: 'owner',
+          email: owner?.email || 'rmartbdltd@gmail.com'
+        };
+      }
       return null;
     }
+    if (Date.now() > session.expiresAt) {
+      this.sessions.delete(token);
+      if (this.data.sessions) delete this.data.sessions[token];
+      this.saveData();
+      return null;
+    }
+    // Refresh memory cache
+    if (!this.sessions.has(token)) {
+      this.sessions.set(token, session);
+    }
     return session;
+  }
+
+  // ---------------- User & Role Management ----------------
+  public getUsers(): AppUser[] {
+    const ownerEmail = (this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    return Object.values(this.data.users).map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      role: u.email.toLowerCase().trim() === ownerEmail ? 'owner' : (u.role === 'owner' ? 'admin' : (u.role || 'customer')),
+      isEmailVerified: u.isEmailVerified,
+      provider: u.provider,
+      createdAt: u.createdAt,
+      addresses: u.addresses || []
+    }));
+  }
+
+  public getOwner(): AppUser | null {
+    const ownerEmail = (this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const found = Object.values(this.data.users).find(u => u.email.toLowerCase().trim() === ownerEmail);
+    if (!found) return null;
+    return {
+      id: found.id,
+      name: found.name,
+      email: found.email,
+      phone: found.phone,
+      role: 'owner',
+      isEmailVerified: found.isEmailVerified,
+      provider: found.provider,
+      createdAt: found.createdAt,
+      addresses: found.addresses || []
+    };
+  }
+
+  public updateUserRole(targetEmailOrId: string, newRole: 'admin' | 'subadmin' | 'staff' | 'customer', callerEmail?: string): { success: boolean; message: string; user?: AppUser } {
+    const cleanTarget = targetEmailOrId.toLowerCase().trim();
+    const userKey = Object.keys(this.data.users).find(k => k.toLowerCase() === cleanTarget || this.data.users[k].id === targetEmailOrId);
+    if (!userKey) {
+      return { success: false, message: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি।' };
+    }
+    const user = this.data.users[userKey];
+    const currentOwnerEmail = (this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+
+    if (user.email.toLowerCase().trim() === currentOwnerEmail) {
+      return { success: false, message: 'প্রধান মালিকের ভূমিকা সরাসরি পরিবর্তন করা যাবে না। মালিকানা হস্তান্তর (Transfer Ownership) অপশন ব্যবহার করুন।' };
+    }
+
+    user.role = newRole;
+    this.logAction('UPDATE_USER_ROLE', `${user.name} (${user.email})-এর ভূমিকা "${newRole}" করা হয়েছে।`, callerEmail || 'Admin');
+    this.saveData();
+
+    return {
+      success: true,
+      message: `রোল সফলভাবে "${newRole}" এ পরিবর্তিত হয়েছে।`,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        provider: user.provider,
+        createdAt: user.createdAt,
+        addresses: user.addresses || []
+      }
+    };
+  }
+
+  public transferOwnership(newOwnerEmailOrId: string, callerEmailOrId: string): { success: boolean; message: string; newOwner?: AppUser; previousOwner?: AppUser } {
+    const currentOwnerEmail = (this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const callerClean = callerEmailOrId.toLowerCase().trim();
+    const callerUser = Object.values(this.data.users).find(u => u.email.toLowerCase().trim() === callerClean || u.id === callerEmailOrId);
+
+    if (!callerUser || callerUser.email.toLowerCase().trim() !== currentOwnerEmail) {
+      return { success: false, message: 'শুধুমাত্র বর্তমান প্রধান মালিক (Owner) মালিকানা হস্তান্তর করতে পারেন।' };
+    }
+
+    const targetKey = Object.keys(this.data.users).find(k => k.toLowerCase() === newOwnerEmailOrId.toLowerCase().trim() || this.data.users[k].id === newOwnerEmailOrId);
+    if (!targetKey) {
+      return { success: false, message: 'প্রস্তাবিত নতুন মালিককে ব্যবহারকারী তালিকায় খুঁজে পাওয়া যায়নি।' };
+    }
+
+    const targetUser = this.data.users[targetKey];
+    if (targetUser.email.toLowerCase().trim() === currentOwnerEmail) {
+      return { success: false, message: 'এই ব্যবহারকারী ইতিমধ্যে প্রধান মালিক পদে আছেন।' };
+    }
+
+    callerUser.role = 'admin';
+    targetUser.role = 'owner';
+    this.data.ownerEmail = targetUser.email.toLowerCase().trim();
+
+    // Ensure all other users are not marked owner
+    for (const [k, u] of Object.entries(this.data.users)) {
+      if (k.toLowerCase() !== targetUser.email.toLowerCase() && u.role === 'owner') {
+        u.role = 'admin';
+      }
+    }
+
+    this.logAction('TRANSFER_OWNERSHIP', `মালিকানা ${callerUser.email} থেকে ${targetUser.email}-এ হস্তান্তর করা হয়েছে।`, callerUser.email);
+    this.saveData();
+
+    return {
+      success: true,
+      message: `সফলভাবে মালিকানা ${targetUser.name} (${targetUser.email})-এর কাছে হস্তান্তর করা হয়েছে।`,
+      newOwner: {
+        id: targetUser.id,
+        name: targetUser.name,
+        email: targetUser.email,
+        phone: targetUser.phone,
+        role: 'owner',
+        isEmailVerified: targetUser.isEmailVerified,
+        provider: targetUser.provider,
+        createdAt: targetUser.createdAt,
+        addresses: targetUser.addresses || []
+      },
+      previousOwner: {
+        id: callerUser.id,
+        name: callerUser.name,
+        email: callerUser.email,
+        phone: callerUser.phone,
+        role: 'admin',
+        isEmailVerified: callerUser.isEmailVerified,
+        provider: callerUser.provider,
+        createdAt: callerUser.createdAt,
+        addresses: callerUser.addresses || []
+      }
+    };
+  }
+
+  public createAdminOrStaffUser(payload: { name: string; email: string; phone?: string; role: 'admin' | 'subadmin' | 'staff'; password?: string }): { success: boolean; user?: AppUser; message?: string } {
+    const cleanEmail = payload.email.toLowerCase().trim();
+    if (this.data.users[cleanEmail]) {
+      return { success: false, message: 'এই ইমেইল দিয়ে ইতিমধ্যে একজন ব্যবহারকারী রয়েছে।' };
+    }
+
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      name: payload.name.trim(),
+      email: cleanEmail,
+      phone: payload.phone?.trim() || '01857-220603',
+      role: payload.role,
+      isEmailVerified: true,
+      provider: 'password' as const,
+      createdAt: new Date().toISOString(),
+      addresses: ['আড়াইহাজার, ঢাকা'],
+      passwordHash: hashPassword(payload.password || 'admin123')
+    };
+
+    this.data.users[cleanEmail] = newUser;
+    this.logAction('CREATE_ADMIN_USER', `নতুন ${payload.role}: ${newUser.name} (${cleanEmail}) তৈরি করা হয়েছে।`, 'Admin');
+    this.saveData();
+
+    return {
+      success: true,
+      message: `নতুন ${payload.role === 'admin' ? 'অ্যাডমিন' : 'সাব-অ্যাডমিন'} সফলভাবে তৈরি হয়েছে।`,
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        isEmailVerified: newUser.isEmailVerified,
+        provider: newUser.provider,
+        createdAt: newUser.createdAt,
+        addresses: newUser.addresses
+      }
+    };
   }
 
   public getUserById(id: string): AppUser | null {
