@@ -83,7 +83,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
               প্রবেশের জন্য প্রয়োজনীয়:
             </p>
             <p className="text-[11px] leading-relaxed">
-              শুধুমাত্র অনুমোদিত অ্যাডমিনিস্ট্রেটর জিমেইল (যেমন: <span className="font-mono text-emerald-400">proxy6726@gmail.com</span>, <span className="font-mono text-emerald-400">ghorershad.arai@gmail.com</span>) দিয়ে প্রবেশ করতে পারবেন।
+              শুধুমাত্র অনুমোদিত অ্যাডমিনিস্ট্রেটর জিমেইল (যেমন: <span className="font-mono text-emerald-400">rmartbdltd@gmail.com</span>, <span className="font-mono text-emerald-400">proxy6726@gmail.com</span>) দিয়ে প্রবেশ করতে পারবেন।
             </p>
           </div>
 

@@ -326,6 +326,19 @@ export interface CustomerReview {
   isVerifiedPurchase: boolean;
 }
 
+export interface HeroBannerSlide {
+  id: string;
+  image: string;
+  tagBn: string;
+  tagEn: string;
+  titleBn: string;
+  titleEn: string;
+  descBn: string;
+  descEn: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
 export interface HomepageContent {
   heroHeadlineBn: string;
   heroHeadlineEn: string;
@@ -339,6 +352,15 @@ export interface HomepageContent {
   secondaryBannerImage?: string;
   showDiscountBanner?: boolean;
   discountBannerTextBn?: string;
+  heroBanners?: HeroBannerSlide[];
+  bannerIntervalSeconds?: number;
+}
+
+export interface GeminiConfig {
+  isConfigured: boolean;
+  apiKeyMasked?: string;
+  apiKey?: string;
+  model?: string;
 }
 
 export interface LeaderboardUser {
@@ -364,5 +386,6 @@ export interface BroadcastEmailPayload {
   targetAudience?: 'all' | 'with_orders' | 'admins';
   foodId?: string;
   ctaUrl?: string;
+  testEmail?: string;
 }
 

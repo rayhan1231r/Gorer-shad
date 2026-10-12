@@ -40,6 +40,7 @@ export interface DatabaseSchema {
   expenses: { id: string; date: string; title: string; category: string; amount: number }[];
   auditLogs: { id: string; timestamp: string; action: string; details: string; user: string }[];
   ownerEmail?: string;
+  geminiApiKey?: string;
   sessions?: Record<string, { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string; expiresAt: number }>;
 }
 
@@ -81,7 +82,58 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
   heroSubtitleEn: "Choose your favorite homemade Bengali delicacies at Ghorer Shad. Order comfortably and plan your meal timing in advance.",
   ctaMenuBtnBn: "মেনু দেখুন",
   ctaCateringBtnBn: "ক্যাটারিং সম্পর্কে জানুন",
-  bannerImage: "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg"
+  bannerImage: "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
+  bannerIntervalSeconds: 3,
+  heroBanners: [
+    {
+      id: "feast",
+      image: "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
+      tagBn: "খাঁটি বাঙালি ভোজ ও ঐতিহ্য",
+      tagEn: "Authentic Bengali Feast",
+      titleBn: "ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ",
+      titleEn: "Royal Bengali Homemade Feast",
+      descBn: "আড়াইহাজারের খাঁটি রান্না, তাজা মসলা ও ঘরোয়া ভালোবাসা",
+      descEn: "Fresh home cooking in Araihazar with pure spices",
+      isActive: true,
+      sortOrder: 1
+    },
+    {
+      id: "ilish",
+      image: "/src/assets/images/food_ilish_bhapa_fish_1791709467165.jpg",
+      tagBn: "পদ্মার তাজা মাছের সমাহার",
+      tagEn: "Fresh River Hilsa Special",
+      titleBn: "তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব",
+      titleEn: "Fresh Shorshe Ilish & Pulao Delicacies",
+      descBn: "অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না",
+      descEn: "Cooked fresh after order with supreme authentic aroma",
+      isActive: true,
+      sortOrder: 2
+    },
+    {
+      id: "meat",
+      image: "/src/assets/images/food_bengali_meat_curry_1791709480684.jpg",
+      tagBn: "দেশি মাংসের স্পেশাল কষা",
+      tagEn: "Desi Meat Curry & Kacchi",
+      titleBn: "দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল",
+      titleEn: "Desi Mutton & Beef Traditional Curry",
+      descBn: "খাঁটি সরিষার তেলে কষানো মাংস ও স্পেশাল ভুনা খিচুড়ি",
+      descEn: "Slow-cooked with pure mustard oil & aromatic spices",
+      isActive: true,
+      sortOrder: 3
+    },
+    {
+      id: "platter",
+      image: "/src/assets/images/food_bengali_platter_snacks_1791709490645.jpg",
+      tagBn: "ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ",
+      tagEn: "Family Combos & Catering Package",
+      titleBn: "যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ",
+      titleEn: "Catering & Large Feasts for Every Celebration",
+      descBn: "৫০ থেকে ৫০০ জনের সম্পূর্ণ ঘরোয়া খাবার সরবরাহ",
+      descEn: "Complete homemade food service from 50 to 500 guests",
+      isActive: true,
+      sortOrder: 4
+    }
+  ]
 };
 
 const DEFAULT_SMTP_CONFIG: SmtpConfig = {
@@ -852,7 +904,15 @@ class DatabaseStore {
   }
 
   public getHomepageContent(): HomepageContent {
-    return this.data.homepageContent || DEFAULT_HOMEPAGE_CONTENT;
+    const content = { ...(this.data.homepageContent || DEFAULT_HOMEPAGE_CONTENT) };
+    if (!content.heroBanners || !Array.isArray(content.heroBanners) || content.heroBanners.length === 0) {
+      content.heroBanners = JSON.parse(JSON.stringify(DEFAULT_HOMEPAGE_CONTENT.heroBanners || []));
+    }
+    if (!content.bannerIntervalSeconds) {
+      content.bannerIntervalSeconds = 3;
+    }
+    this.data.homepageContent = content;
+    return content;
   }
 
   public updateHomepageContent(updates: Partial<HomepageContent>): HomepageContent {
@@ -860,6 +920,27 @@ class DatabaseStore {
     this.logAction('UPDATE_HOMEPAGE', 'Updated homepage hero text and banners', 'Admin');
     this.saveData();
     return this.data.homepageContent;
+  }
+
+  // ---------------- Gemini AI Engine ----------------
+  public getEffectiveGeminiKey(): string {
+    return (this.data.geminiApiKey || process.env.GEMINI_API_KEY || '').trim();
+  }
+
+  public getGeminiConfig(): { isConfigured: boolean; apiKeyMasked: string } {
+    const key = this.getEffectiveGeminiKey();
+    if (!key) {
+      return { isConfigured: false, apiKeyMasked: '' };
+    }
+    const masked = key.length > 8 ? `${key.slice(0, 6)}••••••••${key.slice(-4)}` : '••••••••';
+    return { isConfigured: true, apiKeyMasked: masked };
+  }
+
+  public updateGeminiApiKey(newKey: string): { isConfigured: boolean; apiKeyMasked: string } {
+    this.data.geminiApiKey = (newKey || '').trim();
+    this.logAction('UPDATE_GEMINI_KEY', 'Gemini AI API Key updated', 'Admin');
+    this.saveData();
+    return this.getGeminiConfig();
   }
 
   // ---------------- SMTP & OTP Engine ----------------

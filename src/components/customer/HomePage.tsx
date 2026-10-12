@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
-import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';
+import { BusinessConfig, Category, FoodItem, HomepageContent } from '../../types/index.ts';
 import { FoodCard } from './FoodCard.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { LanguageToggle } from '../common/LanguageToggle.tsx';
@@ -32,7 +32,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const { language, t, getCategoryTitle, getCategoryDescription } = useLanguage();
   const featuredFoods = foods.filter(f => f.isFeatured || f.isBestseller).slice(0, 6);
   const platterFoods = foods.filter(f => f.categoryId === 'platters-combos').slice(0, 3);
-  const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
+  const cleanPhone = (config.whatsapp || '').replace(/[^0-9]/g, '');
 
   // Dynamic Auto-Changing Hero Banners (Slides continuously every 2.5 seconds)
   const heroBanners = [

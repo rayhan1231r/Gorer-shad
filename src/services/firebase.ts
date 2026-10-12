@@ -19,7 +19,7 @@ export const auth = getAuth(app);
 const firestoreDbId = (firebaseConfig as any).firestoreDatabaseId;
 export const db = firestoreDbId ? getFirestore(app, firestoreDbId) : getFirestore(app);
 
-// Test Firestore connection on boot
+// Optional helper to test Firestore connection
 export async function testFirestoreConnection() {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
@@ -29,7 +29,6 @@ export async function testFirestoreConnection() {
     }
   }
 }
-testFirestoreConnection();
 
 export enum OperationType {
   CREATE = 'create',

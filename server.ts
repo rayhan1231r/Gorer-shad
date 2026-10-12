@@ -83,6 +83,7 @@ function ownerOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
       session.role === 'admin' ||
       sessionEmail === 'rmartbdltd@gmail.com' ||
       sessionEmail === 'ahmedskkawsar43@gmail.com' ||
+      sessionEmail === 'proxy6726@gmail.com' ||
       sessionEmail === envAdminEmail ||
       (currentOwnerEmail && sessionEmail === currentOwnerEmail) ||
       session.userId === envAdminUid ||
@@ -211,6 +212,59 @@ app.post('/api/admin/smtp/test', adminOnlyMiddleware, async (req: Request, res: 
     res.status(500).json({
       success: false,
       message: err instanceof Error ? err.message : 'SMTP টেস্টে ত্রুটি ঘটেছে'
+    });
+  }
+});
+
+// 3.1 Gemini AI Engine Configuration
+app.get('/api/admin/gemini', adminOnlyMiddleware, (_req: Request, res: Response) => {
+  res.json(db.getGeminiConfig());
+});
+
+app.post('/api/admin/gemini', adminOnlyMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body;
+    if (apiKey === undefined) {
+      return res.status(400).json({ error: 'API Key প্রদান করুন।' });
+    }
+    const updated = db.updateGeminiApiKey(apiKey);
+    res.json(updated);
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Gemini কী আপডেট ব্যর্থ হয়েছে' });
+  }
+});
+
+app.post('/api/admin/gemini/test', adminOnlyMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body;
+    const testKey = (apiKey || db.getEffectiveGeminiKey()).trim();
+
+    if (!testKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'কোনো Gemini API Key পাওয়া যায়নি। অনুগ্রহ করে একটি বৈধ API Key প্রদান করুন।'
+      });
+    }
+
+    const genAi = new GoogleGenAI({
+      apiKey: testKey,
+      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+    });
+
+    const testRes = await genAi.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: 'বলুন: "Google Gemini 3.8 Flash এআই ইঞ্জিন সফলভাবে সংযুক্ত হয়েছে!"'
+    });
+
+    res.json({
+      success: true,
+      message: 'Gemini API সফলভাবে যাচাইকৃত ও সক্রিয় হয়েছে!',
+      sampleReply: testRes.text || 'সংযোগ সফল!'
+    });
+  } catch (err: unknown) {
+    res.status(400).json({
+      success: false,
+      message: err instanceof Error ? err.message : 'Gemini API যাচাইকরণ ব্যর্থ হয়েছে।'
     });
   }
 });
@@ -530,6 +584,7 @@ app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
     const isOwner =
       cleanEmail === 'ahmedskkawsar43@gmail.com' ||
       cleanEmail === 'rmartbdltd@gmail.com' ||
+      cleanEmail === 'proxy6726@gmail.com' ||
       cleanEmail === envAdminEmail ||
       (cleanUid && (cleanUid === envAdminUid || (currentOwner && cleanUid === currentOwner.id))) ||
       (cleanEmail && (currentOwner && cleanEmail === currentOwner.email.toLowerCase().trim()));
@@ -976,6 +1031,9 @@ app.post('/api/admin/transfer-ownership', ownerOnlyMiddleware, (req: Request, re
   if (!result.success) {
     return res.status(400).json({ error: result.message });
   }
+  res.json(result);
+});
+
 app.delete('/api/admin/users/:id', ownerOnlyMiddleware, (req: Request, res: Response) => {
   const callerUser = (req as any).user;
   const result = db.deleteUser(req.params.id, callerUser?.email);
@@ -1058,7 +1116,7 @@ app.post('/api/admin/notification-emails/test', adminOnlyMiddleware, async (req:
 // 15.2 Broadcast Email Engine & Campaign
 app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request, res: Response) => {
   try {
-    const { subject, headline, contentText, contentHtml, targetAudience, foodId, ctaUrl } = req.body;
+    const { subject, headline, contentText, contentHtml, targetAudience, foodId, ctaUrl, testEmail } = req.body;
     if (!subject || !contentText) {
       return res.status(400).json({ error: 'বিষয় এবং বার্তার বিবরণ আবশ্যক।' });
     }
@@ -1068,20 +1126,28 @@ app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request,
       return res.status(400).json({ error: 'SMTP সেটিংস কনফিগার করা নেই। অনুগ্রহ করে প্রথমে SMTP সেটআপ করুন।' });
     }
 
-    const customers = db.getCustomers();
-    const users = db.getUsers();
-    const emailSet = new Set<string>();
+    let recipients: string[] = [];
 
-    if (targetAudience === 'admins') {
-      users.filter(u => u.role !== 'customer').forEach(u => emailSet.add(u.email));
-    } else if (targetAudience === 'with_orders') {
-      customers.filter(c => c.totalOrders > 0 && c.email).forEach(c => emailSet.add(c.email!));
+    if (testEmail && typeof testEmail === 'string' && testEmail.includes('@')) {
+      // Safe single test email mode
+      recipients = [testEmail.trim()];
     } else {
-      customers.filter(c => c.email).forEach(c => emailSet.add(c.email!));
-      users.filter(u => u.email).forEach(u => emailSet.add(u.email));
+      const customers = db.getCustomers();
+      const users = db.getUsers();
+      const emailSet = new Set<string>();
+
+      if (targetAudience === 'admins') {
+        users.filter(u => u.role !== 'customer').forEach(u => emailSet.add(u.email));
+      } else if (targetAudience === 'with_orders') {
+        customers.filter(c => c.totalOrders > 0 && c.email).forEach(c => emailSet.add(c.email!));
+      } else {
+        customers.filter(c => c.email).forEach(c => emailSet.add(c.email!));
+        users.filter(u => u.email).forEach(u => emailSet.add(u.email));
+      }
+
+      recipients = Array.from(emailSet);
     }
 
-    const recipients = Array.from(emailSet);
     if (recipients.length === 0) {
       return res.status(400).json({ error: 'কোনো গ্রাহকের ইমেইল খুঁজে পাওয়া যায়নি।' });
     }
@@ -1091,8 +1157,10 @@ app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request,
       foodItem = db.getFoodById(foodId);
     }
 
+    const broadcastSubject = testEmail ? `[TEST] ${subject}` : subject;
+
     const broadcastRes = await smtpService.sendBroadcastEmail(rawSmtp, recipients, {
-      subject,
+      subject: broadcastSubject,
       headline: headline || subject,
       contentText,
       contentHtml,
@@ -1100,13 +1168,19 @@ app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request,
       ctaUrl: ctaUrl || 'https://ghorershad.com'
     });
 
-    db.logAction('BROADCAST_EMAIL', `ইমেইল ব্রডকাস্ট পাঠানো হয়েছে: "${subject}" (${broadcastRes.sentCount} জন প্রাপক)`, (req as any).user?.email || 'Admin');
+    const actionText = testEmail
+      ? `টেস্ট ইমেইল পাঠানো হয়েছে: "${broadcastSubject}" (${testEmail})`
+      : `ইমেইল ব্রডকাস্ট পাঠানো হয়েছে: "${subject}" (${broadcastRes.sentCount} জন প্রাপক)`;
+    db.logAction('BROADCAST_EMAIL', actionText, (req as any).user?.email || 'Admin');
 
     res.json({
-      success: true,
+      success: broadcastRes.success,
       sentCount: broadcastRes.sentCount,
       totalRecipients: recipients.length,
-      message: `${broadcastRes.sentCount} জন গ্রাহকের কাছে ব্রডকাস্ট ইমেইল সফলভাবে পাঠানো হয়েছে!`
+      isTest: Boolean(testEmail),
+      message: testEmail
+        ? `টেস্ট ইমেইল সফলভাবে পাঠানো হয়েছে (${testEmail})!`
+        : `${broadcastRes.sentCount} জন গ্রাহকের কাছে ব্রডকাস্ট ইমেইল সফলভাবে পাঠানো হয়েছে!`
     });
   } catch (err: unknown) {
     console.error('Broadcast email error:', err);
@@ -1146,7 +1220,7 @@ ${foodContext}
   "contentText": "৩-৪ অনুচ্ছেদের বিস্তারিত আন্তরিক ও সুস্বাদু বর্ণনা, ব্যবহৃত ঘরোয়া মশলা, খাঁটি স্বাদ এবং অগ্রিম অর্ডারের আহ্বান সহ।"
 }`;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = db.getEffectiveGeminiKey();
     if (apiKey) {
       try {
         const genAi = new GoogleGenAI({
@@ -1237,7 +1311,7 @@ ${paymentSummary}
     let reply = '';
     const suggestedActions: { label: string; action: string; targetId?: string }[] = [];
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = db.getEffectiveGeminiKey();
     if (apiKey) {
       try {
         const genAi = new GoogleGenAI({
@@ -1337,7 +1411,7 @@ app.post('/api/ai/admin-generate-food', adminOnlyMiddleware, async (req: Request
       return res.status(400).json({ error: 'খাবারের নাম প্রদান করুন।' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = db.getEffectiveGeminiKey();
     if (apiKey) {
       try {
         const genAi = new GoogleGenAI({
@@ -1398,7 +1472,7 @@ app.post('/api/ai/admin-chat', adminOnlyMiddleware, async (req: Request, res: Re
     const foods = db.getFoods();
     const reviews = db.getReviews(false);
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = db.getEffectiveGeminiKey();
     const statsContext = `চলতি ব্যবসায়িক অবস্থা:
 - সর্বমোট অর্ডার: ${orders.length}টি
 - মোট রেভিনিউ: ৳${summary.totalRevenue}
@@ -1452,6 +1526,22 @@ async function startServer() {
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      if (url.startsWith('/api') || url.startsWith('/uploads')) {
+        return next();
+      }
+      try {
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.resolve(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -1460,8 +1550,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server started on http://0.0.0.0:${PORT}`);
+  let cliPort = 3000;
+  const portArgIndex = process.argv.indexOf('--port');
+  if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
+    cliPort = Number(process.argv[portArgIndex + 1]) || 3000;
+  }
+  const listenPort = Number(process.env.PORT) || cliPort || 3000;
+
+  app.listen(listenPort, '0.0.0.0', () => {
+    console.log(`Server started on http://0.0.0.0:${listenPort}`);
   });
 }
 

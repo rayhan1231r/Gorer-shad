@@ -11,14 +11,17 @@ export class SmtpService {
 
     const port = Number(config.port) || 587;
     const isSecure = config.security === 'SSL' || port === 465;
+    const cleanPass = config.host.includes('gmail.com')
+      ? config.pass.replace(/\s+/g, '')
+      : config.pass.trim();
 
     return nodemailer.createTransport({
-      host: config.host,
+      host: config.host.trim(),
       port,
       secure: isSecure,
       auth: {
-        user: config.user,
-        pass: config.pass,
+        user: config.user.trim(),
+        pass: cleanPass,
       },
       tls: {
         // Do not fail on invalid certs for local/custom mail servers

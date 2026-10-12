@@ -21,7 +21,15 @@
     "bkashNumber": "01912-838891 (Personal)",
     "nagadNumber": "01857-220603 (Personal)",
     "rocketNumber": "01857-220603-9",
-    "bankDetails": "Islami Bank Bangladesh Ltd, Araihazar Branch, A/C: 205012345678"
+    "bankDetails": "Islami Bank Bangladesh Ltd, Araihazar Branch, A/C: 205012345678",
+    "orderNotificationEmails": [
+      "rmartbdltd@gmail.com"
+    ],
+    "logoUrl": "/logo.jpg",
+    "facebookUrl": "https://facebook.com/ghorershad.arai",
+    "youtubeUrl": "https://youtube.com/@ghorershad",
+    "tiktokUrl": "https://tiktok.com/@ghorershad",
+    "instagramUrl": "https://instagram.com/ghorershad"
   },
   "homepageContent": {
     "heroHeadlineBn": "ঘরের রান্নার ভালোবাসা, এবার আপনার দোরগোড়ায়",
@@ -40,11 +48,12 @@
     "security": "STARTTLS",
     "senderEmail": "rmartbdltd@gmail.com",
     "senderName": "ঘরের স্বাদ (Ghorer Shad)",
+    "logoUrl": "/logo.jpg",
+    "websiteUrl": "",
     "otpExpirationMinutes": 5,
     "otpResendCooldownSeconds": 60,
     "maxVerificationAttempts": 5,
-    "isConfigured": true,
-    "logoUrl": "/logo.jpg"
+    "isConfigured": true
   },
   "categories": [
     {

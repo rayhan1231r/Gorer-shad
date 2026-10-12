@@ -16,7 +16,8 @@ import {
   PaymentMethodConfig,
   LeaderboardUser,
   BroadcastEmailPayload,
-  HomepageContent
+  HomepageContent,
+  GeminiConfig
 } from '../types/index.ts';
 
 const API_BASE = '/api';
@@ -807,6 +808,11 @@ export const api = {
     if (!res.ok) throw new Error(data.error || 'এআই ইমেইল তৈরি ব্যর্থ');
     return data;
   },
+  async getHomepageContent(): Promise<HomepageContent> {
+    const res = await fetch(`${API_BASE}/homepage`);
+    if (!res.ok) throw new Error('Failed to load homepage content');
+    return res.json();
+  },
   async updateHomepageContent(data: Partial<HomepageContent>): Promise<HomepageContent> {
     const res = await fetch(`${API_BASE}/homepage`, {
       method: 'POST',
@@ -814,6 +820,35 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to update homepage content');
+    return res.json();
+  },
+
+  // Gemini AI Engine Configuration
+  async getGeminiConfig(): Promise<GeminiConfig> {
+    const res = await fetch(`${API_BASE}/admin/gemini`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch Gemini configuration');
+    return res.json();
+  },
+  async updateGeminiApiKey(apiKey: string): Promise<GeminiConfig> {
+    const res = await fetch(`${API_BASE}/admin/gemini`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ apiKey }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update Gemini API key');
+    }
+    return res.json();
+  },
+  async testGeminiApiKey(apiKey?: string): Promise<{ success: boolean; message: string; sampleReply?: string }> {
+    const res = await fetch(`${API_BASE}/admin/gemini/test`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ apiKey }),
+    });
     return res.json();
   }
 };
