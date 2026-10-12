@@ -1,13 +1,3 @@
-import React from 'react';
-import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck } from 'lucide-react';
-import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';
-import { FoodCard } from './FoodCard.tsx';
-import { useLanguage } from '../../context/LanguageContext.tsx';
-import { LanguageToggle } from '../common/LanguageToggle.tsx';
-import { BrandLogo } from '../common/BrandLogo.tsx';
-import heroFeastImg from '../../assets/images/hero_ghorer_shad_feast_1791709454258.jpg';
-import ilishImg from '../../assets/images/food_ilish_bhapa_fish_1791709467165.jpg';
-
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';

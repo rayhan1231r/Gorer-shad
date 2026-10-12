@@ -662,6 +662,28 @@ export const api = {
     return data;
   },
 
+  async deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete user');
+    return data;
+  },
+
+  async resetUserPassword(userId: string, password?: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/admin/users/${userId}/reset-password`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+    return data;
+  },
+
+
   // 16. AI Services
   async askCustomerSupportAi(message: string, history?: { role: 'user' | 'model'; text: string }[]): Promise<{ reply: string; suggestedActions?: { label: string; action: string; targetId?: string }[] }> {
     const res = await fetch(`${API_BASE}/ai/customer-support`, {

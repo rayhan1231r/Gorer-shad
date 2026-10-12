@@ -93,7 +93,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary>({
     todaySales: 0,
     todayOrdersCount: 0,
+    weeklySales: 0,
+    weeklyOrdersCount: 0,
+    lastWeekSales: 0,
     monthSales: 0,
+    yearSales: 0,
+    yearOrdersCount: 0,
     totalRevenue: 0,
     totalDeliveryFees: 0,
     totalDiscounts: 0,

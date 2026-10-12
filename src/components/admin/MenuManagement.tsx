@@ -15,7 +15,10 @@ import {
   Flame,
   Layers,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Video,
+  Play,
+  Film
 } from 'lucide-react';
 import { FoodItem, Category, FoodVariant, FoodAddon } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
@@ -109,7 +112,18 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
       try {
         setIsUploading(true);
         const res = await api.uploadImage(reader.result as string, file.name);
-        setEditingFood(prev => prev ? { ...prev, image: res.url } : null);
+        setEditingFood(prev => {
+          if (!prev) return null;
+          const currentImages = prev.images && prev.images.length > 0 ? [...prev.images] : [prev.image || res.url];
+          if (!currentImages.includes(res.url)) {
+            currentImages.push(res.url);
+          }
+          return {
+            ...prev,
+            image: prev.image || res.url,
+            images: currentImages
+          };
+        });
       } catch (err) {
         console.error('Image upload failed:', err);
       } finally {
@@ -118,6 +132,112 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
     };
     reader.readAsDataURL(file);
   };
+
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [isVideoUploading, setIsVideoUploading] = useState(false);
+
+  const handleMultiImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const currentList = editingFood?.images && editingFood.images.length > 0
+        ? [...editingFood.images]
+        : (editingFood?.image ? [editingFood.image] : []);
+
+      for (let i = 0; i < files.length; i++) {
+        if (currentList.length >= 10) break; // max 10 images
+        const file = files[i];
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        const res = await api.uploadImage(dataUrl, file.name);
+        if (res.url && !currentList.includes(res.url)) {
+          currentList.push(res.url);
+        }
+      }
+
+      setEditingFood(prev => prev ? {
+        ...prev,
+        images: currentList,
+        image: currentList[0] || prev.image
+      } : null);
+    } catch (err) {
+      console.error('Multi-image upload error:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleAddImageUrl = () => {
+    if (!newImageUrl.trim()) return;
+    const currentList = editingFood?.images && editingFood.images.length > 0
+      ? [...editingFood.images]
+      : (editingFood?.image ? [editingFood.image] : []);
+
+    if (currentList.length >= 10) return;
+    currentList.push(newImageUrl.trim());
+    setEditingFood(prev => prev ? {
+      ...prev,
+      images: currentList,
+      image: currentList[0] || prev.image
+    } : null);
+    setNewImageUrl('');
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const currentList = editingFood?.images && editingFood.images.length > 0
+      ? [...editingFood.images]
+      : (editingFood?.image ? [editingFood.image] : []);
+
+    currentList.splice(index, 1);
+    setEditingFood(prev => prev ? {
+      ...prev,
+      images: currentList,
+      image: currentList[0] || '/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg'
+    } : null);
+  };
+
+  const handleSetPrimaryImage = (index: number) => {
+    const currentList = editingFood?.images && editingFood.images.length > 0
+      ? [...editingFood.images]
+      : (editingFood?.image ? [editingFood.image] : []);
+
+    const selected = currentList.splice(index, 1)[0];
+    currentList.unshift(selected);
+    setEditingFood(prev => prev ? {
+      ...prev,
+      images: currentList,
+      image: selected
+    } : null);
+  };
+
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsVideoUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const res = await api.uploadImage(reader.result as string, file.name);
+          setEditingFood(prev => prev ? { ...prev, videoUrl: res.url } : null);
+        } catch (err) {
+          console.error('Video upload failed:', err);
+        } finally {
+          setIsVideoUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setIsVideoUploading(false);
+    }
+  };
+
 
   const handleSaveFood = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -999,62 +1119,227 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                 </div>
               )}
 
-              {/* Section 5: Media */}
+              {/* Section 5: Media (1 to 10 Images + Video Upload/Embed) */}
               {formSection === 'media' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                    <div className="space-y-3">
+                <div className="space-y-6">
+                  {/* Part A: 1 to 10 Food Images Gallery */}
+                  <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <label className="font-semibold text-slate-700 block mb-1">
-                          খাবারের ছবি ইউআরএল (Image URL)
-                        </label>
-                        <input
-                          type="text"
-                          value={editingFood.image || ''}
-                          onChange={e => setEditingFood({ ...editingFood, image: e.target.value })}
-                          placeholder="/src/assets/images/... বা ওয়েব লিংক"
-                          className="w-full p-2.5 rounded-xl border border-slate-200 font-mono text-[11px]"
-                        />
+                        <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4 text-emerald-700" />
+                          <span>খাবারের ছবি গ্যালারি (১ থেকে ১০টি ছবি যোগ করতে পারবেন)</span>
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          ব্যবহারকারী খাবারটি দেখার সময় প্রতি ২ সেকেন্ড পর পর ছবিগুলো স্বয়ংক্রিয়ভাবে স্লাইড হবে।
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 self-start sm:self-auto">
+                        সংযুক্ত ছবি: {((editingFood.images && editingFood.images.length > 0) ? editingFood.images.length : (editingFood.image ? 1 : 0))}/১০টি
+                      </span>
+                    </div>
+
+                    {/* Image Upload & URL input controls */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-2">
+                        <UploadCloud className="w-5 h-5 text-emerald-700 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <label className="text-[11px] font-bold text-slate-700 block truncate">
+                            মোবাইল বা পিসি থেকে ছবি আপলোড (একাধিক নির্বাচনযোগ্য)
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleMultiImageUpload}
+                            disabled={isUploading}
+                            className="text-[11px] mt-1 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                          />
+                        </div>
                       </div>
 
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
-                        <UploadCloud className="w-8 h-8 text-emerald-700 mx-auto" />
-                        <span className="font-semibold text-slate-800 block">
-                          কম্পিউটার বা মোবাইল থেকে ছবি আপলোড করুন
-                        </span>
+                      <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200">
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageFileChange}
-                          disabled={isUploading}
-                          className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                          type="text"
+                          value={newImageUrl}
+                          onChange={e => setNewImageUrl(e.target.value)}
+                          placeholder="ওয়েব ছবির লিঙ্ক পেস্ট করুন (URL)..."
+                          className="flex-1 p-1.5 text-xs border rounded-lg focus:outline-none focus:border-emerald-600 font-mono"
                         />
-                        {isUploading && (
-                          <span className="text-[11px] text-emerald-700 font-bold block">
-                            ছবি আপলোড হচ্ছে...
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={handleAddImageUrl}
+                          disabled={!newImageUrl.trim()}
+                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          + যোগ
+                        </button>
                       </div>
                     </div>
 
-                    <div>
-                      <span className="font-semibold text-slate-700 block mb-2">
-                        লাইভ প্রিভিউ (Customer Card Preview)
-                      </span>
-                      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                        <img
-                          src={editingFood.image}
-                          alt="Preview"
-                          className="w-full h-44 object-cover"
-                        />
-                        <div className="p-3">
-                          <h5 className="font-bold text-slate-900 text-sm">
-                            {editingFood.nameBn || 'খাবারের নাম'}
-                          </h5>
-                          <span className="text-emerald-700 font-bold text-sm block mt-1">
-                            ৳{editingFood.salePrice || editingFood.price || 0}
-                          </span>
+                    {/* Thumbnails Grid (1 to 10 Images) */}
+                    {(() => {
+                      const imageList = (editingFood.images && editingFood.images.length > 0)
+                        ? editingFood.images
+                        : (editingFood.image ? [editingFood.image] : []);
+
+                      if (imageList.length === 0) {
+                        return (
+                          <div className="py-6 text-center text-xs text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+                            কোনো ছবি যুক্ত করা হয়নি। উপরে আপলোড করুন বা লিংক দিন।
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-1">
+                          {imageList.map((imgSrc, idx) => (
+                            <div
+                              key={idx}
+                              className={`relative group rounded-xl overflow-hidden border-2 bg-white shadow-2xs aspect-[4/3] flex flex-col justify-between ${
+                                idx === 0 ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200'
+                              }`}
+                            >
+                              <img
+                                src={imgSrc}
+                                alt={`Food thumbnail ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+
+                              {/* Index badge */}
+                              <div className="absolute top-1.5 left-1.5 z-10">
+                                {idx === 0 ? (
+                                  <span className="bg-emerald-700 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+                                    ★ প্রধান ছবি
+                                  </span>
+                                ) : (
+                                  <span className="bg-slate-900/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                    #{idx + 1}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Action buttons overlay */}
+                              <div className="absolute inset-x-0 bottom-0 p-1 bg-gradient-to-t from-slate-950/80 to-transparent flex items-center justify-between gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                                {idx !== 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetPrimaryImage(idx)}
+                                    className="px-1.5 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-bold rounded cursor-pointer"
+                                    title="এটিকে প্রধান ছবি হিসেবে নির্ধারণ করুন"
+                                  >
+                                    প্রধান করুন
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(idx)}
+                                  className="ml-auto p-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[10px] cursor-pointer"
+                                  title="ছবি মুছে ফেলুন"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Part B: Food Preparation & Presentation Video */}
+                  <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2">
+                          <Video className="w-4 h-4 text-rose-600" />
+                          <span>খাবারের রান্নার ভিডিও আপলোড / লিঙ্ক (Food Video Feature)</span>
+                        </h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          ভিডিও যোগ করলে গ্রাহক পণ্য বিস্তারিত দেখার সময় ভিডিওটি সরাসরি প্লে করে দেখতে পারবেন।
+                        </p>
+                      </div>
+                      {editingFood.videoUrl && (
+                        <span className="text-[10px] bg-rose-100 text-rose-900 font-bold px-2 py-0.5 rounded-full border border-rose-300">
+                          ভিডিও সক্রিয় ✓
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">
+                            ভিডিও ইউআরএল (YouTube Embed লিঙ্ক বা MP4 লিঙ্ক)
+                          </label>
+                          <input
+                            type="text"
+                            value={editingFood.videoUrl || ''}
+                            onChange={e => setEditingFood({ ...editingFood, videoUrl: e.target.value })}
+                            placeholder="https://www.youtube.com/embed/... বা /uploads/video.mp4"
+                            className="w-full p-2.5 rounded-xl border border-slate-200 font-mono text-[11px] focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+
+                        <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5">
+                          <label className="font-bold text-slate-800 block text-xs">
+                            ভিডিও ফাইল সরাসরি আপলোড করুন (MP4 / WebM / MOV)
+                          </label>
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={handleVideoFileUpload}
+                            disabled={isVideoUploading}
+                            className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-600 file:text-white hover:file:bg-rose-700 cursor-pointer"
+                          />
+                          {isVideoUploading && (
+                            <span className="text-[11px] text-rose-600 font-bold block animate-pulse">
+                              ভিডিও আপলোড প্রক্রিয়াধীন রয়েছে...
+                            </span>
+                          )}
+                        </div>
+
+                        {editingFood.videoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingFood({ ...editingFood, videoUrl: undefined })}
+                            className="px-2.5 py-1 text-rose-700 hover:bg-rose-50 text-[11px] font-bold rounded-lg border border-rose-200 flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>✕ ভিডিও বাতিল করুন</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Video Player Preview in Admin */}
+                      <div>
+                        <span className="font-semibold text-slate-700 block mb-1.5 text-xs">
+                          অ্যাডমিন ভিডিও প্লেয়ার প্রিভিউ (Admin Live Preview)
+                        </span>
+                        {editingFood.videoUrl ? (
+                          <div className="rounded-2xl overflow-hidden border border-slate-200 bg-black aspect-video relative shadow-xs">
+                            {editingFood.videoUrl.includes('youtube.com') || editingFood.videoUrl.includes('youtu.be') ? (
+                              <iframe
+                                src={editingFood.videoUrl.includes('embed') ? editingFood.videoUrl : editingFood.videoUrl.replace('watch?v=', 'embed/')}
+                                title="Admin Food Video Preview"
+                                className="w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            ) : (
+                              <video
+                                src={editingFood.videoUrl}
+                                controls
+                                className="w-full h-full object-contain"
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-100/60 aspect-video flex flex-col items-center justify-center p-4 text-center text-slate-400 space-y-1">
+                            <Film className="w-8 h-8 text-slate-300" />
+                            <span className="text-xs font-medium">কোনো ভিডিও নির্বাচন করা হয়নি</span>
+                            <span className="text-[10px] text-slate-400">ভিডিও যোগ করলে গ্রাহক তা প্লে করে দেখতে পারবেন</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

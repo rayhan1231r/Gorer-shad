@@ -72,15 +72,23 @@ function ownerOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
   const token = authHeader.split(' ')[1];
   const session = db.verifySession(token);
   const currentOwner = db.getOwner();
+  const sessionEmail = session?.email?.toLowerCase().trim() || '';
+  const currentOwnerEmail = currentOwner?.email?.toLowerCase().trim() || '';
+  const envAdminEmail = (process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim();
+  const envAdminUid = (process.env.ADMIN_UID || 'qEaFZDzP02O7kyUVpHNfM7FiZmz1').trim();
+
   const isOwner = Boolean(
     session && (
       session.role === 'owner' ||
       session.role === 'admin' ||
-      (currentOwner && session.email?.toLowerCase().trim() === currentOwner.email.toLowerCase().trim()) ||
-      (currentOwner && session.userId === currentOwner.id) ||
-      session.email?.toLowerCase().trim() === 'rmartbdltd@gmail.com' ||
+      sessionEmail === 'rmartbdltd@gmail.com' ||
+      sessionEmail === 'ahmedskkawsar43@gmail.com' ||
+      sessionEmail === envAdminEmail ||
+      (currentOwnerEmail && sessionEmail === currentOwnerEmail) ||
+      session.userId === envAdminUid ||
       session.userId === 'qEaFZDzP02O7kyUVpHNfM7FiZmz1' ||
-      session.userId === 'usr-admin-1'
+      session.userId === 'usr-admin-1' ||
+      (currentOwner && session.userId === currentOwner.id)
     )
   );
 
@@ -518,10 +526,13 @@ app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
     const envAdminEmail = (process.env.ADMIN_EMAIL || 'rmartbdltd@gmail.com').toLowerCase().trim();
     const envAdminUid = (process.env.ADMIN_UID || 'qEaFZDzP02O7kyUVpHNfM7FiZmz1').trim();
 
-    // Check if matching the single designated owner
+    // Check if matching designated owner or administrator
     const isOwner =
+      cleanEmail === 'ahmedskkawsar43@gmail.com' ||
+      cleanEmail === 'rmartbdltd@gmail.com' ||
+      cleanEmail === envAdminEmail ||
       (cleanUid && (cleanUid === envAdminUid || (currentOwner && cleanUid === currentOwner.id))) ||
-      (cleanEmail && (cleanEmail === envAdminEmail || (currentOwner && cleanEmail === currentOwner.email.toLowerCase().trim())));
+      (cleanEmail && (currentOwner && cleanEmail === currentOwner.email.toLowerCase().trim()));
 
     // Look up user in database
     const existing = cleanUid ? db.getUserById(cleanUid) : (cleanEmail ? (db as any).data?.users?.[cleanEmail] : null);
@@ -965,8 +976,24 @@ app.post('/api/admin/transfer-ownership', ownerOnlyMiddleware, (req: Request, re
   if (!result.success) {
     return res.status(400).json({ error: result.message });
   }
+app.delete('/api/admin/users/:id', ownerOnlyMiddleware, (req: Request, res: Response) => {
+  const callerUser = (req as any).user;
+  const result = db.deleteUser(req.params.id, callerUser?.email);
+  if (!result.success) {
+    return res.status(400).json({ error: result.message });
+  }
   res.json(result);
 });
+
+app.post('/api/admin/users/:id/reset-password', ownerOnlyMiddleware, (req: Request, res: Response) => {
+  const { password } = req.body;
+  const result = db.resetUserPassword(req.params.id, password || 'admin123');
+  if (!result.success) {
+    return res.status(400).json({ error: result.message });
+  }
+  res.json(result);
+});
+
 
 // 15.1 Order Notification Emails Configuration
 app.get('/api/admin/notification-emails', adminOnlyMiddleware, (_req: Request, res: Response) => {

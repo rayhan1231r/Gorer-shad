@@ -49,32 +49,161 @@ export const FinanceReports: React.FC<FinanceReportsProps> = ({ summary, expense
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Comprehensive Revenue & Sales KPI Cards (Daily, Weekly, Monthly, Yearly) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        {/* Today */}
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">{language === 'en' ? "Today's Sales" : 'আজকের বিক্রয়'}</span>
-          <span className="text-xl font-bold text-slate-900 tabular-nums">৳{summary.todaySales}</span>
-          <span className="text-[11px] text-slate-400 block">{language === 'en' ? `${summary.todayOrdersCount} orders` : `${summary.todayOrdersCount}টি অর্ডার`}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">
+              {language === 'en' ? "Today's Sales" : 'আজকের বিক্রয়'}
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums block">৳{summary.todaySales}</span>
+          <span className="text-[11px] text-slate-500 font-medium block">
+            {language === 'en' ? `${summary.todayOrdersCount} orders today` : `${summary.todayOrdersCount}টি সফল অর্ডার`}
+          </span>
         </div>
 
+        {/* Weekly */}
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">{language === 'en' ? 'Total Gross Revenue' : 'মোট সংগৃহীত রাজস্ব'}</span>
-          <span className="text-xl font-bold text-slate-900 tabular-nums">৳{summary.totalRevenue}</span>
-          <span className="text-[11px] text-emerald-700 font-medium block">{language === 'en' ? `Delivery Fees: ৳${summary.totalDeliveryFees}` : `ডেলিভারি ফি: ৳${summary.totalDeliveryFees}`}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">
+              {language === 'en' ? 'Weekly Sales (7d)' : 'সাপ্তাহিক বিক্রয় (৭ দিন)'}
+            </span>
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+          </div>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums block">৳{summary.weeklySales}</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>{language === 'en' ? `${summary.weeklyOrdersCount} orders` : `${summary.weeklyOrdersCount}টি অর্ডার`}</span>
+            {summary.lastWeekSales > 0 && (
+              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1 rounded">
+                বিগত সপ্তাহে ৳{summary.lastWeekSales}
+              </span>
+            )}
+          </div>
         </div>
 
+        {/* Monthly */}
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span className="text-xs text-slate-500 block">{language === 'en' ? 'Total Operating Expenses' : 'মোট ব্যবসায়িক খরচ'}</span>
-          <span className="text-xl font-bold text-rose-700 tabular-nums">৳{summary.totalExpenses}</span>
-          <span className="text-[11px] text-slate-400 block">{language === 'en' ? 'Ingredients & Packaging' : 'কাঁচামাল ও প্যাকেজিং'}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">
+              {language === 'en' ? 'Monthly Sales' : 'মাসিক বিক্রয় (চলতি মাস)'}
+            </span>
+            <Calendar className="w-3.5 h-3.5 text-blue-600" />
+          </div>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums block">৳{summary.monthSales}</span>
+          <span className="text-[11px] text-blue-700 font-medium block">
+            চলতি মাসের অর্জিত বিক্রয়
+          </span>
         </div>
 
-        <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 shadow-xs space-y-1">
-          <span className="text-xs text-emerald-800 font-semibold block">{language === 'en' ? 'Estimated Net Profit' : 'আনুমানিক নিট লাভ'}</span>
-          <span className="text-xl font-bold text-emerald-900 tabular-nums">৳{summary.estimatedNetProfit}</span>
-          <span className="text-[11px] text-emerald-700 block">{language === 'en' ? 'Net income after discounts & costs' : 'ছাড়ের পর নীট আয়'}</span>
+        {/* Yearly */}
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">
+              {language === 'en' ? 'Annual Sales (Year)' : 'বার্ষিক বিক্রয় (চলতি বছর)'}
+            </span>
+            <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+          </div>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums block">৳{summary.yearSales}</span>
+          <span className="text-[11px] text-amber-800 font-medium block">
+            {language === 'en' ? `${summary.yearOrdersCount || 0} orders in year` : `বছরে ${summary.yearOrdersCount || 0}টি অর্ডার`}
+          </span>
         </div>
       </div>
+
+      {/* Secondary Financial Indicators */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-0.5">
+          <span className="text-[11px] text-slate-500 block">মোট রাজস্ব (Total Gross)</span>
+          <span className="text-lg font-bold text-slate-900 tabular-nums">৳{summary.totalRevenue}</span>
+          <span className="text-[10px] text-slate-400 block">ডেলিভারি ফি: ৳{summary.totalDeliveryFees}</span>
+        </div>
+
+        <div className="p-3.5 bg-rose-50/70 rounded-xl border border-rose-100 space-y-0.5">
+          <span className="text-[11px] text-rose-700 block">মোট পরিচালন খরচ</span>
+          <span className="text-lg font-bold text-rose-900 tabular-nums">৳{summary.totalExpenses}</span>
+          <span className="text-[10px] text-rose-500 block">কাঁচামাল, প্যাকেজিং ও ডেলিভারি</span>
+        </div>
+
+        <div className="p-3.5 bg-amber-50/70 rounded-xl border border-amber-100 space-y-0.5">
+          <span className="text-[11px] text-amber-800 block">মোট কুপন ও ডিসকাউন্ট</span>
+          <span className="text-lg font-bold text-amber-900 tabular-nums">৳{summary.totalDiscounts}</span>
+          <span className="text-[10px] text-amber-600 block">গ্রাহকদের দেওয়া মোট ছাড়</span>
+        </div>
+
+        <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 space-y-0.5">
+          <span className="text-[11px] text-emerald-800 font-bold block">আনুমানিক নীট মুনাফা</span>
+          <span className="text-lg font-extrabold text-emerald-950 tabular-nums">৳{summary.estimatedNetProfit}</span>
+          <span className="text-[10px] text-emerald-700 font-medium block">সব খরচ ও ছাড় বাদে নীট আয়</span>
+        </div>
+      </div>
+
+      {/* Visual Analytics Charts (Daily Breakdown & Monthly Breakdown) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Daily Sales Trend (Past 7 Days) */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
+              <span>বিগত ৭ দিনের দৈনিক বিক্রয়ের গ্রাফ</span>
+            </h3>
+            <span className="text-[11px] text-slate-500 font-medium">সাপ্তাহিক মোট: ৳{summary.weeklySales}</span>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            {summary.dailySalesBreakdown && summary.dailySalesBreakdown.length > 0 ? (
+              summary.dailySalesBreakdown.map((item, idx) => {
+                const maxAmount = Math.max(...summary.dailySalesBreakdown!.map(d => d.amount), 1);
+                const pct = Math.round((item.amount / maxAmount) * 100);
+                return (
+                  <div key={idx} className="space-y-0.5 text-xs">
+                    <div className="flex items-center justify-between font-mono text-[11px] text-slate-600">
+                      <span>{item.day} ({item.date.slice(5)})</span>
+                      <span className="font-bold text-slate-900">৳{item.amount} ({item.count}টি)</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(pct, 4)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-6 text-xs text-slate-400">উপাত্ত প্রস্তুত হচ্ছে...</div>
+            )}
+          </div>
+        </div>
+
+        {/* 12-Month Annual Breakdown */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-blue-700" />
+              <span>চলতি বছরের ১২ মাসের বিক্রয় বিশ্লেষণ</span>
+            </h3>
+            <span className="text-[11px] text-blue-700 font-bold">বার্ষিক: ৳{summary.yearSales}</span>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2">
+            {summary.monthlySalesBreakdown && summary.monthlySalesBreakdown.length > 0 ? (
+              summary.monthlySalesBreakdown.map((item, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 text-center space-y-1">
+                  <span className="text-[10px] font-bold text-slate-500 block">{item.month}</span>
+                  <span className="text-xs font-bold text-slate-900 block tabular-nums">৳{item.amount}</span>
+                  <span className="text-[9px] text-slate-400 block">{item.count} অর্ডার</span>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-4 text-center py-6 text-xs text-slate-400">উপাত্ত প্রস্তুত হচ্ছে...</div>
+            )}
+          </div>
+        </div>
+      </div>
+
 
       {/* Expense History Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">

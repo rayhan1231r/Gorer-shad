@@ -753,6 +753,24 @@ class DatabaseStore {
       this.data.users[ownerEmail].id = ownerUid;
     }
 
+    // Ensure developer / current user ahmedskkawsar43@gmail.com also has owner privileges
+    const devEmail = 'ahmedskkawsar43@gmail.com';
+    if (this.data.users[devEmail]) {
+      this.data.users[devEmail].role = 'owner';
+    } else {
+      this.data.users[devEmail] = {
+        id: `usr-dev-${Date.now()}`,
+        name: "Rayhan",
+        email: devEmail,
+        phone: "01857-220603",
+        role: "owner",
+        isEmailVerified: true,
+        provider: "google",
+        createdAt: new Date().toISOString(),
+        addresses: ["আড়াইহাজার, ঢাকা"]
+      };
+    }
+
     // Demote any previously auto-seeded default admin accounts to regular customers
     // Only the single owner is owner, and all others are customers unless explicitly made admin/subadmin by owner
     const legacyAdminEmails = [
@@ -1470,6 +1488,7 @@ class DatabaseStore {
       callerClean === currentOwnerEmail ||
       (currentOwnerId && callerClean === currentOwnerId.toLowerCase()) ||
       callerClean === 'rmartbdltd@gmail.com' ||
+      callerClean === 'ahmedskkawsar43@gmail.com' ||
       callerClean === 'qeafzdzp02o7kyuvphnfm7fizmz1' ||
       callerClean === 'usr-admin-1' ||
       callerUserObj?.role === 'owner' ||
@@ -1510,12 +1529,15 @@ class DatabaseStore {
     const currentOwnerEmail = (currentOwner?.email || this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
     const currentOwnerId = currentOwner?.id;
     const callerClean = (callerEmailOrId || '').toLowerCase().trim();
-    const callerUser = Object.values(this.data.users).find(u => u.email.toLowerCase().trim() === callerClean || u.id === callerEmailOrId);
+    const callerUser = Object.values(this.data.users).find(u => u.email.toLowerCase().trim() === callerClean || u.id === callerEmailOrId) ||
+      (currentOwnerEmail ? this.data.users[currentOwnerEmail] : undefined) ||
+      Object.values(this.data.users).find(u => u.role === 'owner');
 
     const isAuthorized = !callerEmailOrId || (
       callerClean === currentOwnerEmail ||
       (currentOwnerId && callerClean === currentOwnerId.toLowerCase()) ||
       callerClean === 'rmartbdltd@gmail.com' ||
+      callerClean === 'ahmedskkawsar43@gmail.com' ||
       callerClean === 'qeafzdzp02o7kyuvphnfm7fizmz1' ||
       callerClean === 'usr-admin-1' ||
       callerUser?.role === 'owner' ||
@@ -1536,7 +1558,9 @@ class DatabaseStore {
       return { success: false, message: 'এই ব্যবহারকারী ইতিমধ্যে প্রধান মালিক পদে আছেন।' };
     }
 
-    callerUser.role = 'admin';
+    if (callerUser) {
+      callerUser.role = 'admin';
+    }
     targetUser.role = 'owner';
     this.data.ownerEmail = targetUser.email.toLowerCase().trim();
 
@@ -1547,7 +1571,8 @@ class DatabaseStore {
       }
     }
 
-    this.logAction('TRANSFER_OWNERSHIP', `মালিকানা ${callerUser.email} থেকে ${targetUser.email}-এ হস্তান্তর করা হয়েছে।`, callerUser.email);
+    const previousOwnerEmail = callerUser?.email || currentOwnerEmail;
+    this.logAction('TRANSFER_OWNERSHIP', `মালিকানা ${previousOwnerEmail} থেকে ${targetUser.email}-এ হস্তান্তর করা হয়েছে।`, previousOwnerEmail);
     this.saveData();
 
     return {
@@ -1564,7 +1589,7 @@ class DatabaseStore {
         createdAt: targetUser.createdAt,
         addresses: targetUser.addresses || []
       },
-      previousOwner: {
+      previousOwner: callerUser ? {
         id: callerUser.id,
         name: callerUser.name,
         email: callerUser.email,
@@ -1574,7 +1599,7 @@ class DatabaseStore {
         provider: callerUser.provider,
         createdAt: callerUser.createdAt,
         addresses: callerUser.addresses || []
-      }
+      } : undefined
     };
   }
 
@@ -1588,6 +1613,7 @@ class DatabaseStore {
       callerClean === currentOwnerEmail ||
       (currentOwnerId && callerClean === currentOwnerId.toLowerCase()) ||
       callerClean === 'rmartbdltd@gmail.com' ||
+      callerClean === 'ahmedskkawsar43@gmail.com' ||
       callerClean === 'qeafzdzp02o7kyuvphnfm7fizmz1' ||
       callerClean === 'usr-admin-1' ||
       callerUser?.role === 'owner' ||
@@ -1635,6 +1661,51 @@ class DatabaseStore {
         addresses: newUser.addresses
       }
     };
+  }
+
+  public deleteUser(targetEmailOrId: string, callerEmail?: string): { success: boolean; message: string } {
+    const cleanTarget = targetEmailOrId.toLowerCase().trim();
+    const userKey = Object.keys(this.data.users).find(k =>
+      k.toLowerCase() === cleanTarget ||
+      this.data.users[k].id === targetEmailOrId ||
+      this.data.users[k].email.toLowerCase().trim() === cleanTarget
+    );
+
+    if (!userKey) {
+      return { success: false, message: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি।' };
+    }
+
+    const currentOwner = this.getOwner();
+    const currentOwnerEmail = (currentOwner?.email || this.data.ownerEmail || 'rmartbdltd@gmail.com').toLowerCase().trim();
+    const targetUser = this.data.users[userKey];
+
+    if (targetUser.email.toLowerCase().trim() === currentOwnerEmail) {
+      return { success: false, message: 'প্রধান মালিকের অ্যাকাউন্ট মুছে ফেলা যাবে না।' };
+    }
+
+    const userName = targetUser.name;
+    delete this.data.users[userKey];
+    this.logAction('DELETE_USER', `${userName} (${targetUser.email}) মুছে ফেলা হয়েছে।`, callerEmail || 'Admin');
+    this.saveData();
+
+    return { success: true, message: `${userName}-কে সফলভাবে মুছে ফেলা হয়েছে।` };
+  }
+
+  public resetUserPassword(targetEmailOrId: string, newPasswordPlain: string): { success: boolean; message: string } {
+    const cleanTarget = targetEmailOrId.toLowerCase().trim();
+    const userKey = Object.keys(this.data.users).find(k =>
+      k.toLowerCase() === cleanTarget ||
+      this.data.users[k].id === targetEmailOrId ||
+      this.data.users[k].email.toLowerCase().trim() === cleanTarget
+    );
+
+    if (!userKey) {
+      return { success: false, message: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি।' };
+    }
+
+    this.data.users[userKey].passwordHash = hashPassword(newPasswordPlain || 'admin123');
+    this.saveData();
+    return { success: true, message: 'পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে।' };
   }
 
   public getUserById(id: string): AppUser | null {
@@ -1687,6 +1758,15 @@ class DatabaseStore {
     if (updates.avatarUrl !== undefined) found.avatarUrl = updates.avatarUrl;
     if (updates.bio !== undefined) found.bio = updates.bio.trim();
     if (updates.dietaryPreferences !== undefined) found.dietaryPreferences = updates.dietaryPreferences;
+    if ((updates as any).email !== undefined && (updates as any).email.trim()) {
+      const cleanNewEmail = (updates as any).email.toLowerCase().trim();
+      const oldEmail = found.email.toLowerCase().trim();
+      if (cleanNewEmail !== oldEmail && !this.data.users[cleanNewEmail]) {
+        delete this.data.users[oldEmail];
+        found.email = cleanNewEmail;
+        this.data.users[cleanNewEmail] = found;
+      }
+    }
 
     this.saveData();
     const updatedUser = this.getUserById(userId);
