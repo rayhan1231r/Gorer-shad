@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext.tsx';
-import { CartProvider } from './context/CartContext.tsx';
+import { CartProvider, useCart } from './context/CartContext.tsx';
 import { Header } from './components/common/Header.tsx';
 import { Footer } from './components/common/Footer.tsx';
 import { WhatsAppButton } from './components/common/WhatsAppButton.tsx';
@@ -55,6 +55,7 @@ const FALLBACK_CONFIG: BusinessConfig = {
 
 function AppContent() {
   const { language } = useLanguage();
+  const { addToCart } = useCart();
   const [activePage, setActivePage] = useState('home');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [config, setConfig] = useState<BusinessConfig>(FALLBACK_CONFIG);
@@ -67,6 +68,7 @@ function AppContent() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUserName, setAdminUserName] = useState('Joynob Islam Kakoly');
+  const [adminUserEmail, setAdminUserEmail] = useState('rmartbdltd@gmail.com');
 
   // Customer Authentication & Account
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
@@ -140,6 +142,7 @@ function AppContent() {
     if (verify.verified) {
       setIsAdminLoggedIn(true);
       if (verify.user?.name) setAdminUserName(verify.user.name);
+      if (verify.user?.email) setAdminUserEmail(verify.user.email);
       setActivePage('admin');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -171,6 +174,21 @@ function AppContent() {
     setSelectedFoodForModal(food);
   };
 
+  const handleBuyNow = (food: FoodItem) => {
+    if (!currentUser) {
+      handleRequireLogin(
+        language === 'en'
+          ? 'Please log in to proceed with direct checkout.'
+          : 'সরাসরি অর্ডার করতে অনুগ্রহ করে আগে লগইন করুন।'
+      );
+      return;
+    }
+    addToCart(food, 1, food.variants?.[0], []);
+    setSelectedFoodForModal(null);
+    setActivePage('checkout');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleOrderSuccess = (order: Order) => {
     setConfirmedOrder(order);
     setActivePage('confirmation');
@@ -190,6 +208,7 @@ function AppContent() {
     if (isElevated) {
       setIsAdminLoggedIn(true);
       setAdminUserName(user.name);
+      setAdminUserEmail(user.email);
     } else {
       setIsAdminLoggedIn(false);
     }
@@ -218,6 +237,7 @@ function AppContent() {
             setActivePage('home');
           }}
           adminUserName={adminUserName}
+          adminUserEmail={adminUserEmail}
         />
       ) : (
         /* Customer Facing Interface */
@@ -246,6 +266,7 @@ function AppContent() {
                 onNavigate={handleNavigate}
                 onSelectFood={food => setSelectedFoodForModal(food)}
                 onQuickAdd={handleQuickAdd}
+                onBuyNow={handleBuyNow}
               />
             )}
 
@@ -257,6 +278,7 @@ function AppContent() {
                 onSelectCategory={setSelectedCategoryId}
                 onSelectFood={food => setSelectedFoodForModal(food)}
                 onQuickAdd={handleQuickAdd}
+                onBuyNow={handleBuyNow}
               />
             )}
 
@@ -365,6 +387,7 @@ function AppContent() {
           onClose={() => setSelectedFoodForModal(null)}
           whatsappNumber={config.whatsapp}
           currentUser={currentUser}
+          onBuyNow={() => handleBuyNow(selectedFoodForModal)}
           onRequireLogin={() =>
             handleRequireLogin(
               language === 'en'

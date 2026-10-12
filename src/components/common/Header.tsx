@@ -98,6 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <BrandLogo
                 size="md"
+                logoUrl={config.logoUrl}
                 language={language}
                 className="ring-2 ring-emerald-600/20 shadow-xs group-hover:scale-105 transition-transform"
                 alt={language === 'en' ? config.brandNameEn : config.brandNameBn}
@@ -153,30 +154,42 @@ export const Header: React.FC<HeaderProps> = ({
                 {isAdminLoggedIn && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role) && (
                   <button
                     onClick={onAdminClick}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 border border-amber-500 rounded-lg transition-colors cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 border border-amber-500 rounded-xl transition-all cursor-pointer shadow-xs"
                     title={language === 'en' ? 'Open Admin Panel' : 'অ্যাডমিন প্যানেলে প্রবেশ'}
                   >
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-900" />
                     <span>
-                      {language === 'en' ? 'Admin Panel' : 'অ্যাডমিন প্যানেল'}
+                      {language === 'en' ? 'Admin' : 'অ্যাডমিন'}
                     </span>
                   </button>
                 )}
+                {/* Professional Profile Pill Button */}
                 <button
-                  onClick={onOpenAccount}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
-                  title={t('myAccount')}
+                  onClick={() => setActiveTab('profile')}
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-800 bg-slate-50 hover:bg-emerald-50/80 border border-slate-200/90 hover:border-emerald-300 rounded-xl transition-all shadow-2xs group cursor-pointer"
+                  title={language === 'en' ? 'Open My Profile & Ranking' : 'আমার প্রোফাইল ও র‌্যাঙ্কিং'}
                 >
-                  <div className="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-bold">
-                    {currentUser.name ? currentUser.name.slice(0, 1).toUpperCase() : 'U'}
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-emerald-700 text-white flex items-center justify-center text-[10px] font-bold shrink-0 ring-1 ring-emerald-500/50 shadow-2xs">
+                    {currentUser.avatarUrl ? (
+                      <img src={currentUser.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      currentUser.name ? currentUser.name.slice(0, 1).toUpperCase() : 'U'
+                    )}
                   </div>
-                  <span className="hidden md:inline max-w-[80px] truncate">{currentUser.name}</span>
+                  <div className="text-left hidden sm:block">
+                    <span className="block max-w-[90px] truncate leading-tight font-bold text-slate-900 group-hover:text-emerald-800">
+                      {currentUser.name}
+                    </span>
+                    <span className="block text-[9px] font-bold text-emerald-700 leading-tight">
+                      {currentUser.role === 'owner' ? '👑 Owner' : currentUser.role === 'admin' ? '🛡️ Admin' : '🏆 খাদ্যপ্রেমী'}
+                    </span>
+                  </div>
                 </button>
               </div>
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-xl transition-colors cursor-pointer shadow-2xs"
               >
                 <User className="w-3.5 h-3.5 text-emerald-700" />
                 <span>{t('login')}</span>

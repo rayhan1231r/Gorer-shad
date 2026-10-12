@@ -65,6 +65,7 @@ interface AdminLayoutProps {
   onExitAdmin: () => void;
   onLogout: () => void;
   adminUserName: string;
+  adminUserEmail?: string;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
@@ -72,7 +73,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onRefreshConfig,
   onExitAdmin,
   onLogout,
-  adminUserName
+  adminUserName,
+  adminUserEmail
 }) => {
   const { language, toggleLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
@@ -556,7 +558,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           {activeTab === 'roles' && (
             <UserRoleManagement
-              currentAdminEmail={adminUserName}
+              currentAdminEmail={adminUserEmail || 'rmartbdltd@gmail.com'}
               onRefreshData={fetchAllData}
             />
           )}

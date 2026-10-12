@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Users, MessageCircle, ShoppingBag, Plus, Minus, Star, ShieldCheck } from 'lucide-react';
+import { X, Clock, Users, MessageCircle, ShoppingBag, Plus, Minus, Star, ShieldCheck, Zap, Video, Image as ImageIcon, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { FoodItem, FoodVariant, FoodAddon, AppUser, CustomerReview } from '../../types/index.ts';
 import { useCart } from '../../context/CartContext.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
@@ -11,6 +11,7 @@ interface FoodDetailModalProps {
   whatsappNumber: string;
   currentUser?: AppUser | null;
   onRequireLogin?: () => void;
+  onBuyNow?: () => void;
 }
 
 export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
@@ -18,7 +19,8 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   onClose,
   whatsappNumber,
   currentUser,
-  onRequireLogin
+  onRequireLogin,
+  onBuyNow
 }) => {
   const { addToCart, setIsCartOpen } = useCart();
   const {
@@ -40,6 +42,20 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
   const [selectedAddons, setSelectedAddons] = useState<FoodAddon[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [specialNotes, setSpecialNotes] = useState('');
+
+  // Media Gallery & Video Mode State
+  const allImages = (food?.images && food.images.length > 0) ? food.images : (food?.image ? [food.image] : []);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [activeMediaTab, setActiveMediaTab] = useState<'images' | 'video'>('images');
+
+  // Auto 2-second slide for images
+  useEffect(() => {
+    if (activeMediaTab !== 'images' || allImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [allImages.length, activeMediaTab]);
 
   // Product Reviews State
   const [productReviews, setProductReviews] = useState<CustomerReview[]>([]);
@@ -174,16 +190,97 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Media Preview */}
-        <div className="relative aspect-[16/9] w-full bg-slate-100">
-          <img
-            src={food.image}
-            alt={title}
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute bottom-3 left-4 flex items-center gap-2">
-            <span className="bg-white/90 backdrop-blur-xs text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
+        {/* Media Preview & Video Player Header */}
+        <div className="relative aspect-[16/9] w-full bg-slate-900 overflow-hidden">
+          {activeMediaTab === 'video' && food.videoUrl ? (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              {food.videoUrl.includes('youtube.com') || food.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={food.videoUrl.replace('watch?v=', 'embed/')}
+                  title="Food Video"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={food.videoUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="relative w-full h-full">
+              <img
+                src={allImages[currentImageIndex] || food.image}
+                alt={title}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/70 text-white transition-all cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentImageIndex(prev => (prev + 1) % allImages.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 hover:bg-black/70 text-white transition-all cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 z-10">
+                    {allImages.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          idx === currentImageIndex ? 'w-5 bg-emerald-500' : 'w-2 bg-white/70'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Media Switcher Tab (if video is available) */}
+          {food.videoUrl && (
+            <div className="absolute top-4 left-4 z-10 flex items-center bg-black/60 backdrop-blur-xs rounded-xl p-1 gap-1 border border-white/20">
+              <button
+                type="button"
+                onClick={() => setActiveMediaTab('images')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeMediaTab === 'images' ? 'bg-white text-slate-900 shadow-xs' : 'text-white hover:text-emerald-300'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? `Photos (${allImages.length})` : `ছবি (${allImages.length})`}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMediaTab('video')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeMediaTab === 'video' ? 'bg-rose-600 text-white shadow-xs' : 'text-white hover:text-rose-300'
+                }`}
+              >
+                <Video className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Watch Video' : 'ভিডিও দেখুন'}</span>
+              </button>
+            </div>
+          )}
+
+          <div className="absolute bottom-3 left-4 flex items-center gap-2 pointer-events-none">
+            <span className="bg-white/95 backdrop-blur-xs text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-md shadow-xs">
               {categoryName}
             </span>
             {food.isBestseller && (
@@ -361,6 +458,20 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              {onBuyNow && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddToCart(false);
+                    onClose();
+                    onBuyNow();
+                  }}
+                  className="px-5 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 fill-slate-950" />
+                  <span>{language === 'en' ? 'Buy Now' : 'এখনই কিনুন'}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => handleAddToCart(true)}

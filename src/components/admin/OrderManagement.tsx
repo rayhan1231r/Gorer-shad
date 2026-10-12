@@ -48,6 +48,36 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
   const [isUpdating, setIsUpdating] = useState(false);
   const [copiedTrx, setCopiedTrx] = useState(false);
 
+  // Reset Order Counter & History Modal State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetNotice, setResetNotice] = useState<string | null>(null);
+
+  const handleResetOrders = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = resetConfirmText.trim().toUpperCase();
+    if (clean !== 'RESET' && clean !== 'রিসেট') {
+      setResetNotice('নিশ্চিত করতে অনুগ্রহ করে ঠিকভাবে "RESET" অথবা "রিসেট" শব্দটি টাইপ করুন।');
+      return;
+    }
+
+    try {
+      setIsResetting(true);
+      const res = await api.resetOrderCount(clean, 'all');
+      if (res.success) {
+        setIsResetModalOpen(false);
+        setResetConfirmText('');
+        setResetNotice(null);
+        refreshFn();
+      }
+    } catch (err: unknown) {
+      setResetNotice(err instanceof Error ? err.message : 'অর্ডার রিসেট করতে সমস্যা হয়েছে');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const filteredOrders = orders.filter(o => {
     if (statusFilter !== 'all' && o.orderStatus !== statusFilter) return false;
     if (searchQuery.trim()) {
@@ -128,9 +158,18 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
 
             <button
               onClick={refreshFn}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors shrink-0"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors shrink-0 cursor-pointer"
             >
               {language === 'en' ? 'Refresh' : 'রিফ্রেশ'}
+            </button>
+
+            <button
+              onClick={() => setIsResetModalOpen(true)}
+              className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold rounded-xl transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+              title="অর্ডার হিস্টোরি ও কাউন্টার রিসেট করুন"
+            >
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              <span>{language === 'en' ? 'Reset Counter' : 'অর্ডার কাউন্ট রিসেট'}</span>
             </button>
           </div>
         </div>
@@ -562,6 +601,76 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ orders, config
           type={printModalData.type}
           onClose={() => setPrintModalData(null)}
         />
+      )}
+
+      {/* Reset Orders Confirmation Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">
+                  অর্ডার কাউন্ট ও হিস্টোরি রিসেট নিশ্চিতকরণ
+                </h3>
+                <span className="text-xs text-rose-600 font-semibold block">
+                  সতর্কতা: এটি অপরিবর্তনযোগ্য (Irreversible)!
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              এই অপশনটি ব্যবহার করলে বর্তমান ওয়েবসাইটের সকল পূর্ববর্তী <strong>{orders.length}টি অর্ডার</strong> মুছে ফেলা হবে এবং অর্ডার নম্বর পুনরায় প্রারম্ভিক অবস্থায় রিসেট হবে। আপনি কি নিশ্চিত?
+            </p>
+
+            {resetNotice && (
+              <div className="p-3 bg-rose-50 text-rose-800 text-xs rounded-xl border border-rose-200 font-semibold">
+                {resetNotice}
+              </div>
+            )}
+
+            <form onSubmit={handleResetOrders} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-800 block mb-1">
+                  নিশ্চিত করতে নিচে <span className="font-mono text-rose-600 font-extrabold">RESET</span> শব্দটি লিখুন:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resetConfirmText}
+                  onChange={e => setResetConfirmText(e.target.value)}
+                  placeholder="RESET"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 font-mono text-xs uppercase tracking-wider focus:outline-none focus:border-rose-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsResetModalOpen(false);
+                    setResetConfirmText('');
+                    setResetNotice(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                >
+                  বাতিল করুন
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isResetting || !resetConfirmText.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>{isResetting ? 'রিসেট হচ্ছে...' : 'হ্যাঁ, সম্পূর্ণ রিসেট করুন'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

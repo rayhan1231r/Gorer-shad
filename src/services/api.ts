@@ -489,6 +489,17 @@ export const api = {
     return res.json();
   },
 
+  async resetOrderCount(confirmationCode: string, mode: 'all' | 'counter_only' = 'all'): Promise<{ success: boolean; message: string; remainingOrdersCount: number }> {
+    const res = await fetch(`${API_BASE}/admin/orders/reset`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ confirmationCode, mode }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to reset orders');
+    return data;
+  },
+
   // Catering
   async getCateringInquiries(): Promise<CateringInquiry[]> {
     const res = await fetch(`${API_BASE}/catering`);
@@ -679,6 +690,47 @@ export const api = {
     return res.json();
   },
 
+  async askAdminAi(message: string): Promise<{ reply: string }> {
+    const res = await fetch(`${API_BASE}/ai/admin-chat`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error('Failed to get AI advisor response');
+    return res.json();
+  },
+
+  async updateProfile(updates: {
+    name?: string;
+    phone?: string;
+    addresses?: string[];
+    avatarUrl?: string;
+    bio?: string;
+    dietaryPreferences?: string[];
+    currentPassword?: string;
+    newPassword?: string;
+  }): Promise<{ user?: AppUser; message?: string }> {
+    const res = await fetch(`${API_BASE}/auth/profile`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+    return data;
+  },
+
+  async resetOrders(confirmationCode: string, mode: 'counter_only' | 'all' = 'all'): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/admin/orders/reset`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ confirmationCode, mode }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'অর্ডার রিসেট করতে ব্যর্থ হয়েছে');
+    return data;
+  },
+
   // 17. Notifications & Broadcast
   async getNotificationEmails(): Promise<string[]> {
     const res = await fetch(`${API_BASE}/admin/notification-emails`, {
@@ -702,6 +754,9 @@ export const api = {
       headers: authHeaders(),
     });
     return res.json();
+  },
+  async removeNotificationEmail(email: string): Promise<{ success: boolean; emails: string[] }> {
+    return this.deleteNotificationEmail(email);
   },
   async testNotificationEmail(): Promise<{ success: boolean; message: string }> {
     const res = await fetch(`${API_BASE}/admin/notification-emails/test`, {

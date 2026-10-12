@@ -21,6 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
             <div className="flex items-center gap-3">
               <BrandLogo
                 size="lg"
+                logoUrl={config.logoUrl}
                 className="ring-2 ring-emerald-500/40 shadow-sm"
                 alt={language === 'en' ? config.brandNameEn : config.brandNameBn}
               />
@@ -41,6 +42,68 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
             <div className="text-xs text-slate-400">
               {language === 'en' ? 'Proprietor:' : 'পরিচালনায়:'}{' '}
               <span className="text-white font-medium">{config.contactPerson}</span>
+            </div>
+
+            {/* Social Media Links */}
+            <div className="pt-2">
+              <span className="text-xs font-semibold text-slate-300 block mb-2">
+                {language === 'en' ? 'Follow Us on Social Media:' : 'সামাজিক মাধ্যমে যুক্ত থাকুন:'}
+              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                {config.facebookUrl && (
+                  <a
+                    href={config.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#1877F2] text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
+                    title="Facebook"
+                  >
+                    <span className="font-bold text-xs">FB</span>
+                  </a>
+                )}
+                {config.youtubeUrl && (
+                  <a
+                    href={config.youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#FF0000] text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
+                    title="YouTube"
+                  >
+                    <span className="font-bold text-xs">YT</span>
+                  </a>
+                )}
+                {config.tiktokUrl && (
+                  <a
+                    href={config.tiktokUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-black text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
+                    title="TikTok"
+                  >
+                    <span className="font-bold text-xs">TT</span>
+                  </a>
+                )}
+                {config.instagramUrl && (
+                  <a
+                    href={config.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-gradient-to-tr hover:from-amber-500 hover:to-fuchsia-600 text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
+                    title="Instagram"
+                  >
+                    <span className="font-bold text-xs">IG</span>
+                  </a>
+                )}
+                <a
+                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#25D366] text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
+                  title="WhatsApp"
+                >
+                  <span className="font-bold text-xs">WA</span>
+                </a>
+              </div>
             </div>
           </div>
 

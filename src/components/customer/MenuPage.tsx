@@ -11,6 +11,7 @@ interface MenuPageProps {
   onSelectCategory: (id: string) => void;
   onSelectFood: (food: FoodItem) => void;
   onQuickAdd: (food: FoodItem) => void;
+  onBuyNow?: (food: FoodItem) => void;
 }
 
 export const MenuPage: React.FC<MenuPageProps> = ({
@@ -19,7 +20,8 @@ export const MenuPage: React.FC<MenuPageProps> = ({
   selectedCategoryId,
   onSelectCategory,
   onSelectFood,
-  onQuickAdd
+  onQuickAdd,
+  onBuyNow
 }) => {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,6 +217,7 @@ export const MenuPage: React.FC<MenuPageProps> = ({
                 food={food}
                 onSelect={onSelectFood}
                 onQuickAdd={onQuickAdd}
+                onBuyNow={onBuyNow}
               />
             ))}
           </div>

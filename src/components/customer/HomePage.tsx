@@ -8,6 +8,18 @@ import { BrandLogo } from '../common/BrandLogo.tsx';
 import heroFeastImg from '../../assets/images/hero_ghorer_shad_feast_1791709454258.jpg';
 import ilishImg from '../../assets/images/food_ilish_bhapa_fish_1791709467165.jpg';
 
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { BusinessConfig, Category, FoodItem } from '../../types/index.ts';
+import { FoodCard } from './FoodCard.tsx';
+import { useLanguage } from '../../context/LanguageContext.tsx';
+import { LanguageToggle } from '../common/LanguageToggle.tsx';
+import { BrandLogo } from '../common/BrandLogo.tsx';
+import heroFeastImg from '../../assets/images/hero_ghorer_shad_feast_1791709454258.jpg';
+import ilishImg from '../../assets/images/food_ilish_bhapa_fish_1791709467165.jpg';
+import meatCurryImg from '../../assets/images/food_bengali_meat_curry_1791709480684.jpg';
+import platterImg from '../../assets/images/food_bengali_platter_snacks_1791709490645.jpg';
+
 interface HomePageProps {
   config: BusinessConfig;
   categories: Category[];
@@ -15,6 +27,7 @@ interface HomePageProps {
   onNavigate: (page: string, categoryId?: string) => void;
   onSelectFood: (food: FoodItem) => void;
   onQuickAdd: (food: FoodItem) => void;
+  onBuyNow?: (food: FoodItem) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -23,171 +36,260 @@ export const HomePage: React.FC<HomePageProps> = ({
   foods,
   onNavigate,
   onSelectFood,
-  onQuickAdd
+  onQuickAdd,
+  onBuyNow
 }) => {
   const { language, t, getCategoryTitle, getCategoryDescription } = useLanguage();
   const featuredFoods = foods.filter(f => f.isFeatured || f.isBestseller).slice(0, 6);
   const platterFoods = foods.filter(f => f.categoryId === 'platters-combos').slice(0, 3);
   const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
 
+  // Dynamic Auto-Changing Hero Banners (Slides continuously every 2.5 seconds)
+  const heroBanners = [
+    {
+      id: 'feast',
+      image: heroFeastImg,
+      tagBn: 'খাঁটি বাঙালি ভোজ ও ঐতিহ্য',
+      tagEn: 'Authentic Bengali Feast',
+      titleBn: 'ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ',
+      titleEn: 'Royal Bengali Homemade Feast',
+      descBn: 'আড়াইহাজারের খাঁটি রান্না, তাজা মসলা ও ঘরোয়া ভালোবাসা',
+      descEn: 'Fresh home cooking in Araihazar with pure spices'
+    },
+    {
+      id: 'ilish',
+      image: ilishImg,
+      tagBn: 'পদ্মার তাজা মাছের সমাহার',
+      tagEn: 'Fresh River Hilsa Special',
+      titleBn: 'তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব',
+      titleEn: 'Fresh Shorshe Ilish & Pulao Delicacies',
+      descBn: 'অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না',
+      descEn: 'Cooked fresh after order with supreme authentic aroma'
+    },
+    {
+      id: 'meat',
+      image: meatCurryImg,
+      tagBn: 'দেশি মাংসের স্পেশাল কষা',
+      tagEn: 'Desi Meat Curry & Kacchi',
+      titleBn: 'দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল',
+      titleEn: 'Desi Mutton & Beef Traditional Curry',
+      descBn: 'খাঁটি সরিষার তেলে কষানো মাংস ও স্পেশাল ভুনা খিচুড়ি',
+      descEn: 'Slow-cooked with pure mustard oil & aromatic spices'
+    },
+    {
+      id: 'platter',
+      image: platterImg,
+      tagBn: 'ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ',
+      tagEn: 'Family Combos & Catering Package',
+      titleBn: 'যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ',
+      titleEn: 'Catering & Large Feasts for Every Celebration',
+      descBn: '৫০ থেকে ৫০০ জনের সম্পূর্ণ ঘরোয়া খাবার সরবরাহ',
+      descEn: 'Complete homemade food service from 50 to 500 guests'
+    }
+  ];
+
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+  // Auto-slide banner every 2.5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBannerIndex(prev => (prev + 1) % heroBanners.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [heroBanners.length]);
+
+  const activeBanner = heroBanners[currentBannerIndex];
+
   return (
     <div className="bg-white min-h-screen text-left overflow-x-clip">
-      {/* 1. HERO SECTION (With English / Bangla Switcher & Bilingual Typography) */}
-      <section className="relative bg-gradient-to-b from-[#F8F9F7] via-white to-white border-b border-slate-100 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-18">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-            {/* Left Content Column (7 cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Badges & Language Toggle Row */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-100/70 pl-2 pr-3.5 py-1.5 rounded-full border border-emerald-200/60 shadow-2xs">
-                  <BrandLogo size="xs" className="ring-1 ring-emerald-600/30" />
-                  <span>
-                    {language === 'en'
-                      ? `${config.brandNameEn} • ${config.taglineEn} • Araihazar, Dhaka`
-                      : `${config.brandNameBn} • ${config.taglineBn} • ${config.primaryLocation}`}
+      {/* 1. HERO SECTION: BANNER ON TOP, TEXTS BELOW (Bilingual Typography) */}
+      <section className="relative bg-gradient-to-b from-slate-50 via-white to-white border-b border-slate-100 overflow-hidden pt-6 pb-14 sm:pb-18">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          
+          {/* ================= TOP HERO BANNER (AUTO-CHANGING SLIDER) ================= */}
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/90 bg-slate-950 group">
+            {/* Banner Media Container */}
+            <div className="relative aspect-[16/9] sm:aspect-[21/9] lg:aspect-[24/9] w-full overflow-hidden">
+              <img
+                key={activeBanner.id}
+                src={activeBanner.image}
+                alt={language === 'en' ? activeBanner.titleEn : activeBanner.titleBn}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/logo.jpg';
+                }}
+              />
+
+              {/* Gradient Vignette Overlay for Text Legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-slate-950/15" />
+
+              {/* Top Floating Badges on Banner */}
+              <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 z-20">
+                <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-white/60 flex items-center gap-2">
+                  <BrandLogo size="xs" logoUrl={config.logoUrl} className="ring-1 ring-emerald-600/30" />
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-900 tracking-tight">
+                    {language === 'en' ? config.brandNameEn : config.brandNameBn}
                   </span>
                 </div>
 
-                {/* Direct Language Switcher in Hero */}
-                <LanguageToggle variant="hero" />
+                <span className="bg-amber-500 text-slate-950 text-[10px] sm:text-[11px] font-black uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 fill-slate-950" />
+                  <span>{language === 'en' ? 'Live Auto Slider' : 'লাইভ স্লাইডার'}</span>
+                </span>
               </div>
 
-              {/* Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.18] text-balance">
+              {/* Top Right Rating & Phone */}
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 hidden sm:flex items-center gap-2 z-20">
+                <div className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-lg border border-white/60 flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                  <span>4.9 / 5.0</span>
+                  <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">খাঁটি স্বাদ</span>
+                </div>
+              </div>
+
+              {/* Banner Caption Overlay (Bottom Left) */}
+              <div className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 right-5 sm:right-24 z-20 text-white space-y-1 sm:space-y-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-xs text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-100">
+                  <span>{language === 'en' ? activeBanner.tagEn : activeBanner.tagBn}</span>
+                </div>
+                <h2 className="text-xl sm:text-3xl lg:text-4xl font-black text-white leading-tight drop-shadow-md">
+                  {language === 'en' ? activeBanner.titleEn : activeBanner.titleBn}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-200 line-clamp-1 sm:line-clamp-none max-w-2xl drop-shadow-xs font-medium">
+                  {language === 'en' ? activeBanner.descEn : activeBanner.descBn}
+                </p>
+              </div>
+
+              {/* Previous / Next Arrow Controls */}
+              <button
+                type="button"
+                onClick={() => setCurrentBannerIndex(prev => (prev - 1 + heroBanners.length) % heroBanners.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-70 group-hover:opacity-100 cursor-pointer z-20"
+                aria-label="Previous Banner"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentBannerIndex(prev => (prev + 1) % heroBanners.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-70 group-hover:opacity-100 cursor-pointer z-20"
+                aria-label="Next Banner"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Slide Indicators Dots (Bottom Right) */}
+              <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center gap-1.5 z-20">
+                {heroBanners.map((b, idx) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setCurrentBannerIndex(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      idx === currentBannerIndex
+                        ? 'w-7 bg-emerald-400 shadow-md ring-2 ring-emerald-300/40'
+                        : 'w-2 bg-white/50 hover:bg-white/80'
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ================= TEXTS & ACTIONS LOCATED BELOW THE BANNER ================= */}
+          <div className="space-y-6 pt-2">
+            {/* Badges Row + Language Toggle */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 pl-2.5 pr-4 py-1.5 rounded-full border border-emerald-200/80 shadow-2xs">
+                <BrandLogo size="xs" logoUrl={config.logoUrl} className="ring-1 ring-emerald-600/30" />
+                <span>
+                  {language === 'en'
+                    ? `${config.brandNameEn} • ${config.taglineEn} • ${config.primaryLocation}`
+                    : `${config.brandNameBn} • ${config.taglineBn} • ${config.primaryLocation}`}
+                </span>
+              </div>
+
+              <LanguageToggle variant="hero" />
+            </div>
+
+            {/* Main Headline */}
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.18] text-balance">
                 {t('heroHeadlinePrefix', 'ঘরের রান্নার ভালোবাসা,', 'Homemade Love & Fresh Taste,')}{' '}
-                <span className="text-emerald-700">
+                <span className="text-emerald-700 underline decoration-amber-400 decoration-wavy decoration-2">
                   {t('heroHeadlineHighlight', 'এবার আপনার দোরগোড়ায়', 'Delivered Right to Your Doorstep')}
                 </span>
               </h1>
 
               {/* Supporting Text */}
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl font-normal">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-3xl font-normal">
                 {t('heroSubtitle')}
               </p>
+            </div>
 
-              {/* Genuine Advance Order Advisory Box */}
-              <div className="p-4 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex items-start gap-3.5 max-w-xl">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div className="text-xs text-slate-700 space-y-1">
-                  <span className="font-bold text-slate-900 block text-xs sm:text-sm">
-                    {t('heroAdvanceTitle')}
-                  </span>
-                  <p className="leading-relaxed text-slate-600">
-                    {t('heroAdvanceDesc')}
-                  </p>
-                </div>
+            {/* Genuine Advance Order Advisory Box */}
+            <div className="p-4 sm:p-5 bg-white border border-emerald-100 rounded-2xl shadow-xs flex items-start gap-4 max-w-3xl">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
+                <Clock className="w-5 h-5" />
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-1">
-                <button
-                  onClick={() => onNavigate('menu')}
-                  className="px-7 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 group cursor-pointer"
-                >
-                  <span>{t('viewMenuBtn', 'মেনু দেখুন', 'View Menu')}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <button
-                  onClick={() => onNavigate('catering')}
-                  className="px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-sm rounded-xl transition-colors cursor-pointer"
-                >
-                  {t('learnCateringBtn', 'ক্যাটারিং সম্পর্কে জানুন', 'Learn About Catering')}
-                </button>
-              </div>
-
-              {/* Highlights */}
-              <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700 border-t border-slate-100">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{t('freshCooking')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{t('pureIngredients')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{t('localDelivery')}</span>
-                </div>
+              <div className="text-xs text-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 block text-xs sm:text-sm">
+                  {t('heroAdvanceTitle')}
+                </span>
+                <p className="leading-relaxed text-slate-600">
+                  {t('heroAdvanceDesc')}
+                </p>
               </div>
             </div>
 
-            {/* Right Media Column (5 cols) */}
-            <div className="lg:col-span-5 relative mt-6 lg:mt-0">
-              {/* Balanced ambient glow */}
-              <div className="absolute -inset-3 sm:-inset-4 bg-gradient-to-tr from-emerald-500/20 via-amber-500/10 to-teal-500/15 rounded-3xl blur-2xl -z-10" />
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-1">
+              <button
+                onClick={() => onNavigate('menu')}
+                className="px-7 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 group cursor-pointer"
+              >
+                <span>{t('viewMenuBtn', 'মেনু দেখুন', 'View Menu')}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
 
-              {/* Floating Verified Brand Seal (Top Left) */}
-              <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 bg-white p-1 rounded-full shadow-xl border border-emerald-100 z-20 hidden sm:block">
-                <BrandLogo size="lg" className="ring-2 ring-emerald-600/30 shadow-sm" />
+              <button
+                onClick={() => onNavigate('catering')}
+                className="px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-sm rounded-xl transition-colors cursor-pointer shadow-xs"
+              >
+                {t('learnCateringBtn', 'ক্যাটারিং সম্পর্কে জানুন', 'Learn About Catering')}
+              </button>
+
+              <a
+                href={`https://wa.me/${cleanPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4 text-emerald-700" />
+                <span>{language === 'en' ? 'Direct WhatsApp' : 'সরাসরি হোয়াটসঅ্যাপ'}</span>
+              </a>
+            </div>
+
+            {/* Highlights Grid */}
+            <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700 border-t border-slate-100">
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-semibold">{t('freshCooking')}</span>
               </div>
-
-              {/* Quality Rating Badge (Top Right) */}
-              <div className="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full shadow-lg border border-slate-200/90 z-20 flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>{t('ratingLabel')}</span>
-                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded">{t('freshTag')}</span>
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-semibold">{t('pureIngredients')}</span>
               </div>
-
-              {/* Main Feast Image Card */}
-              <div className="relative aspect-[4/3] sm:aspect-[16/11] lg:aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-slate-200/90 bg-slate-100 group">
-                <img
-                  src={heroFeastImg}
-                  alt={language === 'en' ? 'Ghorer Shad Authentic Feast' : 'ঘরের স্বাদ ঐতিহ্যবাহী বাংলা ভোজ'}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/logo.jpg';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-transparent flex items-end p-5 sm:p-6">
-                  <div className="text-white space-y-1">
-                    <span className="text-[11px] font-bold text-emerald-300 block uppercase tracking-wider">
-                      {t('specialFeastTag')}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold leading-snug">
-                      {t('specialFeastTitle')}
-                    </h3>
-                    <p className="text-xs text-slate-200">
-                      {language === 'en' ? 'Araihazar, Dhaka • Hotline:' : 'আড়াইহাজার, ঢাকা • যোগাযোগ:'} {config.phone}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mini Food Card Overlay Badge (Bottom Left) */}
-              <div className="hidden sm:flex absolute -bottom-4 -left-4 sm:-bottom-5 sm:-left-5 bg-white p-3 rounded-2xl shadow-xl border border-slate-200/90 items-center gap-3 z-20">
-                <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-100">
-                  <img
-                    src={ilishImg}
-                    alt={language === 'en' ? 'Hilsa Fish' : 'ইলিশ মাছ'}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/logo.jpg';
-                    }}
-                  />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">
-                    {t('specialIlishTag')}
-                  </span>
-                  <span className="text-[11px] text-emerald-700 font-semibold block">
-                    {t('specialIlishDesc')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Delivery Advisory Badge (Bottom Right) */}
-              <div className="hidden sm:flex absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-4 bg-emerald-800 text-white px-3 py-1.5 rounded-full shadow-lg border border-emerald-600/40 items-center gap-1.5 text-[11px] font-bold z-20">
-                <Truck className="w-3.5 h-3.5 text-emerald-300" />
-                <span>{t('homeDeliveryBadge')}</span>
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-semibold">{t('localDelivery')}</span>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
@@ -284,6 +386,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 food={food}
                 onSelect={onSelectFood}
                 onQuickAdd={onQuickAdd}
+                onBuyNow={onBuyNow}
               />
             ))}
           </div>
@@ -321,6 +424,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   food={food}
                   onSelect={onSelectFood}
                   onQuickAdd={onQuickAdd}
+                  onBuyNow={onBuyNow}
                 />
               ))}
             </div>

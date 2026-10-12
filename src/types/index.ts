@@ -52,6 +52,8 @@ export interface FoodItem {
   shortDescBn: string;
   fullDescBn: string;
   image: string;
+  images?: string[];
+  videoUrl?: string;
   price: number;
   salePrice?: number;
   portionBn: string;
@@ -238,18 +240,29 @@ export interface BusinessConfig {
   primaryColor?: string;
   accentColor?: string;
   logoUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
+  instagramUrl?: string;
   orderNotificationEmails?: string[];
 }
 
 export interface FinancialSummary {
   todaySales: number;
   todayOrdersCount: number;
+  weeklySales: number;
+  weeklyOrdersCount: number;
+  lastWeekSales: number;
   monthSales: number;
+  yearSales: number;
+  yearOrdersCount: number;
   totalRevenue: number;
   totalDeliveryFees: number;
   totalDiscounts: number;
   totalExpenses: number;
   estimatedNetProfit: number;
+  dailySalesBreakdown?: { day: string; date: string; amount: number; count: number }[];
+  monthlySalesBreakdown?: { month: string; amount: number; count: number }[];
 }
 
 export type UserRole = 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer';
@@ -264,6 +277,9 @@ export interface AppUser {
   provider: 'email_otp' | 'google' | 'password';
   createdAt: string;
   addresses: string[];
+  avatarUrl?: string;
+  bio?: string;
+  dietaryPreferences?: string[];
 }
 
 export interface AiChatMessage {

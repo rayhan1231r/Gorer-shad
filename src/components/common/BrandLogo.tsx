@@ -11,6 +11,7 @@ export interface BrandLogoProps {
   taglineClassName?: string;
   language?: 'bn' | 'en';
   priority?: boolean;
+  logoUrl?: string;
 }
 
 const sizeMap = {
@@ -31,7 +32,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   withText = false,
   textClassName = '',
   taglineClassName = '',
-  language = 'bn'
+  language = 'bn',
+  logoUrl
 }) => {
   const dimensionClass = size !== 'custom' ? sizeMap[size] : '';
   const defaultAlt = language === 'en' ? 'Ghorer Shad Logo' : 'ঘরের স্বাদ লোগো';
@@ -41,7 +43,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       className={`relative rounded-full overflow-hidden shrink-0 bg-white shadow-2xs border border-emerald-800/15 ${dimensionClass} ${className}`}
     >
       <img
-        src={logoImg}
+        src={logoUrl || logoImg}
         alt={alt || defaultAlt}
         className={`w-full h-full object-cover object-center select-none ${imgClassName}`}
         loading="eager"

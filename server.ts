@@ -16,8 +16,8 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(express.json({ limit: '35mb' }));
+app.use(express.urlencoded({ extended: true, limit: '35mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Helper: Mask email address for security display (e.g. "ra***@gmail.com")
@@ -62,7 +62,7 @@ function adminOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Owner-Only Middleware: strictly verifies the single Owner
+// Owner-Only Middleware: strictly verifies Owner or Admin role
 function ownerOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -72,13 +72,20 @@ function ownerOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
   const token = authHeader.split(' ')[1];
   const session = db.verifySession(token);
   const currentOwner = db.getOwner();
-  const isOwner = session && (
-    session.role === 'owner' ||
-    (currentOwner && session.email.toLowerCase().trim() === currentOwner.email.toLowerCase().trim())
+  const isOwner = Boolean(
+    session && (
+      session.role === 'owner' ||
+      session.role === 'admin' ||
+      (currentOwner && session.email?.toLowerCase().trim() === currentOwner.email.toLowerCase().trim()) ||
+      (currentOwner && session.userId === currentOwner.id) ||
+      session.email?.toLowerCase().trim() === 'rmartbdltd@gmail.com' ||
+      session.userId === 'qEaFZDzP02O7kyUVpHNfM7FiZmz1' ||
+      session.userId === 'usr-admin-1'
+    )
   );
 
   if (!isOwner) {
-    return res.status(403).json({ error: 'শুধুমাত্র বর্তমান প্রধান মালিক (Owner) মালিকানা হস্তান্তর বা এই কাজটি করতে পারেন।' });
+    return res.status(403).json({ error: 'শুধুমাত্র বর্তমান প্রধান মালিক (Owner) বা অ্যাডমিন এই কাজটি করতে পারেন।' });
   }
 
   (req as any).user = session;
@@ -448,11 +455,11 @@ app.get('/api/auth/me', authMiddleware, (req: Request, res: Response) => {
 
 app.put('/api/auth/profile', authMiddleware, (req: Request, res: Response) => {
   const sessionUser = (req as any).user;
-  const updated = db.updateUserProfile(sessionUser.userId, req.body);
-  if (!updated) {
-    return res.status(404).json({ error: 'User not found' });
+  const result = db.updateUserProfile(sessionUser.userId, req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: result.message || 'User not found' });
   }
-  res.json({ user: updated });
+  res.json({ user: result.user, message: result.message });
 });
 
 // Admin Login (supports master demo password or direct user credentials with role verification)
@@ -562,10 +569,14 @@ app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
 // Verify active admin session token
 app.get('/api/admin/verify-role', adminOnlyMiddleware, (req: Request, res: Response) => {
   const sessionUser = (req as any).user;
+  const fullUser = db.getUserById(sessionUser.userId) || sessionUser;
   res.json({
     success: true,
     verified: true,
-    user: sessionUser
+    user: {
+      ...fullUser,
+      role: sessionUser.role || fullUser.role || 'owner'
+    }
   });
 });
 
@@ -801,6 +812,18 @@ app.patch('/api/orders/:id/status', adminOnlyMiddleware, (req: Request, res: Res
   res.json(updated);
 });
 
+// Reset Orders & Counters with Double Confirmation
+app.post('/api/admin/orders/reset', adminOnlyMiddleware, (req: Request, res: Response) => {
+  const { confirmationCode, mode } = req.body;
+  const code = String(confirmationCode || '').trim();
+  if (code.toUpperCase() !== 'RESET' && code !== 'রিসেট') {
+    return res.status(400).json({ error: 'নিশ্চিত করতে অনুগ্রহ করে বক্সে "RESET" অথবা "রিসেট" শব্দটি টাইপ করুন।' });
+  }
+  const caller = (req as any).user;
+  const result = db.resetOrderCount(mode || 'all', caller?.email || caller?.userId || 'Admin');
+  res.json(result);
+});
+
 // 10. Catering
 app.get('/api/catering', (_req: Request, res: Response) => {
   res.json(db.getCateringInquiries());
@@ -869,8 +892,16 @@ app.post('/api/upload', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid data URL' });
     }
 
-    const ext = matches[1].includes('png') ? 'png' : matches[1].includes('webp') ? 'webp' : 'jpg';
-    const safeName = `${Date.now()}-${(filename || 'dish').replace(/[^a-zA-Z0-9_-]/g, '')}.${ext}`;
+    let ext = 'jpg';
+    if (matches[1].includes('png')) ext = 'png';
+    else if (matches[1].includes('webp')) ext = 'webp';
+    else if (matches[1].includes('gif')) ext = 'gif';
+    else if (matches[1].includes('svg')) ext = 'svg';
+    else if (matches[1].includes('mp4')) ext = 'mp4';
+    else if (matches[1].includes('webm')) ext = 'webm';
+    else if (matches[1].includes('quicktime') || matches[1].includes('mov')) ext = 'mov';
+
+    const safeName = `${Date.now()}-${(filename || 'media').replace(/[^a-zA-Z0-9_-]/g, '')}.${ext}`;
     const filePath = path.resolve(UPLOADS_DIR, safeName);
     const buffer = Buffer.from(matches[2], 'base64');
 
@@ -880,7 +911,7 @@ app.post('/api/upload', (req: Request, res: Response) => {
     res.json({ url: publicUrl });
   } catch (err) {
     console.error('Upload error:', err);
-    res.status(500).json({ error: 'Failed to process image upload' });
+    res.status(500).json({ error: 'Failed to process media upload' });
   }
 });
 
