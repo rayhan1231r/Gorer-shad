@@ -29,6 +29,16 @@ app.use(express.json({ limit: '35mb' }));
 app.use(express.urlencoded({ extended: true, limit: '35mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Normalize Vercel serverless function paths (if /api is stripped by serverless handler)
+app.use((req, _res, next) => {
+  if (process.env.VERCEL && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
+    if (req.url !== '/' && req.url !== '') {
+      req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+    }
+  }
+  next();
+});
+
 // Helper: Mask email address for security display (e.g. "ra***@gmail.com")
 function maskEmail(email: string): string {
   const [local, domain] = email.split('@');
