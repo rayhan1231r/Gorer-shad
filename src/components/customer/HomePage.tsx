@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Clock, ShieldCheck, MapPin, Sparkles, Phone, MessageSquare, UtensilsCrossed, CheckCircle2, Star, Truck, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
-import { BusinessConfig, Category, FoodItem, HomepageContent } from '../../types/index.ts';
+import { BusinessConfig, Category, FoodItem, HomepageContent, HeroBannerSlide } from '../../types/index.ts';
 import { FoodCard } from './FoodCard.tsx';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 import { LanguageToggle } from '../common/LanguageToggle.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
+import { api } from '../../services/api.ts';
 import heroFeastImg from '../../assets/images/hero_ghorer_shad_feast_1791709454258.jpg';
 import ilishImg from '../../assets/images/food_ilish_bhapa_fish_1791709467165.jpg';
 import meatCurryImg from '../../assets/images/food_bengali_meat_curry_1791709480684.jpg';
@@ -12,6 +13,7 @@ import platterImg from '../../assets/images/food_bengali_platter_snacks_17917094
 
 interface HomePageProps {
   config: BusinessConfig;
+  homepageContent?: HomepageContent | null;
   categories: Category[];
   foods: FoodItem[];
   onNavigate: (page: string, categoryId?: string) => void;
@@ -20,75 +22,130 @@ interface HomePageProps {
   onBuyNow?: (food: FoodItem) => void;
 }
 
+const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
+  {
+    id: 'feast',
+    image: heroFeastImg,
+    tagBn: 'খাঁটি বাঙালি ভোজ ও ঐতিহ্য',
+    tagEn: 'Authentic Bengali Feast',
+    titleBn: 'ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ',
+    titleEn: 'Royal Bengali Homemade Feast',
+    descBn: 'আড়াইহাজারের খাঁটি রান্না, তাজা মসলা ও ঘরোয়া ভালোবাসা',
+    descEn: 'Fresh home cooking in Araihazar with pure spices',
+    isActive: true,
+    sortOrder: 1
+  },
+  {
+    id: 'ilish',
+    image: ilishImg,
+    tagBn: 'পদ্মার তাজা মাছের সমাহার',
+    tagEn: 'Fresh River Hilsa Special',
+    titleBn: 'তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব',
+    titleEn: 'Fresh Shorshe Ilish & Pulao Delicacies',
+    descBn: 'অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না',
+    descEn: 'Cooked fresh after order with supreme authentic aroma',
+    isActive: true,
+    sortOrder: 2
+  },
+  {
+    id: 'meat',
+    image: meatCurryImg,
+    tagBn: 'দেশি মাংসের স্পেশাল কষা',
+    tagEn: 'Desi Meat Curry & Kacchi',
+    titleBn: 'দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল',
+    titleEn: 'Desi Mutton & Beef Traditional Curry',
+    descBn: 'খাঁটি সরিষার তেলে কষানো মাংস ও স্পেশাল ভুনা খিচুড়ি',
+    descEn: 'Slow-cooked with pure mustard oil & aromatic spices',
+    isActive: true,
+    sortOrder: 3
+  },
+  {
+    id: 'platter',
+    image: platterImg,
+    tagBn: 'ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ',
+    tagEn: 'Family Combos & Catering Package',
+    titleBn: 'যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ',
+    titleEn: 'Catering & Large Feasts for Every Celebration',
+    descBn: '৫০ থেকে ৫০০ জনের সম্পূর্ণ ঘরোয়া খাবার সরবরাহ',
+    descEn: 'Complete homemade food service from 50 to 500 guests',
+    isActive: true,
+    sortOrder: 4
+  }
+];
+
+export function resolveSlideImage(img?: unknown, id?: string): string {
+  if (!img || typeof img !== 'string') {
+    if (id === 'ilish') return ilishImg;
+    if (id === 'meat') return meatCurryImg;
+    if (id === 'platter') return platterImg;
+    return heroFeastImg;
+  }
+  if (img.includes('hero_ghorer_shad_feast')) return heroFeastImg;
+  if (img.includes('food_ilish_bhapa_fish')) return ilishImg;
+  if (img.includes('food_bengali_meat_curry')) return meatCurryImg;
+  if (img.includes('food_bengali_platter_snacks')) return platterImg;
+  return img;
+}
+
 export const HomePage: React.FC<HomePageProps> = ({
   config,
-  categories,
-  foods,
+  homepageContent,
+  categories = [],
+  foods = [],
   onNavigate,
   onSelectFood,
   onQuickAdd,
   onBuyNow
 }) => {
   const { language, t, getCategoryTitle, getCategoryDescription } = useLanguage();
-  const featuredFoods = foods.filter(f => f.isFeatured || f.isBestseller).slice(0, 6);
-  const platterFoods = foods.filter(f => f.categoryId === 'platters-combos').slice(0, 3);
-  const cleanPhone = (config.whatsapp || '').replace(/[^0-9]/g, '');
+  const safeFoods = Array.isArray(foods) ? foods : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const featuredFoods = safeFoods.filter(f => f && (f.isFeatured || f.isBestseller)).slice(0, 6);
+  const platterFoods = safeFoods.filter(f => f && f.categoryId === 'platters-combos').slice(0, 3);
+  const cleanPhone = String(config?.whatsapp || '').replace(/[^0-9]/g, '');
 
-  // Dynamic Auto-Changing Hero Banners (Slides continuously every 2.5 seconds)
-  const heroBanners = [
-    {
-      id: 'feast',
-      image: heroFeastImg,
-      tagBn: 'খাঁটি বাঙালি ভোজ ও ঐতিহ্য',
-      tagEn: 'Authentic Bengali Feast',
-      titleBn: 'ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ',
-      titleEn: 'Royal Bengali Homemade Feast',
-      descBn: 'আড়াইহাজারের খাঁটি রান্না, তাজা মসলা ও ঘরোয়া ভালোবাসা',
-      descEn: 'Fresh home cooking in Araihazar with pure spices'
-    },
-    {
-      id: 'ilish',
-      image: ilishImg,
-      tagBn: 'পদ্মার তাজা মাছের সমাহার',
-      tagEn: 'Fresh River Hilsa Special',
-      titleBn: 'তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব',
-      titleEn: 'Fresh Shorshe Ilish & Pulao Delicacies',
-      descBn: 'অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না',
-      descEn: 'Cooked fresh after order with supreme authentic aroma'
-    },
-    {
-      id: 'meat',
-      image: meatCurryImg,
-      tagBn: 'দেশি মাংসের স্পেশাল কষা',
-      tagEn: 'Desi Meat Curry & Kacchi',
-      titleBn: 'দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল',
-      titleEn: 'Desi Mutton & Beef Traditional Curry',
-      descBn: 'খাঁটি সরিষার তেলে কষানো মাংস ও স্পেশাল ভুনা খিচুড়ি',
-      descEn: 'Slow-cooked with pure mustard oil & aromatic spices'
-    },
-    {
-      id: 'platter',
-      image: platterImg,
-      tagBn: 'ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ',
-      tagEn: 'Family Combos & Catering Package',
-      titleBn: 'যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ',
-      titleEn: 'Catering & Large Feasts for Every Celebration',
-      descBn: '৫০ থেকে ৫০০ জনের সম্পূর্ণ ঘরোয়া খাবার সরবরাহ',
-      descEn: 'Complete homemade food service from 50 to 500 guests'
+  const [contentData, setContentData] = useState<HomepageContent | null>(homepageContent || null);
+
+  useEffect(() => {
+    if (homepageContent) {
+      setContentData(homepageContent);
+    } else {
+      api.getHomepageContent()
+        .then(data => {
+          if (data) setContentData(data);
+        })
+        .catch(() => {});
     }
-  ];
+  }, [homepageContent]);
+
+  // Derive active banners from backend or fallback with complete null protection
+  const heroBanners: HeroBannerSlide[] = React.useMemo(() => {
+    if (contentData?.heroBanners && Array.isArray(contentData.heroBanners)) {
+      const valid = contentData.heroBanners.filter(b => b && typeof b === 'object' && b.isActive !== false);
+      if (valid.length > 0) {
+        return valid.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+      }
+    }
+    return DEFAULT_HERO_SLIDES;
+  }, [contentData]);
+
+  const intervalSeconds = contentData?.bannerIntervalSeconds && contentData.bannerIntervalSeconds > 0
+    ? contentData.bannerIntervalSeconds
+    : 3;
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  // Auto-slide banner every 2.5 seconds
+  // Auto-slide banner based on configured interval
   useEffect(() => {
+    if (heroBanners.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentBannerIndex(prev => (prev + 1) % heroBanners.length);
-    }, 2500);
+    }, intervalSeconds * 1000);
     return () => clearInterval(timer);
-  }, [heroBanners.length]);
+  }, [heroBanners.length, intervalSeconds]);
 
-  const activeBanner = heroBanners[currentBannerIndex];
+  const safeIndex = heroBanners.length > 0 ? (currentBannerIndex % heroBanners.length) : 0;
+  const activeBanner = (heroBanners && heroBanners[safeIndex]) || DEFAULT_HERO_SLIDES[0];
 
   return (
     <div className="bg-white min-h-screen text-left overflow-x-clip">
@@ -101,9 +158,9 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Banner Media Container */}
             <div className="relative aspect-[16/9] sm:aspect-[21/9] lg:aspect-[24/9] w-full overflow-hidden">
               <img
-                key={activeBanner.id}
-                src={activeBanner.image}
-                alt={language === 'en' ? activeBanner.titleEn : activeBanner.titleBn}
+                key={activeBanner?.id || safeIndex}
+                src={resolveSlideImage(activeBanner?.image, activeBanner?.id)}
+                alt={language === 'en' ? (activeBanner?.titleEn || activeBanner?.titleBn || 'Banner') : (activeBanner?.titleBn || activeBanner?.titleEn || 'ব্যানার')}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
                 onError={(e) => {
@@ -117,9 +174,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Top Floating Badges on Banner */}
               <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 z-20">
                 <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-white/60 flex items-center gap-2">
-                  <BrandLogo size="xs" logoUrl={config.logoUrl} className="ring-1 ring-emerald-600/30" />
+                  <BrandLogo size="xs" logoUrl={config?.logoUrl} className="ring-1 ring-emerald-600/30" />
                   <span className="text-[11px] sm:text-xs font-bold text-slate-900 tracking-tight">
-                    {language === 'en' ? config.brandNameEn : config.brandNameBn}
+                    {language === 'en' ? (config?.brandNameEn || 'Ghorer Shad') : (config?.brandNameBn || 'ঘরের স্বাদ')}
                   </span>
                 </div>
 
@@ -141,13 +198,13 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* Banner Caption Overlay (Bottom Left) */}
               <div className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 right-5 sm:right-24 z-20 text-white space-y-1 sm:space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-xs text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-100">
-                  <span>{language === 'en' ? activeBanner.tagEn : activeBanner.tagBn}</span>
+                  <span>{language === 'en' ? (activeBanner?.tagEn || activeBanner?.tagBn || '') : (activeBanner?.tagBn || activeBanner?.tagEn || '')}</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl lg:text-4xl font-black text-white leading-tight drop-shadow-md">
-                  {language === 'en' ? activeBanner.titleEn : activeBanner.titleBn}
+                  {language === 'en' ? (activeBanner?.titleEn || activeBanner?.titleBn || '') : (activeBanner?.titleBn || activeBanner?.titleEn || '')}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-200 line-clamp-1 sm:line-clamp-none max-w-2xl drop-shadow-xs font-medium">
-                  {language === 'en' ? activeBanner.descEn : activeBanner.descBn}
+                  {language === 'en' ? (activeBanner?.descEn || activeBanner?.descBn || '') : (activeBanner?.descBn || activeBanner?.descEn || '')}
                 </p>
               </div>
 
@@ -174,11 +231,11 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center gap-1.5 z-20">
                 {heroBanners.map((b, idx) => (
                   <button
-                    key={b.id}
+                    key={b.id || idx}
                     type="button"
                     onClick={() => setCurrentBannerIndex(idx)}
                     className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      idx === currentBannerIndex
+                      idx === safeIndex
                         ? 'w-7 bg-emerald-400 shadow-md ring-2 ring-emerald-300/40'
                         : 'w-2 bg-white/50 hover:bg-white/80'
                     }`}

@@ -25,7 +25,7 @@ import { ProfilePage } from './components/customer/ProfilePage.tsx';
 import { AdminLoginModal } from './components/admin/AdminLoginModal.tsx';
 import { AdminLayout } from './components/admin/AdminLayout.tsx';
 import { AiCustomerSupport } from './components/customer/AiCustomerSupport.tsx';
-import { BusinessConfig, Category, FoodItem, Order, AppUser } from './types/index.ts';
+import { BusinessConfig, Category, FoodItem, Order, AppUser, HomepageContent } from './types/index.ts';
 import { api } from './services/api.ts';
 
 const FALLBACK_CONFIG: BusinessConfig = {
@@ -61,6 +61,9 @@ function AppContent() {
   const [config, setConfig] = useState<BusinessConfig>(FALLBACK_CONFIG);
   const [categories, setCategories] = useState<Category[]>([]);
   const [foods, setFoods] = useState<FoodItem[]>([]);
+
+  // Dynamic homepage content (banners, hero slides)
+  const [homepageContent, setHomepageContent] = useState<HomepageContent | null>(null);
 
   // Modals & Overlays
   const [selectedFoodForModal, setSelectedFoodForModal] = useState<FoodItem | null>(null);
@@ -102,15 +105,19 @@ function AppContent() {
 
   const loadInitialData = async () => {
     try {
-      const [cfg, cats, fds, user] = await Promise.all([
+      const [cfg, cats, fds, user, homeContent] = await Promise.all([
         api.getConfig(),
         api.getCategories(),
         api.getFoods(),
-        api.getCurrentUser()
+        api.getCurrentUser(),
+        api.getHomepageContent().catch(() => null)
       ]);
       setConfig(cfg);
       setCategories(cats);
       setFoods(fds);
+      if (homeContent) {
+        setHomepageContent(homeContent);
+      }
       if (user) {
         setCurrentUser(user);
         const isElevated = ['owner', 'admin', 'subadmin', 'staff'].includes(user.role);
@@ -261,6 +268,7 @@ function AppContent() {
             {activePage === 'home' && (
               <HomePage
                 config={config}
+                homepageContent={homepageContent}
                 categories={categories}
                 foods={foods}
                 onNavigate={handleNavigate}
