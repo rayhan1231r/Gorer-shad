@@ -292,10 +292,10 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 font-semibold hover:bg-slate-50"
                 >
                   <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{config.phone}</span>
+                  <span>{config?.phone || '01857-220603'}</span>
                 </a>
                 <a
-                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-semibold hover:bg-emerald-800 cursor-pointer"

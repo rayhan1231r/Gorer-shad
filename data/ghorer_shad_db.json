@@ -196,7 +196,6 @@
       "isFeatured": true,
       "isBestseller": true,
       "advanceNoticeRequiredHours": 4,
-      "ingredientsBn": "পদ্মার ইলিশ মাছ, খাঁটি সরিষার তেল, দেশি বাটা সরিষা, কাঁচামরিচ, পোলাও চাল, গাওয়া ঘি",
       "variants": [
         {
           "id": "v1-regular",
@@ -224,7 +223,8 @@
           "nameEn": "Moong Dal Bhuna",
           "price": 50
         }
-      ]
+      ],
+      "ingredientsBn": "পদ্মার ইলিশ মাছ, খাঁটি সরিষার তেল, দেশি বাটা সরিষা, কাঁচামরিচ, পোলাও চাল, গাওয়া ঘি"
     },
     {
       "id": "food-2",
@@ -249,7 +249,6 @@
       "isFeatured": true,
       "isBestseller": true,
       "advanceNoticeRequiredHours": 3,
-      "ingredientsBn": "তাজা ফার্ম চিকেন, পেঁয়াজ বেরেস্তা, খাঁটি সয়াবিন ও সরিষার তেল, আদা-রসুন বাটা, গরম মসলা",
       "variants": [
         {
           "id": "v2-luchi",
@@ -277,7 +276,8 @@
           "nameEn": "Semolina Ghee Halwa",
           "price": 50
         }
-      ]
+      ],
+      "ingredientsBn": "তাজা ফার্ম চিকেন, পেঁয়াজ বেরেস্তা, খাঁটি সয়াবিন ও সরিষার তেল, আদা-রসুন বাটা, গরম মসলা"
     },
     {
       "id": "food-3",
@@ -302,7 +302,6 @@
       "isFeatured": true,
       "isBestseller": true,
       "advanceNoticeRequiredHours": 4,
-      "ingredientsBn": "রুই মাছ, দেশি মুরগি, নাজিরশাইল/বাসমতী চাল, মুগ ডাল, পেঁয়াজ, রসুন, কাঁচামরিচ, ঘি",
       "variants": [
         {
           "id": "v3-regular",
@@ -330,7 +329,8 @@
           "nameEn": "Saffron Firni Dessert",
           "price": 60
         }
-      ]
+      ],
+      "ingredientsBn": "রুই মাছ, দেশি মুরগি, নাজিরশাইল/বাসমতী চাল, মুগ ডাল, পেঁয়াজ, রসুন, কাঁচামরিচ, ঘি"
     },
     {
       "id": "food-4",
@@ -355,7 +355,6 @@
       "isFeatured": true,
       "isBestseller": true,
       "advanceNoticeRequiredHours": 2,
-      "ingredientsBn": "চিকেন কিমা, ডিম, আলু, ময়দা, ধনেপাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা",
       "variants": [
         {
           "id": "v4-standard",
@@ -383,7 +382,8 @@
           "nameEn": "Extra Tamarind Dip",
           "price": 20
         }
-      ]
+      ],
+      "ingredientsBn": "চিকেন কিমা, ডিম, আলু, ময়দা, ধনেপাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা"
     },
     {
       "id": "food-5",
@@ -740,7 +740,7 @@
       "name": "Joynob Islam Kakoly",
       "email": "joynob.kakoly@ghorershad.com",
       "phone": "01857-220603",
-      "role": "owner",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "password",
       "createdAt": "2026-10-11T14:28:40.712Z",
@@ -765,7 +765,7 @@
       "name": "Rayhan Ahamad",
       "email": "rayhanahamad50@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T14:28:40.772Z",
@@ -777,7 +777,7 @@
       "id": "usr-1791737729686-728",
       "name": "Rayhan",
       "email": "ahmedskkawsar43@gmail.com",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "email_otp",
       "createdAt": "2026-10-11T16:55:29.686Z",
@@ -788,7 +788,7 @@
       "name": "Admin User",
       "email": "proxy6726@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
@@ -801,10 +801,23 @@
       "name": "Ghorer Shad Admin",
       "email": "ghorershad.arai@gmail.com",
       "phone": "01857-220603",
-      "role": "admin",
+      "role": "customer",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
+      "addresses": [
+        "আড়াইহাজার, ঢাকা"
+      ]
+    },
+    "darousdillp@gmail.com": {
+      "id": "usr-owner-darousdillp",
+      "name": "Admin Owner",
+      "email": "darousdillp@gmail.com",
+      "phone": "01857-220603",
+      "role": "customer",
+      "isEmailVerified": true,
+      "provider": "google",
+      "createdAt": "2026-10-13T07:34:08.957Z",
       "addresses": [
         "আড়াইহাজার, ঢাকা"
       ]

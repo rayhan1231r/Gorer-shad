@@ -164,7 +164,7 @@ export const FoodDetailModal: React.FC<FoodDetailModalProps> = ({
     onClose();
   };
 
-  const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
+  const cleanPhone = String(whatsappNumber || '+8801912838891').replace(/[^0-9]/g, '');
   const title = getFoodTitle(food);
   const fullDesc = getFoodFullDesc(food);
   const portion = getFoodPortion(food);

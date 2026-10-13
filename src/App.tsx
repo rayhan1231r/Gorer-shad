@@ -23,6 +23,7 @@ import { AuthModal } from './components/customer/AuthModal.tsx';
 import { AccountModal } from './components/customer/AccountModal.tsx';
 import { ProfilePage } from './components/customer/ProfilePage.tsx';
 import { AdminLoginModal } from './components/admin/AdminLoginModal.tsx';
+import { AdminPortalPage } from './components/admin/AdminPortalPage.tsx';
 import { AdminLayout } from './components/admin/AdminLayout.tsx';
 import { AiCustomerSupport } from './components/customer/AiCustomerSupport.tsx';
 import { BusinessConfig, Category, FoodItem, Order, AppUser, HomepageContent } from './types/index.ts';
@@ -112,9 +113,15 @@ function AppContent() {
         api.getCurrentUser(),
         api.getHomepageContent().catch(() => null)
       ]);
-      setConfig(cfg);
-      setCategories(cats);
-      setFoods(fds);
+      if (cfg && typeof cfg === 'object' && !Array.isArray(cfg)) {
+        setConfig(prev => ({ ...prev, ...cfg }));
+      }
+      if (Array.isArray(cats)) {
+        setCategories(cats);
+      }
+      if (Array.isArray(fds)) {
+        setFoods(fds);
+      }
       if (homeContent) {
         setHomepageContent(homeContent);
       }
@@ -166,6 +173,7 @@ function AppContent() {
       name: userName || prev?.name || 'Administrator',
       email: prev?.email || 'rmartbdltd@gmail.com',
       role: 'owner',
+      isEmailVerified: true,
       provider: 'password',
       addresses: prev?.addresses || ['আড়াইহাজার, ঢাকা'],
       createdAt: prev?.createdAt || new Date().toISOString()

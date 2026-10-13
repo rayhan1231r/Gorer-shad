@@ -3,12 +3,12 @@ import { MessageCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext.tsx';
 
 interface WhatsAppButtonProps {
-  phone: string;
+  phone?: string;
 }
 
 export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phone }) => {
   const { language } = useLanguage();
-  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const cleanPhone = String(phone || '+8801912838891').replace(/[^0-9]/g, '');
   const message = encodeURIComponent(
     language === 'en'
       ? 'Hello! I would like to inquire or place an order for homemade food from Ghorer Shad.'

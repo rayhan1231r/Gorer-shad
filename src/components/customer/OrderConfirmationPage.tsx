@@ -26,7 +26,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
+  const cleanPhone = String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '');
   const waMsg = encodeURIComponent(
     language === 'en'
       ? `Hello! I have placed an order at Ghorer Shad.\nOrder No: ${order.orderNumber}\nCustomer: ${order.customerName}\nTotal Bill: ${formatPrice(order.totalAmount)}`

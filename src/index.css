@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-bengali: 'Hind Siliguri', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
 :root {
   --brand-primary: #166534;
   --brand-primary-hover: #14532d;

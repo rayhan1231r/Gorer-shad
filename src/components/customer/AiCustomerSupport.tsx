@@ -156,15 +156,15 @@ export const AiCustomerSupport: React.FC<AiCustomerSupportProps> = ({
         setIsOpen(false);
         break;
       case 'WHATSAPP': {
-        const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
+        const cleanPhone = String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '');
         const msg = language === 'en'
           ? 'Hello, I would like to inquire about ordering food from Ghorer Shad.'
           : 'আসসালামু আলাইকুম, ঘরের স্বাদ খাবার অর্ডার সংক্রান্ত তথ্য জানতে চাই।';
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
         break;
       }
       case 'CALL':
-        window.location.href = `tel:${config.phone.replace(/[^0-9]/g, '')}`;
+        window.location.href = `tel:${String(config?.phone || '01857-220603').replace(/[^0-9]/g, '')}`;
         break;
       case 'ASK_HOURS':
         handleSendMessage(

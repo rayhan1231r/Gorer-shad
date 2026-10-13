@@ -662,17 +662,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return variant.nameEn || 'Standard Option';
     }
     // Bangla: strip English in parens
-    return variant.nameBn.replace(/\([A-Za-z\s-]+\)/g, '').trim();
+    return String(variant?.nameBn || variant?.nameEn || 'বিকল্প').replace(/\([A-Za-z\s-]+\)/g, '').trim();
   };
 
   const getAddonTitle = (addon: FoodAddon): string => {
+    if (!addon) return '';
     if (language === 'en') {
       if (addon.nameEn && !/[\u0980-\u09FF]/.test(addon.nameEn)) return addon.nameEn;
-      if (COMMON_ADDONS_EN[addon.nameBn]) return COMMON_ADDONS_EN[addon.nameBn];
+      if (addon.nameBn && COMMON_ADDONS_EN[addon.nameBn]) return COMMON_ADDONS_EN[addon.nameBn];
       return addon.nameEn || 'Side Dish';
     }
     // Bangla: strip English in parens
-    return addon.nameBn.replace(/\([A-Za-z\s-]+\)/g, '').trim();
+    return String(addon?.nameBn || addon?.nameEn || 'এড-অন').replace(/\([A-Za-z\s-]+\)/g, '').trim();
   };
 
   // Category helpers

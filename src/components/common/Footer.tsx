@@ -95,7 +95,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                   </a>
                 )}
                 <a
-                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-[#25D366] text-white flex items-center justify-center transition-all hover:scale-105 border border-slate-700"
@@ -118,24 +118,24 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
                 <span>
                   {language === 'en'
                     ? 'Araihazar Bazar Road, Araihazar, Narayanganj / Dhaka, Bangladesh'
-                    : config.fullAddressBn}
+                    : (config?.fullAddressBn || 'আড়াইহাজার, ঢাকা')}
                 </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`tel:${config.phone}`} className="hover:text-white transition-colors">
-                  {config.phone}
+                <a href={`tel:${config?.phone || '01857-220603'}`} className="hover:text-white transition-colors">
+                  {config?.phone || '01857-220603'}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
                 <a
-                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  {language === 'en' ? 'WhatsApp:' : 'হোয়াটসঅ্যাপ:'} {config.whatsapp}
+                  {language === 'en' ? 'WhatsApp:' : 'হোয়াটসঅ্যাপ:'} {config?.whatsapp || '+8801912838891'}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">

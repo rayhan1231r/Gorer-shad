@@ -68,7 +68,7 @@ export const CateringPage: React.FC<CateringPageProps> = ({ config }) => {
     }
   };
 
-  const cleanPhone = config.whatsapp.replace(/[^0-9]/g, '');
+  const cleanPhone = String(config?.whatsapp || '+8801912838891').replace(/[^0-9]/g, '');
   const waUrl = submittedInquiry
     ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
         language === 'en'
