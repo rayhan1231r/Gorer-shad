@@ -850,5 +850,73 @@ export const api = {
       body: JSON.stringify({ apiKey }),
     });
     return res.json();
+  },
+
+  // Cloud Sync & Firestore Persistence
+  async getCloudSyncStatus(): Promise<{
+    isConfigured: boolean;
+    projectId: string;
+    connected: boolean;
+    lastSyncedAt: string | null;
+    cloudFoodsCount: number;
+    cloudCategoriesCount: number;
+    lastError?: string | null;
+  }> {
+    const res = await fetch(`${API_BASE}/admin/cloud-sync`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch cloud sync status');
+    return res.json();
+  },
+
+  async pushToCloud(): Promise<{ success: boolean; message: string; timestamp: string }> {
+    const res = await fetch(`${API_BASE}/admin/cloud-sync/push`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to push to cloud');
+    return data;
+  },
+
+  async pullFromCloud(): Promise<{ success: boolean; message: string; data?: any }> {
+    const res = await fetch(`${API_BASE}/admin/cloud-sync/pull`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to pull from cloud');
+    return data;
+  },
+
+  async importDatabaseBackup(backupData: any): Promise<{ success: boolean; message: string; count: number }> {
+    const res = await fetch(`${API_BASE}/admin/backup/import`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(backupData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to import backup');
+    return data;
+  },
+
+  async getBroadcastHistory(): Promise<{
+    history: Array<{
+      id: string;
+      timestamp: string;
+      subject: string;
+      headline: string;
+      targetAudience: string;
+      sentCount: number;
+      isTest?: boolean;
+      user?: string;
+    }>;
+  }> {
+    const res = await fetch(`${API_BASE}/admin/broadcast-history`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to fetch broadcast history');
+    return res.json();
   }
 };
+

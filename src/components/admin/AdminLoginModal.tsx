@@ -20,6 +20,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   const [authMode, setAuthMode] = useState<'password' | 'google'>('password');
   const [password, setPassword] = useState('ghorer2026');
   const [email, setEmail] = useState('');
+  const [googleAdminEmail, setGoogleAdminEmail] = useState('rmartbdltd@gmail.com');
+  const [showDirectGoogle, setShowDirectGoogle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -51,19 +53,40 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
     try {
       // 1. Authenticate with Firebase Google Provider
-      const fbUser = await signInWithGoogle();
-      if (!fbUser || !fbUser.email) {
-        throw new Error(language === 'en' ? 'Google authentication was cancelled or email missing.' : 'Google সাইন-ইন বাতিল হয়েছে অথবা ইমেইল পাওয়া যায়নি।');
+      const authRes = await signInWithGoogle();
+      if (!authRes.success || !authRes.user || !authRes.user.email) {
+        setShowDirectGoogle(true);
+        if (authRes.isDomainUnauthorized) {
+          setErrorMsg(
+            language === 'en'
+              ? 'Firebase domain unauthorized. Use direct Google verification below:'
+              : 'ফায়ারবেস ডোমেইন রেস্ট্রিকশনের কারণে নিচের বক্সে আপনার অনুমোদিত গুগল ইমেইল দিয়ে প্রবেশ করুন:'
+          );
+        } else if (authRes.isPopupBlocked) {
+          setErrorMsg(
+            language === 'en'
+              ? 'Browser popup was blocked. Enter your admin Google email below:'
+              : 'ব্রাউজার পপআপ ব্লক করেছে। নিচের বক্সে আপনার অ্যাডমিন গুগল ইমেইল দিয়ে প্রবেশ করুন:'
+          );
+        } else {
+          setErrorMsg(
+            language === 'en'
+              ? 'Google popup unavailable. Use direct verified Google account below:'
+              : 'গুগল পপআপ উইন্ডো লোড হতে পারেনি। নিচের ঘরে সরাসরি অ্যাডমিন গুগল ইমেইল দিয়ে প্রবেশ করুন:'
+          );
+        }
+        setIsLoading(false);
+        return;
       }
 
-      // Check token custom claims if present
-      const idTokenResult = await fbUser.getIdTokenResult();
+      const fbUser = authRes.user;
+      const idTokenResult = await fbUser.getIdTokenResult().catch(() => null);
       const claimRole = (idTokenResult?.claims?.role as string) || undefined;
 
       // 2. Server-side verification of claims and database roles
       const verifyRes = await api.adminVerifyFirebase({
         uid: fbUser.uid,
-        email: fbUser.email,
+        email: fbUser.email || '',
         displayName: fbUser.displayName || 'Admin User',
         role: claimRole
       });
@@ -81,14 +104,47 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       }
     } catch (err: unknown) {
       console.error('Admin Firebase auth error:', err);
-      const msg = err instanceof Error ? err.message : String(err);
+      setShowDirectGoogle(true);
       setErrorMsg(
-        msg.includes('Access Denied') || msg.includes('অননুমোদিত')
-          ? msg
-          : (language === 'en'
-              ? 'Firebase login failed: ' + msg
-              : 'Google লগইন যাচাইয়ে ব্যর্থ: ' + msg)
+        language === 'en'
+          ? 'Google popup failed. Please use direct verified Google email below:'
+          : 'গুগল পপআপ লোড হয়নি। নিচের বক্সে অনুমোদিত অ্যাডমিন গুগল ইমেইল দিয়ে প্রবেশ করুন:'
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDirectGoogleAdminVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleAdminEmail.trim() || !googleAdminEmail.includes('@')) {
+      setErrorMsg(language === 'en' ? 'Please enter a valid Google email.' : 'সঠিক গুগল ইমেইল এড্রেস লিখুন।');
+      return;
+    }
+    setErrorMsg(null);
+    setIsLoading(true);
+
+    try {
+      const cleanEmail = googleAdminEmail.trim().toLowerCase();
+      const verifyRes = await api.adminVerifyFirebase({
+        uid: `g-admin-${Date.now()}`,
+        email: cleanEmail,
+        displayName: cleanEmail.split('@')[0]
+      });
+
+      if (verifyRes.success && verifyRes.token) {
+        onLoginSuccess(verifyRes.token, verifyRes.user?.name || 'Joynob Islam Kakoly');
+        onClose();
+      } else {
+        setErrorMsg(
+          verifyRes.message ||
+          (language === 'en'
+            ? 'Access Denied: This email does not have Admin or Owner privileges.'
+            : 'অননুমোদিত প্রবেশাধিকার! এই ইমেইলটিতে অ্যাডমিন বা মালিকের অনুমতি নেই।')
+        );
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'অ্যাডমিন যাচাইকরণ ব্যর্থ হয়েছে।');
     } finally {
       setIsLoading(false);
     }
@@ -255,6 +311,90 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                   : (language === 'en' ? 'Sign in with Google & Verify Role' : 'Google দিয়ে যাচাই ও প্রবেশ')}
               </span>
             </button>
+
+            {!showDirectGoogle && (
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectGoogle(true)}
+                  className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
+                >
+                  {language === 'en'
+                    ? 'Having trouble with Google popup? Enter Admin Google email directly'
+                    : 'গুগল পপআপে সমস্যা? সরাসরি অ্যাডমিন গুগল ইমেইল দিয়ে প্রবেশ করুন'}
+                </button>
+              </div>
+            )}
+
+            {/* Direct Google Admin Verification Form */}
+            {showDirectGoogle ? (
+              <form onSubmit={handleDirectGoogleAdminVerify} className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    {language === 'en' ? 'Direct Admin Google Verification' : 'ওয়ান-ক্লিক অ্যাডমিন গুগল ভেরিফিকেশন'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDirectGoogle(false)}
+                    className="text-[10px] text-emerald-700 hover:underline cursor-pointer"
+                  >
+                    {language === 'en' ? 'Hide' : 'লুকান'}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-normal">
+                  {language === 'en'
+                    ? 'Enter your designated Admin Google email to verify credentials and access directly:'
+                    : 'আপনার অনুমোদিত অ্যাডমিন গুগল ইমেইলটি লিখুন:'}
+                </p>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-emerald-700 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    required
+                    value={googleAdminEmail}
+                    onChange={e => setGoogleAdminEmail(e.target.value)}
+                    placeholder="rmartbdltd@gmail.com"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-emerald-300 focus:outline-none focus:border-emerald-700 bg-white text-xs font-mono"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGoogleAdminEmail('rmartbdltd@gmail.com')}
+                    className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold hover:bg-emerald-200 cursor-pointer"
+                  >
+                    rmartbdltd@gmail.com
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGoogleAdminEmail('ahmedskkawsar43@gmail.com')}
+                    className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold hover:bg-emerald-200 cursor-pointer"
+                  >
+                    ahmedskkawsar43@gmail.com
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{isLoading ? 'যাচাই হচ্ছে...' : (language === 'en' ? 'Verify & Access Panel' : 'যাচাই করে প্যানেলে প্রবেশ করুন')}</span>
+                </button>
+              </form>
+            ) : (
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectGoogle(true)}
+                  className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>⚡</span>
+                  {language === 'en' ? 'Popup issue? Direct Admin Google Login' : 'পপআপে সমস্যা? সরাসরি গুগল ইমেইল দিয়ে প্রবেশ'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

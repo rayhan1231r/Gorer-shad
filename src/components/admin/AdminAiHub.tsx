@@ -331,7 +331,15 @@ export const AdminAiHub: React.FC<AdminAiHubProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onNavigateTab('broadcast')}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>ফুলস্ক্রিন ব্রডকাস্ট স্টুডিও</span>
+              </button>
               <span className="text-xs font-semibold text-slate-600">প্রাপক ফিল্টার:</span>
               <select
                 value={targetAudience}

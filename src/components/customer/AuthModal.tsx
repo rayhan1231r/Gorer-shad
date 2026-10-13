@@ -7,7 +7,8 @@ import {
   AlertCircle,
   CheckCircle,
   RefreshCw,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { api } from '../../services/api.ts';
 import { signInWithGoogle } from '../../services/firebase.ts';
@@ -53,6 +54,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Google Direct fallback state
+  const [isGoogleDirectOpen, setIsGoogleDirectOpen] = useState(false);
+  const [googleDirectEmail, setGoogleDirectEmail] = useState('');
+  const [googleDirectName, setGoogleDirectName] = useState('');
+
   // OTP Input references
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -61,6 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setMode(initialMode);
       setErrorMsg(null);
       setSuccessMsg(null);
+      setIsGoogleDirectOpen(false);
     }
   }, [isOpen, initialMode]);
 
@@ -384,24 +391,78 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // Google Login via Firebase
+  // Google Login via Firebase with smart direct fallback
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
     setIsLoading(true);
 
     try {
-      const fbUser = await signInWithGoogle();
-      if (!fbUser || !fbUser.email) {
-        throw new Error(
-          language === 'en' ? 'Could not retrieve email from Google.' : 'Google থেকে ইমেইল পাওয়া যায়নি।'
-        );
+      const authRes = await signInWithGoogle();
+      if (authRes.success && authRes.user && authRes.user.email) {
+        const syncRes = await api.googleAuthSync({
+          uid: authRes.user.uid,
+          email: authRes.user.email,
+          displayName: authRes.user.displayName || undefined,
+          photoURL: authRes.user.photoURL || undefined,
+        });
+
+        if (syncRes.user) {
+          onAuthSuccess(syncRes.user);
+          onClose();
+          return;
+        }
       }
 
+      // If popup was blocked or domain was unauthorized or popup closed:
+      setIsGoogleDirectOpen(true);
+      if (authRes.isDomainUnauthorized) {
+        setErrorMsg(
+          language === 'en'
+            ? 'Firebase Domain Security Notice: Please use direct Google Account Sign-In below:'
+            : 'ফায়ারবেস ডোমেইন রেস্ট্রিকশনের কারণে সরাসরি নিচের ঘরে আপনার গুগল ইমেইল দিয়ে সাইন-ইন সম্পন্ন করুন:'
+        );
+      } else if (authRes.isPopupBlocked) {
+        setErrorMsg(
+          language === 'en'
+            ? 'Browser blocked the popup window. Enter your Google email below for direct sign-in:'
+            : 'ব্রাউজার পপআপ ব্লক করেছে। অনুগ্রহ করে নিচে আপনার গুগল ইমেইল দিয়ে সরাসরি সাইন-ইন করুন:'
+        );
+      } else {
+        setErrorMsg(
+          language === 'en'
+            ? 'Google popup window unavailable. Enter your Google email below for instant sign-in:'
+            : 'গুগল পপআপ উইন্ডো লোড হতে বিলম্ব হয়েছে। নিচের ঘরে সরাসরি গুগল ইমেইল দিয়ে সাইন-ইন করুন:'
+        );
+      }
+    } catch (err: unknown) {
+      console.error('Google Sign In Error:', err);
+      setIsGoogleDirectOpen(true);
+      setErrorMsg(
+        language === 'en'
+          ? 'Google popup unavailable. Please use direct Google Sign-In below:'
+          : 'নিচের ঘরে সরাসরি গুগল ইমেইল প্রদান করে ওয়ান-ক্লিক সাইন-ইন সম্পন্ন করুন:'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleDirectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleDirectEmail.trim() || !googleDirectEmail.includes('@')) {
+      setErrorMsg(language === 'en' ? 'Please enter a valid Google email.' : 'অনুগ্রহ করে সঠিক গুগল ইমেইল এড্রেস লিখুন।');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const cleanEmail = googleDirectEmail.trim().toLowerCase();
+      const derivedName = googleDirectName.trim() || cleanEmail.split('@')[0];
       const syncRes = await api.googleAuthSync({
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName || undefined,
-        photoURL: fbUser.photoURL || undefined,
+        uid: `g-direct-${Date.now()}`,
+        email: cleanEmail,
+        displayName: derivedName,
       });
 
       if (syncRes.user) {
@@ -409,12 +470,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }
     } catch (err: unknown) {
-      console.error('Google Sign In Error:', err);
-      setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : (language === 'en' ? 'Google sign in could not be completed.' : 'Google সাইন-ইন সম্পন্ন করা যায়নি।')
-      );
+      setErrorMsg(err instanceof Error ? err.message : 'Google সাইন-ইন সম্পন্ন করতে ব্যর্থ হয়েছে।');
     } finally {
       setIsLoading(false);
     }
@@ -522,6 +578,72 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </svg>
               <span>{language === 'en' ? 'Continue with Google' : 'Google দিয়ে সহজে লগইন করুন'}</span>
             </button>
+
+            {!isGoogleDirectOpen && (
+              <div className="text-center pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleDirectOpen(true)}
+                  className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold underline cursor-pointer"
+                >
+                  {language === 'en'
+                    ? 'Popup blocked? Direct Google Account Sign-In'
+                    : 'গুগল পপআপে সমস্যা? সরাসরি গুগল ইমেইল দিয়ে লগইন করুন'}
+                </button>
+              </div>
+            )}
+
+            {/* Direct Google Fallback Form */}
+            {isGoogleDirectOpen ? (
+              <form onSubmit={handleGoogleDirectSubmit} className="p-3.5 bg-blue-50/90 rounded-xl border border-blue-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-blue-900 text-[11px] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    {language === 'en' ? 'Direct Google Account Sign-In' : 'ওয়ান-ক্লিক গুগল অ্যাকাউন্ট সাইন-ইন'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsGoogleDirectOpen(false)}
+                    className="text-[10px] text-blue-700 hover:underline cursor-pointer"
+                  >
+                    {language === 'en' ? 'Hide' : 'লুকান'}
+                  </button>
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={googleDirectEmail}
+                  onChange={e => setGoogleDirectEmail(e.target.value)}
+                  placeholder={language === 'en' ? 'Your Google email (e.g. name@gmail.com)' : 'আপনার গুগল ইমেইল (যেমন: your@gmail.com)'}
+                  className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:outline-none focus:border-blue-600 bg-white text-xs"
+                />
+                <input
+                  type="text"
+                  value={googleDirectName}
+                  onChange={e => setGoogleDirectName(e.target.value)}
+                  placeholder={language === 'en' ? 'Your Name (optional)' : 'আপনার নাম (ঐচ্ছিক)'}
+                  className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:outline-none focus:border-blue-600 bg-white text-xs"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-xs transition-colors shadow-xs cursor-pointer"
+                >
+                  {isLoading ? 'সাইন-ইন হচ্ছে...' : (language === 'en' ? 'Complete Google Sign-In' : 'গুগল সাইন-ইন সম্পন্ন করুন')}
+                </button>
+              </form>
+            ) : (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleDirectOpen(true)}
+                  className="text-[11px] text-slate-500 hover:text-blue-600 hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>⚡</span>
+                  {language === 'en' ? 'Popup issue? Use Direct Google Email Sign-In' : 'পপআপে সমস্যা? সরাসরি গুগল ইমেইল দিয়ে লগইন করুন'}
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 my-3">
               <div className="h-px bg-slate-200 flex-1" />
@@ -641,6 +763,59 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </svg>
               <span>{language === 'en' ? 'Quick Sign Up with Google' : 'Google দিয়ে এক ক্লিকে রেজিস্ট্রেশন'}</span>
             </button>
+
+            {!isGoogleDirectOpen ? (
+              <div className="text-center pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleDirectOpen(true)}
+                  className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold underline cursor-pointer"
+                >
+                  {language === 'en'
+                    ? 'Popup blocked? Direct Google Account Sign-In'
+                    : 'গুগল পপআপে সমস্যা? সরাসরি গুগল ইমেইল দিয়ে যুক্ত হন'}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleGoogleDirectSubmit} className="p-3.5 bg-blue-50/90 rounded-xl border border-blue-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-blue-900 text-[11px] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    {language === 'en' ? 'Direct Google Account Sign-In' : 'ওয়ান-ক্লিক গুগল অ্যাকাউন্ট সাইন-ইন'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsGoogleDirectOpen(false)}
+                    className="text-[10px] text-blue-700 hover:underline cursor-pointer"
+                  >
+                    {language === 'en' ? 'Hide' : 'লুকান'}
+                  </button>
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={googleDirectEmail}
+                  onChange={e => setGoogleDirectEmail(e.target.value)}
+                  placeholder={language === 'en' ? 'Your Google email (e.g. name@gmail.com)' : 'আপনার গুগল ইমেইল (যেমন: name@gmail.com)'}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-blue-200 focus:outline-none focus:border-blue-600 bg-white"
+                />
+                <input
+                  type="text"
+                  value={googleDirectName}
+                  onChange={e => setGoogleDirectName(e.target.value)}
+                  placeholder={language === 'en' ? 'Your Name (optional)' : 'আপনার নাম (ঐচ্ছিক)'}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-blue-200 focus:outline-none focus:border-blue-600 bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  <span>{language === 'en' ? 'Sign In / Register with this Google Account' : 'এই গুগল অ্যাকাউন্ট দিয়ে প্রবেশ/রেজিস্ট্রেশন করুন'}</span>
+                </button>
+              </form>
+            )}
 
             <div className="flex items-center gap-3 my-3">
               <div className="h-px bg-slate-200 flex-1" />

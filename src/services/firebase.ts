@@ -77,12 +77,38 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Google Sign-In helper
-export async function signInWithGoogle() {
+export interface GoogleAuthResult {
+  success: boolean;
+  user?: FirebaseUser;
+  error?: string;
+  errorCode?: string;
+  isDomainUnauthorized?: boolean;
+  isPopupBlocked?: boolean;
+}
+
+// Google Sign-In helper with robust error diagnostics
+export async function signInWithGoogle(): Promise<GoogleAuthResult> {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  const result = await signInWithPopup(auth, provider);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, provider);
+    return {
+      success: true,
+      user: result.user
+    };
+  } catch (error: any) {
+    const code = error?.code || '';
+    const isDomain = code === 'auth/unauthorized-domain';
+    const isBlocked = code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request';
+    console.warn('[Firebase Auth] signInWithPopup notice:', code, error?.message);
+    return {
+      success: false,
+      errorCode: code,
+      error: error?.message || 'Google Sign-in could not be completed',
+      isDomainUnauthorized: isDomain,
+      isPopupBlocked: isBlocked
+    };
+  }
 }
 
 export async function signOutFirebase() {

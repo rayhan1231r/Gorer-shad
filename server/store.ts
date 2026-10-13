@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { cloudSyncService } from './firestoreSync.ts';
 import type {
   BusinessConfig,
   Category,
@@ -42,6 +43,7 @@ export interface DatabaseSchema {
   ownerEmail?: string;
   geminiApiKey?: string;
   sessions?: Record<string, { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string; expiresAt: number }>;
+  broadcastHistory?: { id: string; timestamp: string; subject: string; headline: string; targetAudience: string; sentCount: number; isTest?: boolean; user?: string }[];
 }
 
 const DEFAULT_CONFIG: BusinessConfig = {
@@ -701,6 +703,7 @@ class DatabaseStore {
   private data: DatabaseSchema;
   private pendingOtps: Map<string, PendingOtp> = new Map();
   private sessions: Map<string, { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string; expiresAt: number }> = new Map();
+  private cloudSyncTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     this.data = this.loadData();
@@ -710,6 +713,10 @@ class DatabaseStore {
       }
     }
     this.ensureDefaultUsers();
+    // Synchronize with Cloud Firestore so redeployments always inherit cloud data
+    this.initCloudSync().catch(err => {
+      console.warn('[CloudSync] Init notice:', err);
+    });
   }
 
   private loadData(): DatabaseSchema {
@@ -853,8 +860,16 @@ class DatabaseStore {
     const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
     const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
 
-    // The single designated owner
-    if (cleanEmail && cleanEmail === ownerEmail) {
+    // Designated owner & authorized project admin emails
+    const adminEmails = [
+      ownerEmail,
+      'rmartbdltd@gmail.com',
+      'ahmedskkawsar43@gmail.com',
+      'rayhanahamad50@gmail.com',
+      'joynob.kakoly@ghorershad.com',
+      'proxy6726@gmail.com'
+    ];
+    if (cleanEmail && adminEmails.includes(cleanEmail)) {
       return true;
     }
     if (uid && uid.trim() === ownerUid) {
@@ -880,7 +895,53 @@ class DatabaseStore {
     );
   }
 
-  public saveData(dataToSave?: DatabaseSchema) {
+  public async initCloudSync() {
+    try {
+      const cloudRes = await cloudSyncService.pullFromCloud();
+      if (cloudRes.success && cloudRes.data) {
+        let changed = false;
+        if (Array.isArray(cloudRes.data.foods) && cloudRes.data.foods.length > 0) {
+          this.data.foods = cloudRes.data.foods;
+          changed = true;
+        }
+        if (Array.isArray(cloudRes.data.categories) && cloudRes.data.categories.length > 0) {
+          this.data.categories = cloudRes.data.categories;
+          changed = true;
+        }
+        if (cloudRes.data.config) {
+          this.data.config = { ...this.data.config, ...cloudRes.data.config };
+          changed = true;
+        }
+        if (cloudRes.data.homepageContent) {
+          this.data.homepageContent = { ...this.data.homepageContent, ...cloudRes.data.homepageContent };
+          changed = true;
+        }
+        if (Array.isArray(cloudRes.data.deliveryZones) && cloudRes.data.deliveryZones.length > 0) {
+          this.data.deliveryZones = cloudRes.data.deliveryZones;
+          changed = true;
+        }
+        if (Array.isArray(cloudRes.data.paymentMethods) && cloudRes.data.paymentMethods.length > 0) {
+          this.data.paymentMethods = cloudRes.data.paymentMethods;
+          changed = true;
+        }
+        if (Array.isArray(cloudRes.data.coupons) && cloudRes.data.coupons.length > 0) {
+          this.data.coupons = cloudRes.data.coupons;
+          changed = true;
+        }
+        if (changed) {
+          this.saveDataLocally();
+          console.log(`[CloudSync] Restored ${this.data.foods.length} dishes from Cloud Firestore.`);
+        }
+      } else {
+        // Cloud is currently empty, push current seed so it's stored in cloud
+        await cloudSyncService.pushToCloud(this.data).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('[CloudSync] Init error:', err);
+    }
+  }
+
+  public saveDataLocally(dataToSave?: DatabaseSchema) {
     try {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -889,6 +950,117 @@ class DatabaseStore {
     } catch (err) {
       console.error('Failed to write to DB file:', err);
     }
+  }
+
+  public saveData(dataToSave?: DatabaseSchema) {
+    this.saveDataLocally(dataToSave);
+    // Debounce background sync to Cloud Firestore
+    if (this.cloudSyncTimer) {
+      clearTimeout(this.cloudSyncTimer);
+    }
+    this.cloudSyncTimer = setTimeout(() => {
+      cloudSyncService.pushToCloud(this.data).catch(err => {
+        console.warn('[CloudSync] Background push notice:', err?.message || err);
+      });
+    }, 1500);
+  }
+
+  public async getCloudSyncStatus() {
+    return cloudSyncService.getStatus();
+  }
+
+  public async pushToCloud() {
+    return cloudSyncService.pushToCloud(this.data);
+  }
+
+  public async pullFromCloud() {
+    const res = await cloudSyncService.pullFromCloud();
+    if (res.success && res.data) {
+      if (Array.isArray(res.data.foods)) this.data.foods = res.data.foods;
+      if (Array.isArray(res.data.categories)) this.data.categories = res.data.categories;
+      if (res.data.config) this.data.config = { ...this.data.config, ...res.data.config };
+      if (res.data.homepageContent) this.data.homepageContent = { ...this.data.homepageContent, ...res.data.homepageContent };
+      if (Array.isArray(res.data.deliveryZones)) this.data.deliveryZones = res.data.deliveryZones;
+      if (Array.isArray(res.data.paymentMethods)) this.data.paymentMethods = res.data.paymentMethods;
+      if (Array.isArray(res.data.coupons)) this.data.coupons = res.data.coupons;
+      this.saveDataLocally();
+    }
+    return res;
+  }
+
+  public exportFullBackup(): DatabaseSchema {
+    return JSON.parse(JSON.stringify(this.data));
+  }
+
+  public importFullBackup(importedData: Partial<DatabaseSchema>, callerEmail = 'Admin'): { success: boolean; message: string; count: number } {
+    if (!importedData || typeof importedData !== 'object') {
+      throw new Error('Invalid JSON backup data');
+    }
+
+    if (Array.isArray(importedData.foods)) {
+      this.data.foods = importedData.foods;
+    }
+    if (Array.isArray(importedData.categories)) {
+      this.data.categories = importedData.categories;
+    }
+    if (importedData.config) {
+      this.data.config = { ...this.data.config, ...importedData.config };
+    }
+    if (importedData.homepageContent) {
+      this.data.homepageContent = { ...this.data.homepageContent, ...importedData.homepageContent };
+    }
+    if (Array.isArray(importedData.deliveryZones)) {
+      this.data.deliveryZones = importedData.deliveryZones;
+    }
+    if (Array.isArray(importedData.paymentMethods)) {
+      this.data.paymentMethods = importedData.paymentMethods;
+    }
+    if (Array.isArray(importedData.coupons)) {
+      this.data.coupons = importedData.coupons;
+    }
+    if (Array.isArray(importedData.orders)) {
+      this.data.orders = importedData.orders;
+    }
+    if (importedData.customers && typeof importedData.customers === 'object') {
+      this.data.customers = importedData.customers;
+    }
+
+    this.saveData();
+    this.logAction('IMPORT_BACKUP', `Database backup imported (${this.data.foods.length} items)`, callerEmail);
+
+    return {
+      success: true,
+      message: `সফলভাবে ব্যাকআপ থেকে ${this.data.foods.length}টি খাদ্যসামগ্রী ও সেটিংস রিস্টোর করা হয়েছে!`,
+      count: this.data.foods.length
+    };
+  }
+
+  public getBroadcastHistory() {
+    return this.data.broadcastHistory || [];
+  }
+
+  public addBroadcastHistory(item: {
+    subject: string;
+    headline: string;
+    targetAudience: string;
+    sentCount: number;
+    isTest?: boolean;
+    user?: string;
+  }) {
+    if (!this.data.broadcastHistory) {
+      this.data.broadcastHistory = [];
+    }
+    const entry = {
+      id: `bc-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      ...item
+    };
+    this.data.broadcastHistory.unshift(entry);
+    if (this.data.broadcastHistory.length > 50) {
+      this.data.broadcastHistory = this.data.broadcastHistory.slice(0, 50);
+    }
+    this.saveDataLocally();
+    return entry;
   }
 
   // ---------------- Business & Content ----------------
@@ -1426,7 +1598,15 @@ class DatabaseStore {
     const cleanEmail = googlePayload.email.toLowerCase().trim();
     const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
     const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
-    const isOwner = cleanEmail === ownerEmail || googlePayload.uid === ownerUid;
+    const adminEmails = [
+      ownerEmail,
+      'rmartbdltd@gmail.com',
+      'ahmedskkawsar43@gmail.com',
+      'rayhanahamad50@gmail.com',
+      'joynob.kakoly@ghorershad.com',
+      'proxy6726@gmail.com'
+    ];
+    const isOwner = adminEmails.includes(cleanEmail) || googlePayload.uid === ownerUid;
 
     let existing = this.data.users[cleanEmail];
 

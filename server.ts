@@ -584,6 +584,8 @@ app.post('/api/admin/verify-firebase', (req: Request, res: Response) => {
     const isOwner =
       cleanEmail === 'ahmedskkawsar43@gmail.com' ||
       cleanEmail === 'rmartbdltd@gmail.com' ||
+      cleanEmail === 'rayhanahamad50@gmail.com' ||
+      cleanEmail === 'joynob.kakoly@ghorershad.com' ||
       cleanEmail === 'proxy6726@gmail.com' ||
       cleanEmail === envAdminEmail ||
       (cleanUid && (cleanUid === envAdminUid || (currentOwner && cleanUid === currentOwner.id))) ||
@@ -1173,6 +1175,15 @@ app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request,
       : `ইমেইল ব্রডকাস্ট পাঠানো হয়েছে: "${subject}" (${broadcastRes.sentCount} জন প্রাপক)`;
     db.logAction('BROADCAST_EMAIL', actionText, (req as any).user?.email || 'Admin');
 
+    db.addBroadcastHistory({
+      subject: broadcastSubject,
+      headline: headline || subject,
+      targetAudience: testEmail ? `Single Test (${testEmail})` : targetAudience,
+      sentCount: broadcastRes.sentCount,
+      isTest: Boolean(testEmail),
+      user: (req as any).user?.email || 'Admin'
+    });
+
     res.json({
       success: broadcastRes.success,
       sentCount: broadcastRes.sentCount,
@@ -1185,6 +1196,57 @@ app.post('/api/admin/broadcast-email', adminOnlyMiddleware, async (req: Request,
   } catch (err: unknown) {
     console.error('Broadcast email error:', err);
     res.status(500).json({ error: err instanceof Error ? err.message : 'ব্রডকাস্ট ইমেইল পাঠাতে ব্যর্থ হয়েছে।' });
+  }
+});
+
+// Broadcast Campaign History
+app.get('/api/admin/broadcast-history', adminOnlyMiddleware, (_req: Request, res: Response) => {
+  res.json({ history: db.getBroadcastHistory() });
+});
+
+// Cloud Sync Routes
+app.get(['/api/admin/cloud-sync', '/api/admin/cloud-sync/status'], adminOnlyMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const status = await db.getCloudSyncStatus();
+    res.json(status);
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'ক্লাউড স্ট্যাটাস যাচাই ব্যর্থ' });
+  }
+});
+
+app.post('/api/admin/cloud-sync/push', adminOnlyMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const result = await db.pushToCloud();
+    res.json(result);
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'ক্লাউডে ডেটা সংরক্ষণ ব্যর্থ' });
+  }
+});
+
+app.post('/api/admin/cloud-sync/pull', adminOnlyMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const result = await db.pullFromCloud();
+    res.json(result);
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'ক্লাউড থেকে ডেটা রিস্টোর ব্যর্থ' });
+  }
+});
+
+// Full Database Backup Export & Import
+app.get('/api/admin/backup/export', adminOnlyMiddleware, (_req: Request, res: Response) => {
+  const backup = db.exportFullBackup();
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename=ghorer_shad_backup_${new Date().toISOString().split('T')[0]}.json`);
+  res.send(JSON.stringify(backup, null, 2));
+});
+
+app.post('/api/admin/backup/import', adminOnlyMiddleware, (req: Request, res: Response) => {
+  try {
+    const caller = (req as any).user?.email || 'Admin';
+    const result = db.importFullBackup(req.body, caller);
+    res.json(result);
+  } catch (err: unknown) {
+    res.status(400).json({ error: err instanceof Error ? err.message : 'ব্যাকআপ ইমপোর্ট ব্যর্থ হয়েছে' });
   }
 });
 
@@ -1556,6 +1618,13 @@ async function startServer() {
     cliPort = Number(process.argv[portArgIndex + 1]) || 3000;
   }
   const listenPort = Number(process.env.PORT) || cliPort || 3000;
+
+  try {
+    await db.initCloudSync();
+    console.log('[CloudSync] Successfully synchronized data with Cloud Firestore on boot.');
+  } catch (syncErr) {
+    console.warn('[CloudSync] Boot synchronization notice:', syncErr);
+  }
 
   app.listen(listenPort, '0.0.0.0', () => {
     console.log(`Server started on http://0.0.0.0:${listenPort}`);

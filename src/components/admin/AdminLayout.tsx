@@ -25,7 +25,9 @@ import {
   Sparkles,
   Crown,
   Image as ImageIcon,
-  Megaphone
+  Megaphone,
+  Cloud,
+  Send
 } from 'lucide-react';
 import {
   BusinessConfig,
@@ -57,6 +59,8 @@ import { ReviewManagement } from './ReviewManagement.tsx';
 import { UserRoleManagement } from './UserRoleManagement.tsx';
 import { AdminAiHub } from './AdminAiHub.tsx';
 import { BannerManagement } from './BannerManagement.tsx';
+import { BroadcastEmailManagement } from './BroadcastEmailManagement.tsx';
+import { CloudSyncManagement } from './CloudSyncManagement.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
 
 interface AdminLayoutProps {
@@ -225,6 +229,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       labelBn: 'Email / SMTP সেটিংস',
       labelEn: 'Email / SMTP Setup',
       icon: Mail
+    },
+    {
+      id: 'broadcast',
+      labelBn: 'ইমেইল ব্রডকাস্ট ও প্রচার',
+      labelEn: 'Email Broadcast',
+      icon: Send
+    },
+    {
+      id: 'cloud-sync',
+      labelBn: 'ক্লাউড সিঙ্ক ও ব্যাকআপ',
+      labelEn: 'Cloud Sync & Backup',
+      icon: Cloud
     },
     {
       id: 'roles',
@@ -559,6 +575,23 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           {activeTab === 'smtp' && (
             <SmtpSettings />
+          )}
+
+          {activeTab === 'broadcast' && (
+            <BroadcastEmailManagement
+              config={config}
+              foods={foods}
+              coupons={coupons}
+              onRefreshData={fetchAllData}
+            />
+          )}
+
+          {activeTab === 'cloud-sync' && (
+            <CloudSyncManagement
+              foods={foods}
+              categories={categories}
+              onRefreshData={fetchAllData}
+            />
           )}
 
           {activeTab === 'roles' && (

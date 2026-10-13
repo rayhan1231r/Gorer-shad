@@ -137,17 +137,18 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
     setIsLoading(true);
 
     try {
-      const fbUser = await signInWithGoogle();
-      if (!fbUser || !fbUser.email) {
-        throw new Error('Google সাইন-ইন বাতিল হয়েছে অথবা ইমেইল পাওয়া যায়নি।');
+      const authRes = await signInWithGoogle();
+      if (!authRes.success || !authRes.user || !authRes.user.email) {
+        throw new Error(authRes.error || 'Google সাইন-ইন বাতিল হয়েছে অথবা ইমেইল পাওয়া যায়নি।');
       }
 
-      const idTokenResult = await fbUser.getIdTokenResult();
+      const fbUser = authRes.user;
+      const idTokenResult = await fbUser.getIdTokenResult().catch(() => null);
       const claimRole = (idTokenResult?.claims?.role as string) || undefined;
 
       const verifyRes = await api.adminVerifyFirebase({
         uid: fbUser.uid,
-        email: fbUser.email,
+        email: fbUser.email || '',
         displayName: fbUser.displayName || 'Admin User',
         role: claimRole
       });
