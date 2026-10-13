@@ -12,11 +12,19 @@ import {
   doc,
   getDocFromServer,
 } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+export const FIREBASE_APPLET_CONFIG = {
+  apiKey: "AIzaSyAbIu6lfkrf4p07Ks_D_d_fZ_iOD4bupRU",
+  authDomain: "r-mart-7897a.firebaseapp.com",
+  projectId: "r-mart-7897a",
+  storageBucket: "r-mart-7897a.firebasestorage.app",
+  messagingSenderId: "580587030217",
+  appId: "1:580587030217:web:26577eefea9f2953422f18",
+  measurementId: "G-XW06B2CKTL"
+};
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = !getApps().length ? initializeApp(FIREBASE_APPLET_CONFIG) : getApp();
 export const auth = getAuth(app);
-const firestoreDbId = (firebaseConfig as any).firestoreDatabaseId;
+const firestoreDbId = (FIREBASE_APPLET_CONFIG as any).firestoreDatabaseId;
 export const db = firestoreDbId ? getFirestore(app, firestoreDbId) : getFirestore(app);
 
 // Optional helper to test Firestore connection

@@ -12,15 +12,26 @@ import fs from 'fs';
 import path from 'path';
 import type { DatabaseSchema } from './store.ts';
 
-// Read firebase-applet-config.json
-let firebaseConfig: any = null;
+// Embedded permanent Firebase configuration
+const HARDCODED_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAbIu6lfkrf4p07Ks_D_d_fZ_iOD4bupRU",
+  authDomain: "r-mart-7897a.firebaseapp.com",
+  projectId: "r-mart-7897a",
+  storageBucket: "r-mart-7897a.firebasestorage.app",
+  messagingSenderId: "580587030217",
+  appId: "1:580587030217:web:26577eefea9f2953422f18",
+  measurementId: "G-XW06B2CKTL"
+};
+
+let firebaseConfig: any = HARDCODED_FIREBASE_CONFIG;
 try {
   const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
   if (fs.existsSync(configPath)) {
-    firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    const loaded = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    firebaseConfig = { ...HARDCODED_FIREBASE_CONFIG, ...(loaded || {}) };
   }
 } catch (err) {
-  console.warn('Could not read firebase-applet-config.json:', err);
+  console.warn('Using embedded fallback firebase config:', err);
 }
 
 let firestoreInstance: any = null;

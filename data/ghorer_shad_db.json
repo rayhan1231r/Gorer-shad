@@ -96,9 +96,9 @@
     "host": "smtp.gmail.com",
     "port": 587,
     "user": "rmartbdltd@gmail.com",
-    "pass": "",
+    "pass": "dcru jgid udnh aeel",
     "security": "STARTTLS",
-    "senderEmail": "ghorershad.arai@gmail.com",
+    "senderEmail": "rmartbdltd@gmail.com",
     "senderName": "ঘরের স্বাদ (Ghorer Shad)",
     "logoUrl": "/logo.jpg",
     "websiteUrl": "",
@@ -751,14 +751,17 @@
     },
     "rmartbdltd@gmail.com": {
       "id": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "name": "Rayhan",
+      "name": "Joynob Islam Kakoly",
       "email": "rmartbdltd@gmail.com",
+      "phone": "01857-220603",
       "role": "owner",
       "isEmailVerified": true,
-      "provider": "email_otp",
+      "provider": "google",
       "createdAt": "2026-10-11T15:52:31.104Z",
-      "addresses": [],
-      "passwordHash": "f6f70b4a3a8ecf1f64d41ab920391d6b:f84b8f8bbd9a5687ae1f41b411e4042d5a1d8a7a5e9f571e8985b9b4f40dab7f6454f2e1527bc55beac03fe2e4c09626d1cdd1f7760610a31b6cbfcee43a0063"
+      "addresses": [
+        "আড়াইহাজার, ঢাকা"
+      ],
+      "passwordHash": "58bc8fd7d945363ca34a65068accfcd7:6060b28d4122e3a724d6180c00bce616b03a04e8480f0e734baafc6a38465a0abfcffdf28c2a44f23b5367f48f7e13a019f5c273d7462246cb3f3dcbd6bbfb03"
     },
     "rayhanahamad50@gmail.com": {
       "id": "usr-admin-owner",

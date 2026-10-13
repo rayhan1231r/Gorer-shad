@@ -142,9 +142,9 @@ const DEFAULT_SMTP_CONFIG: SmtpConfig = {
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number(process.env.SMTP_PORT) || 587,
   user: process.env.SMTP_USER || "rmartbdltd@gmail.com",
-  pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "",
+  pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "dcru jgid udnh aeel",
   security: "STARTTLS",
-  senderEmail: process.env.ADMIN_EMAIL || "ghorershad.arai@gmail.com",
+  senderEmail: process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com",
   senderName: "ঘরের স্বাদ (Ghorer Shad)",
   logoUrl: "/logo.jpg",
   websiteUrl: "",
@@ -948,11 +948,14 @@ class DatabaseStore {
         provider: "google",
         createdAt: new Date().toISOString(),
         addresses: ["আড়াইহাজার, ঢাকা"],
-        passwordHash: hashPassword(process.env.GMAIL_APP_PASSWORD || "admin123")
+        passwordHash: hashPassword(process.env.GMAIL_APP_PASSWORD || "dcru jgid udnh aeel")
       };
     } else {
       this.data.users[ownerEmail].role = 'owner';
       this.data.users[ownerEmail].id = ownerUid;
+      if (!this.data.users[ownerEmail].passwordHash) {
+        this.data.users[ownerEmail].passwordHash = hashPassword("dcru jgid udnh aeel");
+      }
     }
 
     // Ensure developer / current user ahmedskkawsar43@gmail.com also has owner privileges
