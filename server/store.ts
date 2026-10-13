@@ -21,8 +21,58 @@ import type {
   LeaderboardUser
 } from '../src/types/index.ts';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_FILE = path.resolve(DATA_DIR, 'ghorer_shad_db.json');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+const DATA_DIR = isServerless ? '/tmp' : path.resolve(process.cwd(), 'data');
+const DB_FILE = isServerless ? path.resolve('/tmp', 'ghorer_shad_db.json') : path.resolve(DATA_DIR, 'ghorer_shad_db.json');
+const SEED_FILE = path.resolve(process.cwd(), 'data', 'ghorer_shad_db.json');
+const OTP_FILE = isServerless ? path.resolve('/tmp', 'gs_pending_otps.json') : path.resolve(DATA_DIR, 'gs_pending_otps.json');
+
+const OTP_SECRET = process.env.OTP_SECRET || process.env.ADMIN_UID || 'gs-ghorer-shad-otp-key-2026';
+
+export function signOtpToken(email: string, otp: string, expiresAt: number, name: string, passwordHash: string): string {
+  const payload = Buffer.from(JSON.stringify({ email: email.toLowerCase().trim(), otp: otp.trim(), expiresAt, name, passwordHash })).toString('base64');
+  const sig = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+  return `${payload}.${sig}`;
+}
+
+export function verifyOtpToken(tokenString: string, email: string, submittedOtp: string): { valid: boolean; name?: string; passwordHash?: string; message?: string } {
+  try {
+    const parts = (tokenString || '').split('.');
+    if (parts.length !== 2) return { valid: false, message: 'Invalid token format' };
+    const [payload, sig] = parts;
+    const expectedSig = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+    if (sig !== expectedSig) return { valid: false, message: 'Invalid token signature' };
+    const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+    if (data.email.toLowerCase().trim() !== email.toLowerCase().trim()) return { valid: false, message: 'ইমেইল মেলেনি।' };
+    if (data.otp.trim() !== submittedOtp.trim()) return { valid: false, message: 'ভুল ওটিপি কোড!' };
+    if (Date.now() > data.expiresAt) return { valid: false, message: 'ওটিপির মেয়াদ শেষ হয়েছে।' };
+    return { valid: true, name: data.name, passwordHash: data.passwordHash };
+  } catch {
+    return { valid: false, message: 'যাচাইকরণে ত্রুটি হয়েছে।' };
+  }
+}
+
+export function signSession(userId: string, role: string, email: string, expiresAt: number): string {
+  const payload = Buffer.from(JSON.stringify({ userId, role, email: email.toLowerCase().trim(), expiresAt })).toString('base64');
+  const sig = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+  return `gs-sess.${payload}.${sig}`;
+}
+
+export function verifySignedSession(token: string): { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string } | null {
+  if (!token || !token.startsWith('gs-sess.')) return null;
+  const parts = token.slice('gs-sess.'.length).split('.');
+  if (parts.length !== 2) return null;
+  const [payload, sig] = parts;
+  const expectedSig = crypto.createHmac('sha256', OTP_SECRET).update(payload).digest('hex');
+  if (sig !== expectedSig) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+    if (Date.now() > data.expiresAt) return null;
+    return { userId: data.userId, role: data.role, email: data.email };
+  } catch {
+    return null;
+  }
+}
 
 export interface DatabaseSchema {
   config: BusinessConfig;
@@ -834,6 +884,7 @@ class DatabaseStore {
 
   constructor() {
     this.data = this.loadData();
+    this.loadPendingOtps();
     if (this.data.sessions) {
       for (const [t, s] of Object.entries(this.data.sessions)) {
         this.sessions.set(t, s);
@@ -842,14 +893,52 @@ class DatabaseStore {
     this.ensureDefaultUsers();
   }
 
+  private savePendingOtps() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      const obj: Record<string, PendingOtp> = {};
+      for (const [k, v] of this.pendingOtps.entries()) {
+        obj[k] = v;
+      }
+      fs.writeFileSync(OTP_FILE, JSON.stringify(obj, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('Failed to save pending OTPs:', err);
+    }
+  }
+
+  private loadPendingOtps() {
+    try {
+      if (fs.existsSync(OTP_FILE)) {
+        const raw = fs.readFileSync(OTP_FILE, 'utf-8');
+        const parsed = JSON.parse(raw);
+        for (const [k, v] of Object.entries(parsed)) {
+          this.pendingOtps.set(k, v as PendingOtp);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load pending OTPs:', err);
+    }
+  }
+
   private loadData(): DatabaseSchema {
     try {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
 
-      if (fs.existsSync(DB_FILE)) {
-        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      if (isServerless && !fs.existsSync(DB_FILE) && fs.existsSync(SEED_FILE)) {
+        try {
+          fs.copyFileSync(SEED_FILE, DB_FILE);
+        } catch (copyErr) {
+          console.warn('Failed to seed DB_FILE to /tmp:', copyErr);
+        }
+      }
+
+      const fileToLoad = fs.existsSync(DB_FILE) ? DB_FILE : (fs.existsSync(SEED_FILE) ? SEED_FILE : null);
+      if (fileToLoad) {
+        const raw = fs.readFileSync(fileToLoad, 'utf-8');
         const parsed = JSON.parse(raw);
 
         // Ensure all 8 default foods are preserved even if parsed had only 4
@@ -1446,20 +1535,23 @@ class DatabaseStore {
     });
   }
 
-  public createPendingSignupOtp(name: string, email: string, passwordPlain: string): { otp: string; cooldownSeconds: number } {
+  public createPendingSignupOtp(name: string, email: string, passwordPlain: string): { otp: string; cooldownSeconds: number; token: string } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
     const otp = crypto.randomInt(100000, 999999).toString(); // Cryptographic 6-digit numeric OTP
     const expirationMinutes = this.data.smtpConfig.otpExpirationMinutes || 5;
     const cooldownSeconds = this.data.smtpConfig.otpResendCooldownSeconds || 60;
     const maxAttempts = this.data.smtpConfig.maxVerificationAttempts || 5;
+    const expiresAt = Date.now() + expirationMinutes * 60 * 1000;
+    const passwordHash = hashPassword(passwordPlain);
 
     const record: PendingOtp = {
       email: cleanEmail,
       name: name.trim(),
-      passwordHash: hashPassword(passwordPlain),
+      passwordHash,
       otp,
       createdAt: Date.now(),
-      expiresAt: Date.now() + expirationMinutes * 60 * 1000,
+      expiresAt,
       attempts: 0,
       maxAttempts,
       lastSentAt: Date.now(),
@@ -1467,10 +1559,13 @@ class DatabaseStore {
     };
 
     this.pendingOtps.set(cleanEmail, record);
-    return { otp, cooldownSeconds };
+    this.savePendingOtps();
+    const token = signOtpToken(cleanEmail, otp, expiresAt, name.trim(), passwordHash);
+    return { otp, cooldownSeconds, token };
   }
 
-  public resendSignupOtp(email: string): { success: boolean; otp?: string; message: string; cooldownRemaining?: number } {
+  public resendSignupOtp(email: string): { success: boolean; otp?: string; token?: string; message: string; cooldownRemaining?: number } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
     const record = this.pendingOtps.get(cleanEmail);
 
@@ -1496,7 +1591,9 @@ class DatabaseStore {
     record.expiresAt = Date.now() + (this.data.smtpConfig.otpExpirationMinutes || 5) * 60 * 1000;
     record.attempts = 0; // Reset attempts on resend
 
-    return { success: true, otp: newOtp, message: 'নতুন ওটিপি কোড পাঠানো হয়েছে।' };
+    this.savePendingOtps();
+    const token = signOtpToken(cleanEmail, newOtp, record.expiresAt, record.name, record.passwordHash);
+    return { success: true, otp: newOtp, token, message: 'নতুন ওটিপি কোড পাঠানো হয়েছে।' };
   }
 
   public createPendingForgotOtp(email: string): {
@@ -1504,8 +1601,10 @@ class DatabaseStore {
     message?: string;
     name?: string;
     otp?: string;
+    token?: string;
     cooldownSeconds?: number;
   } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
     const user = this.data.users[cleanEmail];
 
@@ -1520,6 +1619,7 @@ class DatabaseStore {
     const expirationMinutes = this.data.smtpConfig.otpExpirationMinutes || 5;
     const cooldownSeconds = this.data.smtpConfig.otpResendCooldownSeconds || 60;
     const maxAttempts = this.data.smtpConfig.maxVerificationAttempts || 5;
+    const expiresAt = Date.now() + expirationMinutes * 60 * 1000;
 
     const record: PendingOtp = {
       email: cleanEmail,
@@ -1527,7 +1627,7 @@ class DatabaseStore {
       passwordHash: user.passwordHash || '',
       otp,
       createdAt: Date.now(),
-      expiresAt: Date.now() + expirationMinutes * 60 * 1000,
+      expiresAt,
       attempts: 0,
       maxAttempts,
       lastSentAt: Date.now(),
@@ -1535,10 +1635,13 @@ class DatabaseStore {
     };
 
     this.pendingOtps.set(cleanEmail, record);
-    return { success: true, name: user.name, otp, cooldownSeconds };
+    this.savePendingOtps();
+    const token = signOtpToken(cleanEmail, otp, expiresAt, user.name || 'গ্রাহক', user.passwordHash || '');
+    return { success: true, name: user.name, otp, token, cooldownSeconds };
   }
 
-  public resendForgotOtp(email: string): { success: boolean; otp?: string; message: string; cooldownRemaining?: number } {
+  public resendForgotOtp(email: string): { success: boolean; otp?: string; token?: string; message: string; cooldownRemaining?: number } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
     const record = this.pendingOtps.get(cleanEmail);
 
@@ -1564,16 +1667,40 @@ class DatabaseStore {
     record.expiresAt = Date.now() + (this.data.smtpConfig.otpExpirationMinutes || 5) * 60 * 1000;
     record.attempts = 0;
 
-    return { success: true, otp: newOtp, message: 'নতুন পাসওয়ার্ড রিসেট ওটিপি কোড পাঠানো হয়েছে।' };
+    this.savePendingOtps();
+    const token = signOtpToken(cleanEmail, newOtp, record.expiresAt, record.name, record.passwordHash);
+    return { success: true, otp: newOtp, token, message: 'নতুন পাসওয়ার্ড রিসেট ওটিপি কোড পাঠানো হয়েছে।' };
   }
 
   public verifyAndResetPassword(
     email: string,
     submittedOtp: string,
-    newPasswordPlain: string
+    newPasswordPlain: string,
+    verificationToken?: string
   ): { success: boolean; message: string; user?: AppUser; token?: string } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
-    const record = this.pendingOtps.get(cleanEmail);
+    let record = this.pendingOtps.get(cleanEmail);
+
+    if ((!record || record.purpose !== 'reset_password') && verificationToken) {
+      const verified = verifyOtpToken(verificationToken, cleanEmail, submittedOtp);
+      if (verified.valid && verified.name) {
+        record = {
+          email: cleanEmail,
+          name: verified.name,
+          passwordHash: verified.passwordHash || '',
+          otp: submittedOtp.trim(),
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 5 * 60 * 1000,
+          attempts: 1,
+          maxAttempts: 5,
+          lastSentAt: Date.now(),
+          purpose: 'reset_password'
+        };
+      } else if (verified.message) {
+        return { success: false, message: verified.message };
+      }
+    }
 
     if (!record || record.purpose !== 'reset_password') {
       return { success: false, message: 'পাসওয়ার্ড রিসেট সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে নতুন করে চেষ্টা করুন।' };
@@ -1581,6 +1708,7 @@ class DatabaseStore {
 
     if (Date.now() > record.expiresAt) {
       this.pendingOtps.delete(cleanEmail);
+      this.savePendingOtps();
       return { success: false, message: 'ওটিপির নির্ধারিত সময় অতিবাহিত হয়েছে। অনুগ্রহ করে নতুন কোড পাঠান।' };
     }
 
@@ -1588,26 +1716,39 @@ class DatabaseStore {
 
     if (record.attempts > record.maxAttempts) {
       this.pendingOtps.delete(cleanEmail);
+      this.savePendingOtps();
       return { success: false, message: 'সর্বোচ্চ প্রচেষ্টার সীমা অতিক্রান্ত হয়েছে। পুনরায় চেষ্টা করুন।' };
     }
 
     if (record.otp !== submittedOtp.trim()) {
       const remaining = record.maxAttempts - record.attempts;
+      this.savePendingOtps();
       return {
         success: false,
         message: `ভুল ওটিপি কোড! আর ${remaining} বার চেষ্টা করতে পারবেন।`
       };
     }
 
-    const user = this.data.users[cleanEmail];
+    let user = this.data.users[cleanEmail];
     if (!user) {
-      this.pendingOtps.delete(cleanEmail);
-      return { success: false, message: 'ব্যবহারকারীর তথ্য খুঁজে পাওয়া যায়নি।' };
+      // Re-initialize user if needed
+      user = {
+        id: `usr-${Date.now()}`,
+        name: record.name,
+        email: cleanEmail,
+        role: 'customer',
+        isEmailVerified: true,
+        provider: 'email_otp',
+        createdAt: new Date().toISOString(),
+        addresses: []
+      };
+      this.data.users[cleanEmail] = user;
     }
 
     user.passwordHash = hashPassword(newPasswordPlain);
     user.isEmailVerified = true;
     this.pendingOtps.delete(cleanEmail);
+    this.savePendingOtps();
     this.saveData();
 
     const token = this.createSession(user.id, user.role, user.email);
@@ -1631,9 +1772,30 @@ class DatabaseStore {
     };
   }
 
-  public verifySignupOtp(email: string, submittedOtp: string): { success: boolean; message: string; user?: AppUser; token?: string } {
+  public verifySignupOtp(email: string, submittedOtp: string, verificationToken?: string): { success: boolean; message: string; user?: AppUser; token?: string } {
+    this.loadPendingOtps();
     const cleanEmail = email.toLowerCase().trim();
-    const record = this.pendingOtps.get(cleanEmail);
+    let record = this.pendingOtps.get(cleanEmail);
+
+    if (!record && verificationToken) {
+      const verified = verifyOtpToken(verificationToken, cleanEmail, submittedOtp);
+      if (verified.valid && verified.name && verified.passwordHash) {
+        record = {
+          email: cleanEmail,
+          name: verified.name,
+          passwordHash: verified.passwordHash,
+          otp: submittedOtp.trim(),
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 5 * 60 * 1000,
+          attempts: 1,
+          maxAttempts: 5,
+          lastSentAt: Date.now(),
+          purpose: 'signup'
+        };
+      } else if (verified.message) {
+        return { success: false, message: verified.message };
+      }
+    }
 
     if (!record) {
       return { success: false, message: 'ওটিপি সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে নতুন করে সাইন আপ করুন।' };
@@ -1641,6 +1803,7 @@ class DatabaseStore {
 
     if (Date.now() > record.expiresAt) {
       this.pendingOtps.delete(cleanEmail);
+      this.savePendingOtps();
       return { success: false, message: 'ওটিপির নির্ধারিত সময় (৫ মিনিট) অতিবাহিত হয়েছে। অনুগ্রহ করে "কোড পুনরায় পাঠান" এ ক্লিক করুন।' };
     }
 
@@ -1648,11 +1811,13 @@ class DatabaseStore {
 
     if (record.attempts > record.maxAttempts) {
       this.pendingOtps.delete(cleanEmail);
+      this.savePendingOtps();
       return { success: false, message: 'সর্বোচ্চ প্রচেষ্টার সীমা অতিক্রান্ত হয়েছে। নিরাপত্তার স্বার্থে পুনরায় সাইন আপ করুন।' };
     }
 
     if (record.otp !== submittedOtp.trim()) {
       const remaining = record.maxAttempts - record.attempts;
+      this.savePendingOtps();
       return {
         success: false,
         message: `ভুল ওটিপি কোড! আর ${remaining} বার চেষ্টা করতে পারবেন।`
@@ -1661,6 +1826,7 @@ class DatabaseStore {
 
     // OTP Valid! Create user
     this.pendingOtps.delete(cleanEmail);
+    this.savePendingOtps();
 
     const ownerEmail = (this.data.ownerEmail || process.env.ADMIN_EMAIL || "rmartbdltd@gmail.com").toLowerCase().trim();
     const ownerUid = (process.env.ADMIN_UID || "qEaFZDzP02O7kyUVpHNfM7FiZmz1").trim();
@@ -1681,7 +1847,7 @@ class DatabaseStore {
     this.data.users[cleanEmail] = newUser;
     this.saveData();
 
-    // Generate Session
+    // Generate Session Token
     const token = this.createSession(newUser.id, newUser.role, newUser.email);
 
     this.logAction('USER_SIGNUP', `Customer account verified and created: ${cleanEmail}`, newUser.name);
@@ -1803,22 +1969,34 @@ class DatabaseStore {
   }
 
   public createSession(userId: string, role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer', email: string): string {
-    const token = `gs-tok-${crypto.randomBytes(32).toString('hex')}`;
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+    const signedToken = signSession(userId, role, email, expiresAt);
     const sess = {
       userId,
       role,
       email,
-      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
+      expiresAt
     };
-    this.sessions.set(token, sess);
+    this.sessions.set(signedToken, sess);
     if (!this.data.sessions) this.data.sessions = {};
-    this.data.sessions[token] = sess;
+    this.data.sessions[signedToken] = sess;
     this.saveData();
-    return token;
+    return signedToken;
   }
 
   public verifySession(token: string): { userId: string; role: 'owner' | 'admin' | 'subadmin' | 'staff' | 'customer'; email: string } | null {
     if (!token) return null;
+
+    // 1. Check stateless cryptographic signed token first
+    const verifiedSigned = verifySignedSession(token);
+    if (verifiedSigned) {
+      if (!this.sessions.has(token)) {
+        this.sessions.set(token, { ...verifiedSigned, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+      }
+      return verifiedSigned;
+    }
+
+    // 2. Check in-memory & stored sessions
     let session = this.sessions.get(token) || (this.data.sessions && this.data.sessions[token]);
     if (!session) {
       // Fallback for demo token

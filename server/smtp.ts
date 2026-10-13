@@ -9,11 +9,28 @@ export class SmtpService {
       throw new Error('SMTP credentials are incomplete');
     }
 
+    const hostTrim = config.host.trim().toLowerCase();
     const port = Number(config.port) || 587;
-    const isSecure = config.security === 'SSL' || port === 465;
-    const cleanPass = config.host.includes('gmail.com')
+    const cleanPass = (hostTrim.includes('gmail.com') || hostTrim.includes('googlemail.com'))
       ? config.pass.replace(/\s+/g, '')
       : config.pass.trim();
+
+    // In serverless environments (Vercel/AWS Lambda), service: 'gmail' uses port 465 SSL directly,
+    // avoiding port 587 STARTTLS throttling or timeouts.
+    if (hostTrim.includes('gmail.com') || hostTrim.includes('googlemail.com') || hostTrim === 'gmail') {
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: config.user.trim(),
+          pass: cleanPass,
+        },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
+      });
+    }
+
+    const isSecure = config.security === 'SSL' || port === 465;
 
     return nodemailer.createTransport({
       host: config.host.trim(),
@@ -27,6 +44,9 @@ export class SmtpService {
         // Do not fail on invalid certs for local/custom mail servers
         rejectUnauthorized: false,
       },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
     });
   }
 

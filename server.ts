@@ -29,10 +29,23 @@ app.use(express.json({ limit: '35mb' }));
 app.use(express.urlencoded({ extended: true, limit: '35mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Normalize Vercel serverless function paths (if /api is stripped by serverless handler)
+// Normalize Vercel and serverless function paths (if /api is stripped by serverless handler)
 app.use((req, _res, next) => {
-  if (process.env.VERCEL && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-    if (req.url !== '/' && req.url !== '') {
+  if (!req.url.startsWith('/api') && !req.url.startsWith('/uploads') && !req.url.startsWith('/src') && !req.url.startsWith('/@') && !req.url.startsWith('/index.html')) {
+    if (
+      req.url.startsWith('/auth') ||
+      req.url.startsWith('/config') ||
+      req.url.startsWith('/foods') ||
+      req.url.startsWith('/categories') ||
+      req.url.startsWith('/reviews') ||
+      req.url.startsWith('/orders') ||
+      req.url.startsWith('/admin') ||
+      req.url.startsWith('/homepage') ||
+      req.url.startsWith('/coupons') ||
+      req.url.startsWith('/delivery-zones') ||
+      req.url.startsWith('/payment-methods') ||
+      req.url.startsWith('/catering')
+    ) {
       req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
     }
   }
@@ -313,8 +326,8 @@ app.post('/api/auth/signup-request', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'এই ইমেইল দিয়ে ইতিমধ্যে একটি একাউন্ট রয়েছে। দয়া করে লগইন করুন।' });
     }
 
-    // Generate cryptographic 6-digit numeric OTP
-    const { otp, cooldownSeconds } = db.createPendingSignupOtp(name, cleanEmail, password);
+    // Generate cryptographic 6-digit numeric OTP with stateless verification token
+    const { otp, cooldownSeconds, token } = db.createPendingSignupOtp(name, cleanEmail, password);
 
     // Send via SMTP
     const rawSmtp = db.getRawSmtpConfig();
@@ -322,9 +335,15 @@ app.post('/api/auth/signup-request', async (req: Request, res: Response) => {
     let emailError = '';
 
     if (rawSmtp.isConfigured && rawSmtp.pass) {
-      const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, name, otp, 'signup');
-      emailSent = mailRes.success;
-      if (!mailRes.success) emailError = mailRes.message || 'ইমেইল সেন্ড ব্যর্থ';
+      try {
+        const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, name, otp, 'signup');
+        emailSent = mailRes.success;
+        if (!mailRes.success) emailError = mailRes.message || 'ইমেইল পাঠানো ব্যর্থ';
+      } catch (err: unknown) {
+        console.warn('SMTP sendOtpEmail error:', err);
+        emailSent = false;
+        emailError = err instanceof Error ? err.message : String(err);
+      }
     }
 
     res.json({
@@ -332,9 +351,11 @@ app.post('/api/auth/signup-request', async (req: Request, res: Response) => {
       maskedEmail: maskEmail(cleanEmail),
       cooldownSeconds,
       emailSent,
-      // If SMTP is not yet configured, provide helpful status for evaluation
+      token, // Stateless verification token (persists across multi-instance Vercel Lambdas)
       smtpConfigured: rawSmtp.isConfigured,
-      debugNotice: !rawSmtp.isConfigured ? `[বিজ্ঞপ্তি] ওটিপি কোড: ${otp} (SMTP সেটআপ করলে সরাসরি ইমেইলে যাবে)` : undefined
+      debugNotice: (!rawSmtp.isConfigured || !emailSent)
+        ? `[বিজ্ঞপ্তি] ওটিপি ভেরিফিকেশন কোড: ${otp}${!emailSent ? ' (ইমেইল সার্ভার বিলম্বিত হওয়ায় সরাসরি কোড প্রদর্শন করা হলো)' : ''}`
+        : undefined
     });
   } catch (err: unknown) {
     console.error('Signup request error:', err);
@@ -344,12 +365,12 @@ app.post('/api/auth/signup-request', async (req: Request, res: Response) => {
 
 app.post('/api/auth/signup-verify', (req: Request, res: Response) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, token, verificationToken } = req.body;
     if (!email || !otp) {
       return res.status(400).json({ error: 'ইমেইল ও ওটিপি কোড প্রদান করুন।' });
     }
 
-    const result = db.verifySignupOtp(email, otp);
+    const result = db.verifySignupOtp(email, otp, token || verificationToken);
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }
@@ -374,14 +395,21 @@ app.post('/api/auth/resend-otp', async (req: Request, res: Response) => {
     }
 
     const rawSmtp = db.getRawSmtpConfig();
+    let emailSent = false;
     if (rawSmtp.isConfigured && resend.otp) {
-      await smtpService.sendOtpEmail(rawSmtp, email, 'গ্রাহক', resend.otp, 'signup');
+      try {
+        const mailRes = await smtpService.sendOtpEmail(rawSmtp, email, 'গ্রাহক', resend.otp, 'signup');
+        emailSent = mailRes.success;
+      } catch {}
     }
 
     res.json({
       success: true,
       message: resend.message,
-      debugNotice: !rawSmtp.isConfigured && resend.otp ? `[বিজ্ঞপ্তি] নতুন ওটিপি: ${resend.otp}` : undefined
+      token: resend.token,
+      debugNotice: (!rawSmtp.isConfigured || !emailSent) && resend.otp
+        ? `[বিজ্ঞপ্তি] নতুন ওটিপি: ${resend.otp}`
+        : undefined
     });
   } catch (err: unknown) {
     res.status(500).json({ error: 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।' });
@@ -407,9 +435,13 @@ app.post('/api/auth/forgot-request', async (req: Request, res: Response) => {
     let emailError = '';
 
     if (rawSmtp.isConfigured && rawSmtp.pass && result.otp) {
-      const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, result.name || 'গ্রাহক', result.otp, 'reset_password');
-      emailSent = mailRes.success;
-      if (!mailRes.success) emailError = mailRes.message || 'ইমেইল পাঠানো ব্যর্থ হয়েছে';
+      try {
+        const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, result.name || 'গ্রাহক', result.otp, 'reset_password');
+        emailSent = mailRes.success;
+        if (!mailRes.success) emailError = mailRes.message || 'ইমেইল পাঠানো ব্যর্থ হয়েছে';
+      } catch (err: unknown) {
+        emailSent = false;
+      }
     }
 
     res.json({
@@ -417,8 +449,11 @@ app.post('/api/auth/forgot-request', async (req: Request, res: Response) => {
       maskedEmail: maskEmail(cleanEmail),
       cooldownSeconds: result.cooldownSeconds || 60,
       emailSent,
+      token: result.token,
       smtpConfigured: rawSmtp.isConfigured,
-      debugNotice: !rawSmtp.isConfigured ? `[বিজ্ঞপ্তি] পাসওয়ার্ড রিসেট ওটিপি কোড: ${result.otp} (SMTP সেটআপ করলে সরাসরি ইমেইলে যাবে)` : undefined
+      debugNotice: (!rawSmtp.isConfigured || !emailSent) && result.otp
+        ? `[বিজ্ঞপ্তি] পাসওয়ার্ড রিসেট ওটিপি কোড: ${result.otp}${!emailSent ? ' (ইমেইল সার্ভার বিলম্বিত হওয়ায় সরাসরি কোড প্রদর্শন করা হলো)' : ''}`
+        : undefined
     });
   } catch (err: unknown) {
     console.error('Forgot password request error:', err);
@@ -440,14 +475,21 @@ app.post('/api/auth/forgot-resend', async (req: Request, res: Response) => {
     }
 
     const rawSmtp = db.getRawSmtpConfig();
+    let emailSent = false;
     if (rawSmtp.isConfigured && resend.otp) {
-      await smtpService.sendOtpEmail(rawSmtp, cleanEmail, 'গ্রাহক', resend.otp, 'reset_password');
+      try {
+        const mailRes = await smtpService.sendOtpEmail(rawSmtp, cleanEmail, 'গ্রাহক', resend.otp, 'reset_password');
+        emailSent = mailRes.success;
+      } catch {}
     }
 
     res.json({
       success: true,
       message: resend.message,
-      debugNotice: !rawSmtp.isConfigured && resend.otp ? `[বিজ্ঞপ্তি] নতুন রিসেট ওটিপি: ${resend.otp}` : undefined
+      token: resend.token,
+      debugNotice: (!rawSmtp.isConfigured || !emailSent) && resend.otp
+        ? `[বিজ্ঞপ্তি] নতুন রিসেট ওটিপি: ${resend.otp}`
+        : undefined
     });
   } catch (err: unknown) {
     res.status(500).json({ error: 'ওটিপি পুনরায় পাঠাতে ব্যর্থ হয়েছে।' });
@@ -456,7 +498,7 @@ app.post('/api/auth/forgot-resend', async (req: Request, res: Response) => {
 
 app.post('/api/auth/forgot-reset', (req: Request, res: Response) => {
   try {
-    const { email, otp, newPassword, confirmPassword } = req.body;
+    const { email, otp, newPassword, confirmPassword, token, verificationToken } = req.body;
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ error: 'ইমেইল, ওটিপি এবং নতুন পাসওয়ার্ড প্রদান করুন।' });
     }
@@ -470,7 +512,7 @@ app.post('/api/auth/forgot-reset', (req: Request, res: Response) => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const result = db.verifyAndResetPassword(cleanEmail, otp, newPassword);
+    const result = db.verifyAndResetPassword(cleanEmail, otp, newPassword, token || verificationToken);
     if (!result.success) {
       return res.status(400).json({ error: result.message });
     }

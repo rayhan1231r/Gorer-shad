@@ -543,8 +543,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         {debugNotice && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl">
-            <span className="font-semibold">{debugNotice}</span>
+          <div className="mb-4 p-3.5 bg-amber-50 border-2 border-amber-300 text-amber-900 text-xs rounded-xl flex items-center justify-between gap-2 shadow-2xs">
+            <span className="font-bold flex-1 leading-relaxed">{debugNotice}</span>
+            {debugNotice.match(/\b\d{6}\b/) && (
+              <button
+                type="button"
+                onClick={() => {
+                  const match = debugNotice.match(/\b\d{6}\b/);
+                  if (match) {
+                    setOtpDigits(match[0].split(''));
+                  }
+                }}
+                className="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold rounded-lg text-[11px] cursor-pointer whitespace-nowrap transition-colors"
+              >
+                {language === 'en' ? 'Auto-fill Code' : 'অটো-ফিল কোড'}
+              </button>
+            )}
           </div>
         )}
 

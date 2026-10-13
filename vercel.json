@@ -3,7 +3,7 @@
   "framework": "vite",
   "functions": {
     "api/index.ts": {
-      "includeFiles": "data/**"
+      "includeFiles": "{data/**,public/**}"
     }
   },
   "rewrites": [

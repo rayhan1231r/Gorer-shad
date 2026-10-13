@@ -580,11 +580,20 @@ const clientStorage = {
   }
 };
 
+let lastVerificationToken = '';
+let lastForgotVerificationToken = '';
+
 // ----------------- MAIN API CLIENT ----------------- //
 export const api = {
-  // Auth Token
+  // Auth Token & Session
   setToken: setAuthToken,
   getToken: getAuthToken,
+  async logout(): Promise<void> {
+    clientStorage.clearCurrentUser();
+    setAuthToken('');
+    lastVerificationToken = '';
+    lastForgotVerificationToken = '';
+  },
 
   // Business Config
   async getConfig(): Promise<BusinessConfig> {
@@ -695,6 +704,9 @@ export const api = {
     });
 
     if (!res.isHtml && res.ok && res.data) {
+      if ((res.data as any).token) {
+        lastVerificationToken = (res.data as any).token;
+      }
       return {
         success: true,
         maskedEmail: res.data.maskedEmail || maskEmail(cleanEmail),
@@ -751,12 +763,18 @@ export const api = {
     }>(`${API_BASE}/auth/signup-verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: cleanEmail, otp }),
+      body: JSON.stringify({
+        email: cleanEmail,
+        otp,
+        token: lastVerificationToken,
+        verificationToken: lastVerificationToken
+      }),
     });
 
     if (!res.isHtml && res.ok && res.data) {
       if (res.data.token) setAuthToken(res.data.token);
       if (res.data.user) clientStorage.setCurrentUser(res.data.user, res.data.token || '');
+      lastVerificationToken = '';
       return {
         success: true,
         message: res.data.message || 'Verification successful',
@@ -840,6 +858,9 @@ export const api = {
     });
 
     if (!res.isHtml && res.ok && res.data) {
+      if ((res.data as any).token) {
+        lastForgotVerificationToken = (res.data as any).token;
+      }
       return {
         success: true,
         maskedEmail: res.data.maskedEmail || maskEmail(cleanEmail),
@@ -874,6 +895,9 @@ export const api = {
     });
 
     if (!res.isHtml && res.ok && res.data) {
+      if ((res.data as any).token) {
+        lastForgotVerificationToken = (res.data as any).token;
+      }
       return {
         success: true,
         message: res.data.message || 'নতুন ওটিপি কোড পাঠানো হয়েছে।',
@@ -903,12 +927,18 @@ export const api = {
     const res = await safeFetchJson<{ success?: boolean; message?: string; user?: AppUser; token?: string; error?: string }>(`${API_BASE}/auth/forgot-reset`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        email: cleanEmail,
+        token: lastForgotVerificationToken,
+        verificationToken: lastForgotVerificationToken
+      }),
     });
 
     if (!res.isHtml && res.ok && res.data) {
       if (res.data.token) setAuthToken(res.data.token);
       if (res.data.user) clientStorage.setCurrentUser(res.data.user, res.data.token);
+      lastForgotVerificationToken = '';
       return {
         success: true,
         message: res.data.message || 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!',

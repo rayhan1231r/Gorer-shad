@@ -18,7 +18,8 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
 import { AppUser, Order, LeaderboardUser } from '../../types/index.ts';
 import { api } from '../../services/api.ts';
@@ -30,6 +31,7 @@ interface ProfilePageProps {
   onTrackOrder: (orderNumber: string) => void;
   onRequireLogin: () => void;
   onProfileUpdated?: (user: AppUser) => void;
+  onLogout?: () => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -37,7 +39,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigateMenu,
   onTrackOrder,
   onRequireLogin,
-  onProfileUpdated
+  onProfileUpdated,
+  onLogout
 }) => {
   const { language, formatPrice, formatDate, getOrderStatusText } = useLanguage();
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'leaderboard'>('overview');
@@ -231,7 +234,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-3 self-start md:self-auto">
+            <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
               <button
                 onClick={() => setIsEditModalOpen(true)}
                 className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -247,6 +250,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 title={language === 'en' ? 'Refresh data' : 'রিফ্রেশ করুন'}
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+
+              <button
+                onClick={() => {
+                  if (window.confirm(language === 'en' ? 'Are you sure you want to log out?' : 'আপনি কি নিশ্চিত যে অ্যাকাউন্ট থেকে লগআউট করতে চান?')) {
+                    onLogout?.();
+                  }
+                }}
+                className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title={language === 'en' ? 'Log Out' : 'লগআউট করুন'}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Log Out' : 'লগআউট'}</span>
               </button>
             </div>
           </div>
@@ -449,6 +465,43 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     <span className="text-[11px] font-mono">০-২ অর্ডার</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Account Management & Logout Card */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <User className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    {language === 'en' ? 'Account & Session Security' : 'একাউন্ট নিরাপত্তা ও সেশন নিয়ন্ত্রণ'}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    {currentUser.email} • {currentUser.name} {currentUser.phone ? `(${currentUser.phone})` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Edit Details' : 'তথ্য পরিবর্তন'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm(language === 'en' ? 'Are you sure you want to log out?' : 'আপনি কি নিশ্চিত যে অ্যাকাউন্ট থেকে লগআউট করতে চান?')) {
+                      onLogout?.();
+                    }
+                  }}
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Log Out' : 'লগআউট করুন'}</span>
+                </button>
               </div>
             </div>
           </div>

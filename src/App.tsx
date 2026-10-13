@@ -238,10 +238,12 @@ function AppContent() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setCurrentUser(null);
     setIsAdminLoggedIn(false);
-    api.setToken('');
+    await api.logout();
+    setActivePage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -376,6 +378,7 @@ function AppContent() {
                   )
                 }
                 onProfileUpdated={updatedUser => setCurrentUser(updatedUser)}
+                onLogout={handleLogout}
               />
             )}
 
