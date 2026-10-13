@@ -46,48 +46,92 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
 
   // 1. Authorized Admin: Render Full Admin Layout
   const isElevated = currentUser && ['owner', 'admin', 'subadmin', 'staff'].includes(currentUser.role);
-  if (isElevated && isAdminLoggedIn) {
+  if (isAdminLoggedIn || isElevated) {
     return (
       <AdminLayout
         config={config}
         onRefreshConfig={onRefreshConfig}
         onExitAdmin={onExitAdmin}
         onLogout={onLogout}
-        adminUserName={adminUserName}
+        adminUserName={adminUserName || currentUser?.name || 'Administrator'}
       />
     );
   }
 
-  // 2. Authenticated but Unauthorized (Normal customer): Show Strict Access Denied
-  if (currentUser && !isElevated) {
+  // 2. Authenticated as Customer: Show Access Notice with Direct Admin Password Entry
+  if (currentUser && !isElevated && !isAdminLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-100">
         <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
-            <ShieldAlert className="w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
-              403 • Access Denied
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+              Admin Access Required
             </span>
-            <h2 className="text-xl font-bold text-white mt-2">অননুমোদিত প্রবেশাধিকার</h2>
+            <h2 className="text-xl font-bold text-white mt-2">অ্যাডমিন প্রবেশাধিকার</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              আপনি বর্তমানে <strong className="text-slate-200">{currentUser.email}</strong> গ্রাহক একাউন্ট হিসেবে লগইন আছেন। এই অ্যাকাউন্টে অ্যাডমিন প্যানেল অ্যাক্সেসের অনুমতি নেই।
+              আপনি বর্তমানে <strong className="text-slate-200">{currentUser.email}</strong> হিসেবে লগইন আছেন। অ্যাডমিন প্যানেলে প্রবেশ করতে অ্যাডমিন পাসওয়ার্ড লিখুন অথবা অ্যাডমিন গুগল একাউন্ট দিয়ে লগইন করুন।
             </p>
           </div>
 
-          <div className="p-3.5 bg-slate-800/60 rounded-xl border border-slate-700/60 text-left text-xs text-slate-400 space-y-1">
-            <p className="text-slate-300 font-semibold flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              প্রবেশের জন্য প্রয়োজনীয়:
-            </p>
-            <p className="text-[11px] leading-relaxed">
-              শুধুমাত্র অনুমোদিত অ্যাডমিনিস্ট্রেটর জিমেইল (যেমন: <span className="font-mono text-emerald-400">rmartbdltd@gmail.com</span>, <span className="font-mono text-emerald-400">proxy6726@gmail.com</span>) দিয়ে প্রবেশ করতে পারবেন।
-            </p>
-          </div>
+          {/* Quick Admin Password Login Form */}
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setErrorMsg(null);
+              setIsLoading(true);
+              try {
+                const res = await api.adminLogin(password);
+                if (res.success && res.token) {
+                  onLoginSuccess(res.token, res.user?.name || 'Administrator');
+                } else {
+                  setErrorMsg(res.message || 'ভুল অ্যাডমিন পাসওয়ার্ড!');
+                }
+              } catch (err: unknown) {
+                setErrorMsg(err instanceof Error ? err.message : 'লগইন ব্যর্থ হয়েছে।');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            className="space-y-3 text-left"
+          >
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                মাস্টার অ্যাডমিন পাসওয়ার্ড:
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="অ্যাডমিন পাসওয়ার্ড লিখুন..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500"
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="pt-2 flex flex-col gap-3 text-xs font-semibold">
+            {errorMsg && (
+              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>{isLoading ? 'যাচাই হচ্ছে...' : 'পাসওয়ার্ড দিয়ে অ্যাডমিন প্রবেশ'}</span>
+            </button>
+          </form>
+
+          <div className="pt-2 flex flex-col gap-2.5 text-xs font-semibold">
             <button
               onClick={async () => {
                 try {
@@ -95,15 +139,15 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
                 } catch {}
                 onLogout();
               }}
-              className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
+              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors cursor-pointer"
             >
-              লগআউট করে অ্যাডমিন জিমেইল দিয়ে সাইন ইন করুন
+              লগআউট করে অন্য অ্যাকাউন্টে যান
             </button>
             <button
               onClick={onExitAdmin}
-              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2 bg-transparent hover:bg-slate-800/60 text-slate-400 hover:text-slate-200 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               <span>গ্রাহক ওয়েবসাইটে ফিরে যান</span>
             </button>
           </div>

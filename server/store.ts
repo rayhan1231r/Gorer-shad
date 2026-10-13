@@ -393,6 +393,133 @@ const DEFAULT_FOODS: FoodItem[] = [
       { id: "a4-2", nameBn: "অতিরিক্ত ২ পিস গরম সিঙ্গাড়া", nameEn: "Extra 2 Singaras", price: 30 }
     ],
     ingredientsBn: "ময়দা, আলু, চিনাবাদাম, ধনিয়া পাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা।"
+  },
+  {
+    id: "food-5",
+    sku: "GS-FISH-05",
+    nameBn: "পদ্মার তাজা রুই মাছের দোপেঁয়াজা ও গরম ভাত থালি",
+    nameEn: "Padma River Rui Fish Dopeyaza with Rice Thali",
+    categoryId: "bengali-meals",
+    categoryNameBn: "বাঙালি ঘরোয়া খাবার",
+    shortDescBn: "তাজা রুই মাছের কষা পেঁয়াজ-টমেটো দোপেঁয়াজা, সুবাসিত গরম ভাত ও ডাল।",
+    fullDescBn: "পদ্মার তাজা রুই মাছের বড় পেটি তেলে ভেজে পেঁয়াজ, টমেটো ও কাঁচামরিচে কষানো সুস্বাদু দোপেঁয়াজা। সাথে পরিবেশন করা হয় গরম ভাত ও ধনেপাতা ফোড়নের মসুর ডাল।",
+    image: "/src/assets/images/food_ilish_bhapa_fish_1791709467165.jpg",
+    price: 280,
+    salePrice: 260,
+    portionBn: "১ জনের পেটভরা দুপুরের খাবার",
+    portionEn: "1 Full Meal (Rui Fish + Rice + Dal)",
+    prepTimeMinutes: 35,
+    spiceLevel: "Medium",
+    isAvailable: true,
+    dailyStock: 25,
+    currentStock: 22,
+    minOrderQty: 1,
+    isFeatured: false,
+    isBestseller: true,
+    advanceNoticeRequiredHours: 3,
+    ingredientsBn: "পদ্মার রুই মাছ, পেঁয়াজ, টমেটো, কাঁচামরিচ, সরিষার তেল, নাজিরশাইল চাল",
+    variants: [
+      { id: "v5-regular", nameBn: "স্ট্যান্ডার্ড ঝাল", nameEn: "Standard Spice", additionalPrice: 0 }
+    ],
+    addons: [
+      { id: "a5-aloo-bhorta", nameBn: "খাঁটি সরিষার তেলে শুকনা মরিচ ভাজা আলু ভর্তা", nameEn: "Mustard Aloo Bhorta", price: 30 }
+    ]
+  },
+  {
+    id: "food-6",
+    sku: "GS-MEAT-06",
+    nameBn: "দেশি খাসির স্পেশাল ভুনা ও জাফরানি পোলাও",
+    nameEn: "Desi Mutton Bhuna with Saffron Pulao",
+    categoryId: "meat-chicken",
+    categoryNameBn: "মাংস ও মুরগি",
+    shortDescBn: "খাঁটি সরিষার তেলে ধীরে ধীরে কষানো কচি খাসির মাংস ও সুগন্ধি পোলাও।",
+    fullDescBn: "আড়াইহাজারের খাঁটি সরিষার তেলে পেঁয়াজ বেরেস্তা ও এলাচ-দারচিনির গাঢ় সুবাসে রান্না করা রসালো দেশি খাসির মাংসের ভুনা। সাথে সুগন্ধি জাফরানি গাওয়া ঘি পোলাও।",
+    image: "/src/assets/images/food_bengali_meat_curry_1791709480684.jpg",
+    price: 480,
+    salePrice: 450,
+    portionBn: "১ জনের রাজকীয় ভোজ (৩ পিস কচি খাসি + পোলাও)",
+    portionEn: "1 Royal Mutton Meal (3 pcs mutton + pulao)",
+    prepTimeMinutes: 45,
+    spiceLevel: "Medium",
+    isAvailable: true,
+    dailyStock: 15,
+    currentStock: 12,
+    minOrderQty: 1,
+    isFeatured: true,
+    isBestseller: true,
+    advanceNoticeRequiredHours: 4,
+    ingredientsBn: "কচি খাসির মাংস, বাটা পেঁয়াজ, গাওয়া ঘি, পোলাও চাল, লবঙ্গ, দারচিনি, জায়ফল-জয়ত্রী",
+    variants: [
+      { id: "v6-pulao", nameBn: "জাফরানি পোলাও সাথে", nameEn: "With Saffron Pulao", additionalPrice: 0 },
+      { id: "v6-khichuri", nameBn: "ভুনা খিচুড়ি সাথে", nameEn: "With Bhuna Khichuri", additionalPrice: 20 }
+    ],
+    addons: [
+      { id: "a6-borhani", nameBn: "স্পেশাল টকদইয়ের বোরহানি (২৫০ মিলি)", nameEn: "Special Borhani 250ml", price: 60 }
+    ]
+  },
+  {
+    id: "food-7",
+    sku: "GS-OFFC-07",
+    nameBn: "অফিস এক্সিকিউটিভ লাঞ্চ বক্স (চিকেন কারি, ভাত, ঘন ডাল ও ভাজি)",
+    nameEn: "Executive Office Daily Lunch Box",
+    categoryId: "office-daily-meals",
+    categoryNameBn: "অফিস ও নিয়মিত মিল",
+    shortDescBn: "অফিস ও কর্মজীবীদের জন্য সম্পূর্ণ স্বাস্থ্যসম্মত ও সাশ্রয়ী লাঞ্চ প্যাকেজ।",
+    fullDescBn: "প্রতিদিনের স্বাস্থ্যকর খাবার: ভাত, দেশি স্টাইলের ঘরোয়া চিকেন কারি (২ পিস), ঘন মসুর ডাল, মিক্সড সবজি বা ভাজি এবং লেবুর ফালি। প্রিমিয়াম ডিসপোজেবল ফুড-গ্রেড বক্সে সরবরাহ।",
+    image: "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
+    price: 190,
+    salePrice: 175,
+    portionBn: "১ জনের অফিস দুপুরের মিল",
+    portionEn: "1 Full Corporate Lunch Box",
+    prepTimeMinutes: 30,
+    spiceLevel: "Mild",
+    isAvailable: true,
+    dailyStock: 50,
+    currentStock: 45,
+    minOrderQty: 1,
+    isFeatured: false,
+    isBestseller: true,
+    advanceNoticeRequiredHours: 3,
+    ingredientsBn: "মুরগির মাংস, বাসমতী ভাত, মসুর ডাল, পটোল/আলু ভাজি, লেবু",
+    variants: [
+      { id: "v7-chicken", nameBn: "চিকেন কারি মিল", nameEn: "Chicken Curry Meal", additionalPrice: 0 },
+      { id: "v7-fish", nameBn: "মাছের কারি মিল", nameEn: "Fish Curry Meal", additionalPrice: 15 }
+    ],
+    addons: [
+      { id: "a7-egg", nameBn: "ডিম অমলেট বা সিদ্ধ ডিম", nameEn: "Egg Omelette / Boiled", price: 25 }
+    ]
+  },
+  {
+    id: "food-8",
+    sku: "GS-CAT-08",
+    nameBn: "প্রিমিয়াম ঘরোয়া ক্যাটারিং উৎসব প্যাকেজ (৫০-১০০ জন)",
+    nameEn: "Royal Bengali Event Catering Feast Package",
+    categoryId: "catering-bulk",
+    categoryNameBn: "ক্যাটারিং ও বড় আয়োজন",
+    shortDescBn: "যেকোনো পারিবারিক বা অফিসের বড় আয়োজনে খাঁটি ঘরোয়া স্বাদের ক্যাটারিং।",
+    fullDescBn: "বিয়ে, সুন্নতে খৎনা, আকিকা, মিলাদ বা করপোরেট ইভেন্টে ঘরের স্বাদের স্পেশাল আয়োজন। মেনুতে থাকে: সুগন্ধি কাচ্চি বা মোরগ পোলাও, খাসির রেজালা/চিকেন রোস্ট, বোরহানি, জর্দা বা ফিরনি এবং চাটনি। পরিচ্ছন্ন ও হাইজিনিক পরিবেশে রান্না।",
+    image: "/src/assets/images/food_bengali_platter_snacks_1791709490645.jpg",
+    price: 450,
+    salePrice: 420,
+    portionBn: "প্রতি প্লেট / জন হিসেবে হিসাব (ন্যূনতম ৩০ জন)",
+    portionEn: "Per Person Plate Rate (Min 30 guests)",
+    prepTimeMinutes: 120,
+    spiceLevel: "Medium",
+    isAvailable: true,
+    dailyStock: 200,
+    currentStock: 200,
+    minOrderQty: 10,
+    isFeatured: true,
+    isBestseller: false,
+    advanceNoticeRequiredHours: 24,
+    ingredientsBn: "দেশি মুরগি/খাসি, বাসমতী চাল, জাফরান, গাওয়া ঘি, বাদাম-কিশমিশ, মিষ্টি ও বোরহানি উপাদান",
+    variants: [
+      { id: "v8-morog-pulao", nameBn: "মোরগ পোলাও + চিকেন রোস্ট + বোরহানি + ফিরনি", nameEn: "Morog Pulao + Roast + Borhani", additionalPrice: 0 },
+      { id: "v8-kacchi", nameBn: "শাহি খাসির কাচ্চি + বোরহানি + জর্দা", nameEn: "Shahi Mutton Kacchi + Borhani", additionalPrice: 80 }
+    ],
+    addons: [
+      { id: "a8-roast-extra", nameBn: "এক্সট্রা শাহি চিকেন রোস্ট প্রতি পিস", nameEn: "Extra Chicken Roast", price: 140 }
+    ]
   }
 ];
 
@@ -713,10 +840,6 @@ class DatabaseStore {
       }
     }
     this.ensureDefaultUsers();
-    // Synchronize with Cloud Firestore so redeployments always inherit cloud data
-    this.initCloudSync().catch(err => {
-      console.warn('[CloudSync] Init notice:', err);
-    });
   }
 
   private loadData(): DatabaseSchema {
@@ -728,9 +851,29 @@ class DatabaseStore {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
+
+        // Ensure all 8 default foods are preserved even if parsed had only 4
+        const existingFoodsMap = new Map((parsed.foods || []).map((f: any) => [f.id, f]));
+        const mergedFoods = DEFAULT_FOODS.map(df => {
+          const found = existingFoodsMap.get(df.id);
+          return found ? { ...df, ...found } : df;
+        });
+        // Also keep any custom foods added by admin
+        for (const f of (parsed.foods || [])) {
+          if (!mergedFoods.some(mf => mf.id === f.id)) {
+            mergedFoods.push(f);
+          }
+        }
+
+        // Ensure homepage content has all hero banners
+        const loadedHomepage = { ...DEFAULT_HOMEPAGE_CONTENT, ...(parsed.homepageContent || {}) };
+        if (!loadedHomepage.heroBanners || !Array.isArray(loadedHomepage.heroBanners) || loadedHomepage.heroBanners.length === 0) {
+          loadedHomepage.heroBanners = DEFAULT_HOMEPAGE_CONTENT.heroBanners;
+        }
+
         return {
           config: { ...DEFAULT_CONFIG, ...(parsed.config || {}) },
-          homepageContent: { ...DEFAULT_HOMEPAGE_CONTENT, ...(parsed.homepageContent || {}) },
+          homepageContent: loadedHomepage,
           smtpConfig: {
             ...DEFAULT_SMTP_CONFIG,
             ...(parsed.smtpConfig || {}),
@@ -742,10 +885,10 @@ class DatabaseStore {
             user: (parsed.smtpConfig && parsed.smtpConfig.user) || DEFAULT_SMTP_CONFIG.user,
             isConfigured: true
           },
-          categories: parsed.categories || DEFAULT_CATEGORIES,
-          foods: parsed.foods || DEFAULT_FOODS,
-          deliveryZones: parsed.deliveryZones || DEFAULT_DELIVERY_ZONES,
-          paymentMethods: parsed.paymentMethods || DEFAULT_PAYMENT_METHODS,
+          categories: (parsed.categories && parsed.categories.length >= 7) ? parsed.categories : DEFAULT_CATEGORIES,
+          foods: mergedFoods,
+          deliveryZones: (parsed.deliveryZones && parsed.deliveryZones.length >= 5) ? parsed.deliveryZones : DEFAULT_DELIVERY_ZONES,
+          paymentMethods: (parsed.paymentMethods && parsed.paymentMethods.length >= 5) ? parsed.paymentMethods : DEFAULT_PAYMENT_METHODS,
           coupons: parsed.coupons || DEFAULT_COUPONS,
           orders: parsed.orders || [],
           cateringInquiries: parsed.cateringInquiries || [],
@@ -897,14 +1040,21 @@ class DatabaseStore {
 
   public async initCloudSync() {
     try {
+      // If we already have our complete catalog (>= 8 foods), sync our rich local database up to Cloud
+      if (Array.isArray(this.data.foods) && this.data.foods.length >= 8) {
+        await cloudSyncService.pushToCloud(this.data).catch(() => {});
+        console.log(`[CloudSync] Cloud Firestore snapshot synchronized with latest ${this.data.foods.length} dishes.`);
+        return;
+      }
+
       const cloudRes = await cloudSyncService.pullFromCloud();
       if (cloudRes.success && cloudRes.data) {
         let changed = false;
-        if (Array.isArray(cloudRes.data.foods) && cloudRes.data.foods.length > 0) {
+        if (Array.isArray(cloudRes.data.foods) && cloudRes.data.foods.length >= (this.data.foods?.length || 0)) {
           this.data.foods = cloudRes.data.foods;
           changed = true;
         }
-        if (Array.isArray(cloudRes.data.categories) && cloudRes.data.categories.length > 0) {
+        if (Array.isArray(cloudRes.data.categories) && cloudRes.data.categories.length >= (this.data.categories?.length || 0)) {
           this.data.categories = cloudRes.data.categories;
           changed = true;
         }
@@ -912,7 +1062,7 @@ class DatabaseStore {
           this.data.config = { ...this.data.config, ...cloudRes.data.config };
           changed = true;
         }
-        if (cloudRes.data.homepageContent) {
+        if (cloudRes.data.homepageContent?.heroBanners && cloudRes.data.homepageContent.heroBanners.length > 0) {
           this.data.homepageContent = { ...this.data.homepageContent, ...cloudRes.data.homepageContent };
           changed = true;
         }

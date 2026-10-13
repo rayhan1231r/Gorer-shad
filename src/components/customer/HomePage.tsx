@@ -265,15 +265,32 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Main Headline */}
             <div className="space-y-3">
               <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.18] text-balance">
-                {t('heroHeadlinePrefix', 'ঘরের রান্নার ভালোবাসা,', 'Homemade Love & Fresh Taste,')}{' '}
-                <span className="text-emerald-700 underline decoration-amber-400 decoration-wavy decoration-2">
-                  {t('heroHeadlineHighlight', 'এবার আপনার দোরগোড়ায়', 'Delivered Right to Your Doorstep')}
-                </span>
+                {language === 'en'
+                  ? (contentData?.heroHeadlineEn || (
+                    <>
+                      {t('heroHeadlinePrefix', 'Homemade Love & Fresh Taste,')}{' '}
+                      <span className="text-emerald-700 underline decoration-amber-400 decoration-wavy decoration-2">
+                        {t('heroHeadlineHighlight', 'Delivered Right to Your Doorstep')}
+                      </span>
+                    </>
+                  ))
+                  : (contentData?.heroHeadlineBn || (
+                    <>
+                      {t('heroHeadlinePrefix', 'ঘরের রান্নার ভালোবাসা,', 'Homemade Love & Fresh Taste,')}{' '}
+                      <span className="text-emerald-700 underline decoration-amber-400 decoration-wavy decoration-2">
+                        {t('heroHeadlineHighlight', 'এবার আপনার দোরগোড়ায়', 'Delivered Right to Your Doorstep')}
+                      </span>
+                    </>
+                  ))
+                }
               </h1>
 
               {/* Supporting Text */}
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-3xl font-normal">
-                {t('heroSubtitle')}
+                {language === 'en'
+                  ? (contentData?.heroSubtitleEn || t('heroSubtitle'))
+                  : (contentData?.heroSubtitleBn || t('heroSubtitle'))
+                }
               </p>
             </div>
 
@@ -298,7 +315,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 onClick={() => onNavigate('menu')}
                 className="px-7 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 group cursor-pointer"
               >
-                <span>{t('viewMenuBtn', 'মেনু দেখুন', 'View Menu')}</span>
+                <span>{language === 'en' ? (contentData?.ctaMenuBtnBn ? 'View Menu' : t('viewMenuBtn', 'View Menu')) : (contentData?.ctaMenuBtnBn || t('viewMenuBtn', 'মেনু দেখুন'))}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -306,7 +323,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 onClick={() => onNavigate('catering')}
                 className="px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-sm rounded-xl transition-colors cursor-pointer shadow-xs"
               >
-                {t('learnCateringBtn', 'ক্যাটারিং সম্পর্কে জানুন', 'Learn About Catering')}
+                {language === 'en' ? 'Learn About Catering' : (contentData?.ctaCateringBtnBn || t('learnCateringBtn', 'ক্যাটারিং সম্পর্কে জানুন'))}
               </button>
 
               <a

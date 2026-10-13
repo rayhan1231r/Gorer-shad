@@ -1619,15 +1619,12 @@ async function startServer() {
   }
   const listenPort = Number(process.env.PORT) || cliPort || 3000;
 
-  try {
-    await db.initCloudSync();
-    console.log('[CloudSync] Successfully synchronized data with Cloud Firestore on boot.');
-  } catch (syncErr) {
-    console.warn('[CloudSync] Boot synchronization notice:', syncErr);
-  }
-
   app.listen(listenPort, '0.0.0.0', () => {
     console.log(`Server started on http://0.0.0.0:${listenPort}`);
+    // Non-blocking background sync with Cloud Firestore
+    db.initCloudSync()
+      .then(() => console.log('[CloudSync] Data synced with Cloud Firestore.'))
+      .catch(syncErr => console.warn('[CloudSync] Background sync notice:', syncErr));
   });
 }
 

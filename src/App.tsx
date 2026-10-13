@@ -161,6 +161,15 @@ function AppContent() {
     if (token) api.setToken(token);
     setIsAdminLoggedIn(true);
     setAdminUserName(userName);
+    setCurrentUser(prev => ({
+      id: prev?.id || 'usr-admin-1',
+      name: userName || prev?.name || 'Administrator',
+      email: prev?.email || 'rmartbdltd@gmail.com',
+      role: 'owner',
+      provider: 'password',
+      addresses: prev?.addresses || ['আড়াইহাজার, ঢাকা'],
+      createdAt: prev?.createdAt || new Date().toISOString()
+    }));
     loadInitialData();
     setActivePage('admin');
   };
@@ -229,23 +238,40 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden">
-      {activePage === 'admin' && isAdminLoggedIn ? (
-        /* Admin Panel View */
-        <AdminLayout
-          config={config}
-          onRefreshConfig={loadInitialData}
-          onExitAdmin={() => {
-            loadInitialData();
-            setActivePage('home');
-          }}
-          onLogout={() => {
-            setIsAdminLoggedIn(false);
-            loadInitialData();
-            setActivePage('home');
-          }}
-          adminUserName={adminUserName}
-          adminUserEmail={adminUserEmail}
-        />
+      {activePage === 'admin' ? (
+        isAdminLoggedIn ? (
+          /* Admin Panel View */
+          <AdminLayout
+            config={config}
+            onRefreshConfig={loadInitialData}
+            onExitAdmin={() => {
+              loadInitialData();
+              setActivePage('home');
+            }}
+            onLogout={() => {
+              setIsAdminLoggedIn(false);
+              loadInitialData();
+              setActivePage('home');
+            }}
+            adminUserName={adminUserName}
+            adminUserEmail={adminUserEmail}
+          />
+        ) : (
+          /* Admin Portal Login */
+          <AdminPortalPage
+            config={config}
+            currentUser={currentUser}
+            isAdminLoggedIn={isAdminLoggedIn}
+            adminUserName={adminUserName}
+            onLoginSuccess={handleLoginSuccess}
+            onRefreshConfig={loadInitialData}
+            onExitAdmin={() => {
+              loadInitialData();
+              setActivePage('home');
+            }}
+            onLogout={handleLogout}
+          />
+        )
       ) : (
         /* Customer Facing Interface */
         <>

@@ -23,7 +23,8 @@
     "rocketNumber": "01857-220603-9",
     "bankDetails": "Islami Bank Bangladesh Ltd, Araihazar Branch, A/C: 205012345678",
     "orderNotificationEmails": [
-      "rmartbdltd@gmail.com"
+      "rmartbdltd@gmail.com",
+      "ghorershad.arai@gmail.com"
     ],
     "logoUrl": "/logo.jpg",
     "facebookUrl": "https://facebook.com/ghorershad.arai",
@@ -38,56 +39,56 @@
     "heroSubtitleEn": "Choose your favorite homemade Bengali delicacies at Ghorer Shad. Order comfortably and plan your meal timing in advance.",
     "ctaMenuBtnBn": "মেনু দেখুন",
     "ctaCateringBtnBn": "ক্যাটারিং সম্পর্কে জানুন",
-    "bannerImage": "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
+    "bannerImage": "/images/hero_ghorer_shad_feast_1791709454258.jpg",
     "bannerIntervalSeconds": 3,
     "heroBanners": [
       {
+        "id": "feast",
+        "image": "/images/hero_ghorer_shad_feast_1791709454258.jpg",
+        "tagBn": "খাঁটি বাঙালি ভোজ ও ঐতিহ্য",
+        "tagEn": "Authentic Bengali Feast",
+        "titleBn": "ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ",
         "titleEn": "Royal Bengali Homemade Feast",
         "descBn": "আড়াইহাজারের খাঁটি রান্না, তাজা মসলা ও ঘরোয়া ভালোবাসা",
         "descEn": "Fresh home cooking in Araihazar with pure spices",
         "isActive": true,
-        "titleBn": "ঘরের স্বাদ স্পেশাল রাজকীয় বাংলা ভোজ",
-        "tagBn": "খাঁটি বাঙালি ভোজ ও ঐতিহ্য",
-        "image": "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
-        "id": "feast",
-        "sortOrder": 1,
-        "tagEn": "Authentic Bengali Feast"
+        "sortOrder": 1
       },
       {
-        "sortOrder": 2,
+        "id": "ilish",
+        "image": "/images/food_ilish_bhapa_fish_1791709467165.jpg",
+        "tagBn": "পদ্মার তাজা মাছের সমাহার",
+        "tagEn": "Fresh River Hilsa Special",
+        "titleBn": "তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব",
+        "titleEn": "Fresh Shorshe Ilish & Pulao Delicacies",
+        "descBn": "অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না",
         "descEn": "Cooked fresh after order with supreme authentic aroma",
         "isActive": true,
-        "descBn": "অর্ডার করার পর পদ্মা নদীর সেরা স্বাদের ইলিশ মাছের রান্না",
-        "tagEn": "Fresh River Hilsa Special",
-        "image": "/src/assets/images/food_ilish_bhapa_fish_1791709467165.jpg",
-        "titleEn": "Fresh Shorshe Ilish & Pulao Delicacies",
-        "id": "ilish",
-        "tagBn": "পদ্মার তাজা মাছের সমাহার",
-        "titleBn": "তাজা সর্ষে ইলিশ ও ইলিশ পোলাও উৎসব"
+        "sortOrder": 2
       },
       {
+        "id": "meat",
+        "image": "/images/food_bengali_meat_curry_1791709480684.jpg",
         "tagBn": "দেশি মাংসের স্পেশাল কষা",
+        "tagEn": "Desi Meat Curry & Kacchi",
+        "titleBn": "দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল",
+        "titleEn": "Desi Mutton & Beef Traditional Curry",
         "descBn": "খাঁটি সরিষার তেলে কষানো মাংস ও স্পেশাল ভুনা খিচুড়ি",
         "descEn": "Slow-cooked with pure mustard oil & aromatic spices",
-        "image": "/src/assets/images/food_bengali_meat_curry_1791709480684.jpg",
         "isActive": true,
-        "tagEn": "Desi Meat Curry & Kacchi",
-        "titleEn": "Desi Mutton & Beef Traditional Curry",
-        "id": "meat",
-        "titleBn": "দেশি খাসি ও গরুর মাংসের ঐতিহ্যবাহী ঝোল",
         "sortOrder": 3
       },
       {
-        "sortOrder": 4,
+        "id": "platter",
+        "image": "/images/food_bengali_platter_snacks_1791709490645.jpg",
+        "tagBn": "ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ",
+        "tagEn": "Family Combos & Catering Package",
+        "titleBn": "যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ",
+        "titleEn": "Catering & Large Feasts for Every Celebration",
         "descBn": "৫০ থেকে ৫০০ জনের সম্পূর্ণ ঘরোয়া খাবার সরবরাহ",
         "descEn": "Complete homemade food service from 50 to 500 guests",
-        "id": "platter",
-        "tagBn": "ফ্যামিলি কম্বো ও ক্যাটারিং প্যাকেজ",
-        "titleEn": "Catering & Large Feasts for Every Celebration",
         "isActive": true,
-        "tagEn": "Family Combos & Catering Package",
-        "image": "/src/assets/images/food_bengali_platter_snacks_1791709490645.jpg",
-        "titleBn": "যেকোনো উৎসব ও পারিবারিক অনুষ্ঠানে ঘরের স্বাদ"
+        "sortOrder": 4
       }
     ]
   },
@@ -95,9 +96,9 @@
     "host": "smtp.gmail.com",
     "port": 587,
     "user": "rmartbdltd@gmail.com",
-    "pass": "dcru jgid udnh aeel",
+    "pass": "",
     "security": "STARTTLS",
-    "senderEmail": "rmartbdltd@gmail.com",
+    "senderEmail": "ghorershad.arai@gmail.com",
     "senderName": "ঘরের স্বাদ (Ghorer Shad)",
     "logoUrl": "/logo.jpg",
     "websiteUrl": "",
@@ -108,593 +109,628 @@
   },
   "categories": [
     {
-      "isActive": true,
+      "id": "fish-seafood",
       "nameBn": "মাছ ও সি-ফুড",
       "nameEn": "Fish & Seafood",
-      "id": "fish-seafood",
+      "descriptionBn": "নদী ও সমুদ্রের তাজা মাছের ঘরোয়া রান্না",
       "sortOrder": 1,
       "iconName": "Fish",
-      "descriptionBn": "নদী ও সমুদ্রের তাজা মাছের ঘরোয়া রান্না"
+      "isActive": true
     },
     {
-      "sortOrder": 2,
-      "iconName": "Drumstick",
+      "id": "meat-chicken",
       "nameBn": "মাংস ও মুরগি",
       "nameEn": "Meat & Chicken",
       "descriptionBn": "দেশি মুরগি ও কষা মাংসের স্পেশাল রেসিপি",
-      "id": "meat-chicken",
+      "sortOrder": 2,
+      "iconName": "Drumstick",
       "isActive": true
     },
     {
       "id": "bengali-meals",
-      "sortOrder": 3,
       "nameBn": "বাঙালি ঘরোয়া খাবার",
+      "nameEn": "Bengali Homemade Meals",
       "descriptionBn": "প্রতিদিনের পুষ্টিকর ভাত, ডাল, তরকারি ও ভর্তা",
-      "isActive": true,
+      "sortOrder": 3,
       "iconName": "Utensils",
-      "nameEn": "Bengali Homemade Meals"
+      "isActive": true
     },
     {
+      "id": "platters-combos",
       "nameBn": "ফুড প্ল্যাটার ও ফ্যামিলি প্যাকেজ",
-      "descriptionBn": "পারিবারিক ভোজ ও স্পেশাল দিনগুলোর জন্য কম্বো",
-      "isActive": true,
-      "iconName": "Sparkles",
-      "sortOrder": 4,
       "nameEn": "Food Platters & Family Packages",
-      "id": "platters-combos"
+      "descriptionBn": "পারিবারিক ভোজ ও স্পেশাল দিনগুলোর জন্য কম্বো",
+      "sortOrder": 4,
+      "iconName": "Sparkles",
+      "isActive": true
     },
     {
+      "id": "fast-food-snacks",
+      "nameBn": "ফাস্টফুড ও বৈকালিক নাস্তা",
       "nameEn": "Fast Food & Snacks",
       "descriptionBn": "মুচমুচে সিঙ্গাড়া, চপ ও বিকেলে আড্ডার নাস্তা",
+      "sortOrder": 5,
       "iconName": "Coffee",
-      "isActive": true,
-      "nameBn": "ফাস্টফুড ও বৈকালিক নাস্তা",
-      "id": "fast-food-snacks",
-      "sortOrder": 5
+      "isActive": true
     },
     {
-      "descriptionBn": "অফিস ও নিয়মিত গ্রাহকদের সাশ্রয়ী মিল প্যাকেজ",
-      "nameBn": "অফিস ও নিয়মিত মিল",
-      "iconName": "Briefcase",
-      "sortOrder": 6,
-      "isActive": true,
       "id": "office-daily-meals",
-      "nameEn": "Office & Daily Meals"
+      "nameBn": "অফিস ও নিয়মিত মিল",
+      "nameEn": "Office & Daily Meals",
+      "descriptionBn": "অফিস ও নিয়মিত গ্রাহকদের সাশ্রয়ী মিল প্যাকেজ",
+      "sortOrder": 6,
+      "iconName": "Briefcase",
+      "isActive": true
     },
     {
-      "isActive": true,
+      "id": "catering-bulk",
+      "nameBn": "ক্যাটারিং ও বড় আয়োজন",
       "nameEn": "Catering & Bulk Orders",
       "descriptionBn": "বিয়ে, মিলাদ, জন্মদিন ও অফিসের বড় অনুষ্ঠান",
-      "id": "catering-bulk",
       "sortOrder": 7,
-      "nameBn": "ক্যাটারিং ও বড় আয়োজন",
-      "iconName": "Users"
+      "iconName": "Users",
+      "isActive": true
     }
   ],
   "foods": [
     {
-      "image": "/src/assets/images/food_ilish_bhapa_fish_1791709467165.jpg",
-      "sku": "GS-FISH-01",
-      "categoryNameBn": "মাছ ও সি-ফুড",
-      "prepTimeMinutes": 45,
-      "nameEn": "Shorshe Ilish with Saffron Pulao Combo",
-      "dailyStock": 20,
-      "price": 420,
-      "portionEn": "1 Full Meal (1 Ilish steak + fragrant pulao)",
-      "shortDescBn": "পদ্মার তাজা ইলিশের খাঁটি সরিষা বাটা রেসিপি ও সুগন্ধি পোলাও।",
-      "currentStock": 16,
-      "categoryId": "fish-seafood",
-      "isBestseller": true,
-      "ingredientsBn": "পদ্মার ইলিশ মাছ, খাঁটি সরিষার তেল, দেশি সরিষা বাটা, কাঁচামরিচ, হলুদ গুঁড়া, পোলাও চাল, কাজুবাদাম।",
-      "salePrice": 395,
-      "advanceNoticeRequiredHours": 4,
-      "minOrderQty": 1,
-      "portionBn": "১ জনের পেটভরা মিল (১ টুকরা ইলিশ + পোলাও)",
-      "spiceLevel": "Medium",
-      "nameBn": "সরষে ইলিশ ও জাফরানি পোলাও কম্বো",
-      "addons": [
-        {
-          "nameEn": "Fried Eggplant (2 pcs)",
-          "nameBn": "বেগুন ভাজা (২ পিস)",
-          "price": 25,
-          "id": "a1-1"
-        },
-        {
-          "nameEn": "Thick Moong Dal",
-          "id": "a1-2",
-          "nameBn": "স্পেশাল ঘন সোনা মুগ ডাল",
-          "price": 35
-        },
-        {
-          "nameEn": "Sweet Yogurt Cup",
-          "price": 40,
-          "nameBn": "ঘরোয়া মিষ্টি দই কাপ",
-          "id": "a1-3"
-        }
-      ],
       "id": "food-1",
-      "isFeatured": true,
-      "fullDescBn": "পদ্মার তাজা বড় ইলিশ মাছের পেটি, খাঁটি সরিষা বাটা, পোস্ত ও কাঁচা মরিচের ঝাঁঝে ঐতিহ্যবাহী সরষে ইলিশ। সাথে পরিবেশন করা হয় ঘি-সুগন্ধি জাফরানি পোলাও, লেবুর ফালি ও সবুজ কাঁচামরিচ। সম্পূর্ণ ঘরোয়া ও স্বাস্থ্যকর উপায়ে অর্ডারের পর তাজা রান্না।",
-      "variants": [
-        {
-          "nameEn": "With Saffron Pulao",
-          "nameBn": "সুগন্ধি জাফরানি পোলাও সাথে",
-          "additionalPrice": 0,
-          "id": "v1-1"
-        },
-        {
-          "nameEn": "With Steamed Rice",
-          "additionalPrice": -20,
-          "nameBn": "মিনিকেট সাদা ভাত সাথে",
-          "id": "v1-2"
-        },
-        {
-          "additionalPrice": 30,
-          "nameEn": "With Bhuna Khichuri",
-          "id": "v1-3",
-          "nameBn": "স্পেশাল খিচুড়ি সাথে"
-        }
-      ],
-      "isAvailable": true
-    },
-    {
-      "ingredientsBn": "তাজা মুরগির মাংস, আদা-রসুন বাটা, পেঁয়াজ বেরেস্তা, খাঁটি সরিষার তেল, জিরা-ধনিয়া গুঁড়া, গরম মশলা, ময়দা।",
-      "currentStock": 22,
-      "categoryNameBn": "মাংস ও মুরগি",
-      "variants": [
-        {
-          "nameEn": "4 Pcs Fluffy Luchi",
-          "id": "v2-1",
-          "nameBn": "৪টি গরম ফুলকো লুচি",
-          "additionalPrice": 0
-        },
-        {
-          "id": "v2-2",
-          "nameBn": "৩টি তেলছাড়া হাতে তৈরি পরোটা",
-          "nameEn": "3 Pcs Handmade Paratha",
-          "additionalPrice": 10
-        },
-        {
-          "nameEn": "1 Plate Steamed Rice",
-          "additionalPrice": 0,
-          "nameBn": "১ প্লেট বাসমতি ভাত",
-          "id": "v2-3"
-        }
-      ],
-      "nameBn": "ঘরোয়া চিকেন ভুনা ও গরম ফুলকো লুচি",
-      "isBestseller": true,
-      "categoryId": "meat-chicken",
-      "addons": [
-        {
-          "nameBn": "সিদ্ধ ডিম ভুনা (১ পিস)",
-          "price": 25,
-          "nameEn": "Egg Bhuna (1 pc)",
-          "id": "a2-1"
-        },
-        {
-          "nameEn": "Homemade Borhani (250ml)",
-          "id": "a2-2",
-          "nameBn": "ঘরোয়া শাহি বোরহানি (২৫০ মি.লি.)",
-          "price": 45
-        },
-        {
-          "id": "a2-3",
-          "nameBn": "অতিরিক্ত ২ পিস লুচি",
-          "price": 20,
-          "nameEn": "Extra 2 Luchis"
-        }
-      ],
-      "spiceLevel": "Spicy",
-      "isAvailable": true,
-      "sku": "GS-MEAT-02",
-      "salePrice": 245,
-      "portionBn": "১ জনের পেটভরা মিল (৩ পিস চিকেন + ৪ লুচি)",
-      "minOrderQty": 1,
-      "id": "food-2",
-      "isFeatured": true,
-      "fullDescBn": "ঘরোয়া মশলায় কড়া করে কষানো রসালো চিকেন ভুনা। এলাচ-দারচিনির সুগন্ধি গ্রেভি এবং চার পিস গরম ফুলকো লুচি বা হাতে গড়া পরোটা। বিকেলে বা রাতের খাবারে অসাধারণ স্বাদ।",
-      "nameEn": "Homemade Chicken Bhuna with Fluffy Luchi",
-      "image": "/src/assets/images/food_bengali_meat_curry_1791709480684.jpg",
-      "portionEn": "1 Full Meal (3 pcs Chicken + 4 Luchis)",
-      "shortDescBn": "কড়া কষানো মশলাদার চিকেন ভুনা সাথে ৪টি গরম ফুলকো লুচি।",
-      "dailyStock": 25,
-      "advanceNoticeRequiredHours": 3,
-      "prepTimeMinutes": 35,
-      "price": 260
-    },
-    {
-      "sku": "GS-PLAT-03",
-      "id": "food-3",
-      "categoryNameBn": "ফুড প্ল্যাটার ও ফ্যামিলি প্যাকেজ",
-      "shortDescBn": "ভাত, মাছ/মুরগি, আলু ভর্তা, ডাল, ভাজি ও সালাদের সম্পূর্ণ বাংলা আয়োজন।",
-      "dailyStock": 30,
-      "nameEn": "Ghorer Shad Royal Bengali Feast Thali",
-      "ingredientsBn": "মিনিকেট চাল, তাজা মাছ/মুরগি, আলু, মুগ ডাল, সরিষার তেল, বেগুন, ধনেপাতা, শুকনা মরিচ।",
-      "portionEn": "Complete Traditional Thali for 1 person",
-      "currentStock": 25,
-      "isBestseller": true,
-      "salePrice": 340,
-      "portionBn": "১ জনের জমকালো বাংলা মিল",
-      "isAvailable": true,
-      "variants": [
-        {
-          "nameEn": "With Rui Fish Dopeyaja",
-          "additionalPrice": 0,
-          "id": "v3-1",
-          "nameBn": "রুই মাছ দোপেঁয়াজা সহ"
-        },
-        {
-          "id": "v3-2",
-          "nameEn": "With Deshi Chicken Curry",
-          "additionalPrice": 20,
-          "nameBn": "দেশি মুরগির ঝোল সহ"
-        },
-        {
-          "nameBn": "ইলিশ ভাজা পেটি সহ",
-          "additionalPrice": 80,
-          "nameEn": "With Fried Ilish Steak",
-          "id": "v3-3"
-        }
-      ],
-      "categoryId": "platters-combos",
-      "advanceNoticeRequiredHours": 4,
-      "spiceLevel": "Medium",
-      "price": 360,
-      "minOrderQty": 1,
-      "nameBn": "ঘরের স্বাদ রাজকীয় বাংলা থালি",
-      "image": "/src/assets/images/hero_ghorer_shad_feast_1791709454258.jpg",
-      "addons": [
-        {
-          "nameEn": "Prawn/Shutki Bhorta",
-          "id": "a3-1",
-          "price": 40,
-          "nameBn": "চিংড়ি ভর্তা বা শুঁটকি ভর্তা"
-        },
-        {
-          "nameBn": "মিষ্টি পান ও মিষ্টি দই কাপ",
-          "price": 45,
-          "nameEn": "Sweet Pan & Doi",
-          "id": "a3-2"
-        }
-      ],
-      "isFeatured": true,
-      "fullDescBn": "সম্পূর্ণ তৃপ্তিদায়ক ঐতিহ্যবাহী বাঙালি থালি। মিনিকেট চালের গরম ভাত, ১ টুকরা রুই মাছ দোপেঁয়াজা অথবা দেশি মুরগির ঝোল, সরিষার তেলে মাখানো স্পেশাল শুকনা মরিচ-আলু ভর্তা, সোনা মুগ ডাল, বেগুন ভাজা, লেবু ও কাঁচামরিচ সালাদ।",
-      "prepTimeMinutes": 45
-    },
-    {
-      "shortDescBn": "খাস্তা সিঙ্গাড়া, চপ, ক্রিস্পি প্রন বল ও চাটনির মুখরোচক প্যাকেজ।",
-      "portionBn": "২ জনের উপযোগী নাস্তা বক্স",
-      "salePrice": 199,
-      "price": 220,
-      "image": "/src/assets/images/food_bengali_platter_snacks_1791709490645.jpg",
-      "ingredientsBn": "ময়দা, আলু, চিনাবাদাম, ধনিয়া পাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা।",
-      "nameEn": "Traditional Evening Snack Platter",
-      "id": "food-4",
-      "dailyStock": 40,
-      "currentStock": 36,
-      "isBestseller": false,
-      "prepTimeMinutes": 25,
-      "spiceLevel": "Medium",
-      "isAvailable": true,
-      "advanceNoticeRequiredHours": 2,
-      "sku": "GS-SNK-04",
-      "variants": [
-        {
-          "id": "v4-1",
-          "nameEn": "Regular Singara & Chop",
-          "nameBn": "রেগুলার সিঙ্গাড়া ও চপ প্ল্যাটার",
-          "additionalPrice": 0
-        },
-        {
-          "nameEn": "With Fried Chicken Wings",
-          "additionalPrice": 60,
-          "id": "v4-2",
-          "nameBn": "স্পেশাল ফ্রাইড চিকেন উইংস সহ"
-        }
-      ],
-      "categoryId": "fast-food-snacks",
-      "portionEn": "Snack Box for 2 people",
-      "minOrderQty": 1,
-      "addons": [
-        {
-          "nameEn": "Special Milk Tea (2 cups)",
-          "id": "a4-1",
-          "price": 40,
-          "nameBn": "স্পেশাল খাঁটি দুধ চা (২ কাপ)"
-        },
-        {
-          "price": 30,
-          "nameBn": "অতিরিক্ত ২ পিস গরম সিঙ্গাড়া",
-          "nameEn": "Extra 2 Singaras",
-          "id": "a4-2"
-        }
-      ],
-      "isFeatured": true,
-      "fullDescBn": "বিকেলের আড্ডার জন্য ঘরে বানানো স্বাস্থ্যকর নাস্তা। ২টি খাঁটি ঘিয়ে মাখানো খাস্তা আলু-বাদামের সিঙ্গাড়া, ২টি ভেজিটেবল বিট-আলু চপ, ২টি ক্রিস্পি প্রন/চিকেন বল এবং ঘরে তৈরি তেঁতুল ও পুদিনার টক-মিষ্টি স্পেশাল চাটনি।",
-      "categoryNameBn": "ফাস্টফুড ও বৈকালিক নাস্তা",
-      "nameBn": "ঐতিহ্যবাহী বৈকালিক নাস্তা ও স্ন্যাক্স প্ল্যাটার"
-    },
-    {
-      "shortDescBn": "খাঁটি সরিষার তেল ও ঘরোয়া মসলায় কষানো নরম ও লোভনীয় দেশি স্টাইলের অক্টোপাস ভুনা।",
-      "image": "/uploads/1791740829899-213543jpg.jpg",
-      "nameEn": "Octopus ",
-      "isAvailable": true,
-      "nameBn": "Octopus ",
-      "spiceLevel": "Medium",
-      "variants": [],
-      "addons": [],
-      "currentStock": 24,
+      "sku": "GS-FISH-01",
+      "nameBn": "সরষে ইলিশ ও জাফরানি পোলাও কম্বো",
+      "nameEn": "Shorshe Ilish with Saffron Pulao Combo",
       "categoryId": "fish-seafood",
-      "id": "food-1791740792587",
-      "isBestseller": false,
       "categoryNameBn": "মাছ ও সি-ফুড",
-      "portionEn": "1 Full Meal",
+      "shortDescBn": "পদ্মার তাজা ইলিশের খাঁটি সরিষা বাটা রেসিপি ও সুগন্ধি পোলাও।",
+      "fullDescBn": "পদ্মার তাজা বড় ইলিশ মাছের পেটি, খাঁটি সরিষা বাটা, পোস্ত ও কাঁচা মরিচের ঝাঁঝে ঐতিহ্যবাহী সরষে ইলিশ। সাথে পরিবেশন করা হয় ঘি-সুগন্ধি জাফরানি পোলাও, লেবুর ফালি ও সবুজ কাঁচামরিচ। সম্পূর্ণ ঘরোয়া ও স্বাস্থ্যকর উপায়ে অর্ডারের পর তাজা রান্না।",
+      "image": "/images/food_ilish_bhapa_fish_1791709467165.jpg",
+      "price": 420,
+      "salePrice": 395,
+      "portionBn": "১ জনের পেটভরা মিল (১ টুকরা ইলিশ + পোলাও)",
+      "portionEn": "1 Full Meal (1 Ilish steak + fragrant pulao)",
+      "prepTimeMinutes": 45,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 20,
+      "currentStock": 18,
       "minOrderQty": 1,
-      "fullDescBn": "তাজা অক্টোপাস নিখুঁতভাবে পরিষ্কার করে পেঁয়াজ, রসুন ও আদা বাটার সাথে খাঁটি ঘানিভাঙা সরিষার তেলে কড়া আঁচে ভুনা করা হয়েছে। দেশি মসলা ও ভাজা জিরার দারুণ সুবাসে তৈরি এই মাঝারি ঝালের ঘন গ্রেভি গরম ভাতের সাথে সি-ফুডপ্রেমীদের মুখে এক অনন্য স্বাদ এনে দেবে।",
-      "isFeatured": false,
-      "sku": "GS-3800",
-      "salePrice": 500,
-      "portionBn": "১ জনের পেটভরা মিল অথবা ২ জনের শেয়ারিং",
+      "isFeatured": true,
+      "isBestseller": true,
       "advanceNoticeRequiredHours": 4,
+      "ingredientsBn": "পদ্মার ইলিশ মাছ, খাঁটি সরিষার তেল, দেশি বাটা সরিষা, কাঁচামরিচ, পোলাও চাল, গাওয়া ঘি",
+      "variants": [
+        {
+          "id": "v1-regular",
+          "nameBn": "সুগন্ধি জাফরানি পোলাও সাথে",
+          "nameEn": "With Saffron Pulao",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v1-rice",
+          "nameBn": "গরম সাদা বাসমতী ভাতের সাথে",
+          "nameEn": "With Steamed Basmati Rice",
+          "additionalPrice": -30
+        }
+      ],
+      "addons": [
+        {
+          "id": "a1-eggplant",
+          "nameBn": "বেগুন ভাজা (২ পিস)",
+          "nameEn": "Fried Eggplant (2 pcs)",
+          "price": 40
+        },
+        {
+          "id": "a1-dal",
+          "nameBn": "মুগ ডাল ভুনা বাটি",
+          "nameEn": "Moong Dal Bhuna",
+          "price": 50
+        }
+      ]
+    },
+    {
+      "id": "food-2",
+      "sku": "GS-MEAT-02",
+      "nameBn": "ঘরোয়া চিকেন ভুনা ও গরম ফুলকো লুচি",
+      "nameEn": "Homemade Chicken Bhuna with Fluffy Luchi",
+      "categoryId": "meat-chicken",
+      "categoryNameBn": "মাংস ও মুরগি",
+      "shortDescBn": "কড়া কষানো মশলাদার চিকেন ভুনা সাথে ৪টি গরম ফুলকো লুচি।",
+      "fullDescBn": "ঘরোয়া মশলায় কড়া করে কষানো রসালো চিকেন ভুনা। এলাচ-দারচিনির সুগন্ধি গ্রেভি এবং চার পিস গরম ফুলকো লুচি বা হাতে গড়া পরোটা। বিকেলে বা রাতের খাবারে অসাধারণ স্বাদ। সম্পূর্ণ টাটকা অর্ডারের পর প্রস্তুত।",
+      "image": "/images/food_bengali_meat_curry_1791709480684.jpg",
+      "price": 260,
+      "salePrice": 240,
+      "portionBn": "১ জনের পেটভরা মিল (৩ পিস চিকেন + ৪ লুচি)",
+      "portionEn": "1 Full Meal (3 pcs chicken + 4 luchis)",
       "prepTimeMinutes": 35,
-      "price": 700,
-      "dailyStock": 25
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 30,
+      "currentStock": 25,
+      "minOrderQty": 1,
+      "isFeatured": true,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 3,
+      "ingredientsBn": "তাজা ফার্ম চিকেন, পেঁয়াজ বেরেস্তা, খাঁটি সয়াবিন ও সরিষার তেল, আদা-রসুন বাটা, গরম মসলা",
+      "variants": [
+        {
+          "id": "v2-luchi",
+          "nameBn": "ফুলকো লুচি (৪ পিস)",
+          "nameEn": "Fluffy Luchi (4 pcs)",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v2-paratha",
+          "nameBn": "হাতে গড়া তেলহীন রুটি / পরোটা (৩ পিস)",
+          "nameEn": "Handmade Ruti/Paratha (3 pcs)",
+          "additionalPrice": 10
+        }
+      ],
+      "addons": [
+        {
+          "id": "a2-salad",
+          "nameBn": "ফ্রেশ শসা-টমেটো সালাদ",
+          "nameEn": "Fresh Salad",
+          "price": 25
+        },
+        {
+          "id": "a2-shuji",
+          "nameBn": "ঘিয়ে ভাজা সুজির বরফি হালুয়া",
+          "nameEn": "Semolina Ghee Halwa",
+          "price": 50
+        }
+      ]
+    },
+    {
+      "id": "food-3",
+      "sku": "GS-PLAT-03",
+      "nameBn": "ঘরের স্বাদ রাজকীয় বাংলা থালি",
+      "nameEn": "Ghorer Shad Royal Bengali Feast Thali",
+      "categoryId": "platters-combos",
+      "categoryNameBn": "ফুড প্ল্যাটার ও ফ্যামিলি প্যাকেজ",
+      "shortDescBn": "রুই মাছ, দেশি চিকেন ভুনা, ডাল, ৩ রকমের ভর্তা ও গরম ভাতের সম্পূর্ণ থালি।",
+      "fullDescBn": "বাঙালির প্রাণের স্বাদ এক থালিতে! এতে পাবেন বাসমতী চালের গরম ভাত, দেশি সরিষার তেলে রুই মাছ ভাজা/ঝোল, কষা দেশি চিকেন ভুনা, ঘন মুগ ডাল, আলু ভর্তা, বেগুন ভর্তা, কালোজিরা ভর্তা, লেবু ও কাঁচামরিচ। সম্পূর্ণ মায়ের হাতের রান্নার মতো তৃপ্তিদায়ক।",
+      "image": "/images/hero_ghorer_shad_feast_1791709454258.jpg",
+      "price": 360,
+      "salePrice": 340,
+      "portionBn": "১ জন প্রাপ্তবয়স্কের তৃপ্তিদায়ক ভারী খাবার",
+      "portionEn": "1 Heavy Royal Meal Thali",
+      "prepTimeMinutes": 45,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 25,
+      "currentStock": 20,
+      "minOrderQty": 1,
+      "isFeatured": true,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 4,
+      "ingredientsBn": "রুই মাছ, দেশি মুরগি, নাজিরশাইল/বাসমতী চাল, মুগ ডাল, পেঁয়াজ, রসুন, কাঁচামরিচ, ঘি",
+      "variants": [
+        {
+          "id": "v3-regular",
+          "nameBn": "নিয়মিত স্পাইস লেভেল (স্ট্যান্ডার্ড)",
+          "nameEn": "Standard Spice",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v3-light",
+          "nameBn": "কম ঝাল ও কম তেল (সিনিয়র বা বাচ্চার জন্য)",
+          "nameEn": "Low Oil & Mild Spice",
+          "additionalPrice": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "a3-chutney",
+          "nameBn": "টক-মিষ্টি বরই বা আমের চাটনি",
+          "nameEn": "Sweet-Sour Fruit Chutney",
+          "price": 30
+        },
+        {
+          "id": "a3-firni",
+          "nameBn": "জাফরানি ক্ষীর ফিরনি বাটি",
+          "nameEn": "Saffron Firni Dessert",
+          "price": 60
+        }
+      ]
+    },
+    {
+      "id": "food-4",
+      "sku": "GS-SNK-04",
+      "nameBn": "ঐতিহ্যবাহী বৈকালিক নাস্তা ও স্ন্যাক্স প্ল্যাটার",
+      "nameEn": "Traditional Evening Snack Platter",
+      "categoryId": "fast-food-snacks",
+      "categoryNameBn": "ফাস্টফুড ও বৈকালিক নাস্তা",
+      "shortDescBn": "ঘরোয়া মুচমুচে সমুচা, চিকেন প্যাটিস ও ডিম চপ কম্বো (৮ পিস)।",
+      "fullDescBn": "বিকেলের আড্ডা বা পারিবারিক মেহমানদারির জন্য সেরা স্ন্যাক্স বক্স। সম্পূর্ণ ঘরে তৈরি স্বাস্থ্যকর তেলে ভাজা মুচমুচে সমুচা (২ পিস), ডিমের চপ (২ পিস), চিকেন কিমা রোল (২ পিস) এবং পেঁয়াজু/পাকোড়া (২ পিস)। সাথে স্পেশাল তেঁতুলের সস ও চাটনি।",
+      "image": "/images/food_bengali_platter_snacks_1791709490645.jpg",
+      "price": 220,
+      "salePrice": 199,
+      "portionBn": "২-৩ জনের আড্ডার বৈকালিক স্ন্যাক্স",
+      "portionEn": "2-3 Persons Evening Snacks",
+      "prepTimeMinutes": 25,
+      "spiceLevel": "Mild",
+      "isAvailable": true,
+      "dailyStock": 40,
+      "currentStock": 35,
+      "minOrderQty": 1,
+      "isFeatured": true,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 2,
+      "ingredientsBn": "চিকেন কিমা, ডিম, আলু, ময়দা, ধনেপাতা, কাঁচামরিচ, খাঁটি সয়াবিন তেল, স্পেশাল চাট মসলা",
+      "variants": [
+        {
+          "id": "v4-standard",
+          "nameBn": "মিক্সড স্ন্যাক্স কম্বো (সব পদ মিলিয়ে)",
+          "nameEn": "Mixed Snack Combo",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v4-chicken-only",
+          "nameBn": "শুধুমাত্র চিকেন রোল ও সমুচা",
+          "nameEn": "Chicken Rolls & Samosa Only",
+          "additionalPrice": 30
+        }
+      ],
+      "addons": [
+        {
+          "id": "a4-tea",
+          "nameBn": "ঘরোয়া মসলা স্পেশাল দুধ চা পাতা প্যাক",
+          "nameEn": "Masala Chai Pack",
+          "price": 40
+        },
+        {
+          "id": "a4-sauce",
+          "nameBn": "এক্সট্রা স্পাইসি তেঁতুল সস",
+          "nameEn": "Extra Tamarind Dip",
+          "price": 20
+        }
+      ]
+    },
+    {
+      "id": "food-5",
+      "sku": "GS-FISH-05",
+      "nameBn": "পদ্মার তাজা রুই মাছের দোপেঁয়াজা ও গরম ভাত থালি",
+      "nameEn": "Padma River Rui Fish Dopeyaza with Rice Thali",
+      "categoryId": "bengali-meals",
+      "categoryNameBn": "বাঙালি ঘরোয়া খাবার",
+      "shortDescBn": "তাজা রুই মাছের কষা পেঁয়াজ-টমেটো দোপেঁয়াজা, সুবাসিত গরম ভাত ও ডাল।",
+      "fullDescBn": "পদ্মার তাজা রুই মাছের বড় পেটি তেলে ভেজে পেঁয়াজ, টমেটো ও কাঁচামরিচে কষানো সুস্বাদু দোপেঁয়াজা। সাথে পরিবেশন করা হয় গরম ভাত ও ধনেপাতা ফোড়নের মসুর ডাল।",
+      "image": "/images/food_ilish_bhapa_fish_1791709467165.jpg",
+      "price": 280,
+      "salePrice": 260,
+      "portionBn": "১ জনের পেটভরা দুপুরের খাবার",
+      "portionEn": "1 Full Meal (Rui Fish + Rice + Dal)",
+      "prepTimeMinutes": 35,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 25,
+      "currentStock": 22,
+      "minOrderQty": 1,
+      "isFeatured": false,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 3,
+      "ingredientsBn": "পদ্মার রুই মাছ, পেঁয়াজ, টমেটো, কাঁচামরিচ, সরিষার তেল, নাজিরশাইল চাল",
+      "variants": [
+        {
+          "id": "v5-regular",
+          "nameBn": "স্ট্যান্ডার্ড ঝাল",
+          "nameEn": "Standard Spice",
+          "additionalPrice": 0
+        }
+      ],
+      "addons": [
+        {
+          "id": "a5-aloo-bhorta",
+          "nameBn": "খাঁটি সরিষার তেলে শুকনা মরিচ ভাজা আলু ভর্তা",
+          "nameEn": "Mustard Aloo Bhorta",
+          "price": 30
+        }
+      ]
+    },
+    {
+      "id": "food-6",
+      "sku": "GS-MEAT-06",
+      "nameBn": "দেশি খাসির স্পেশাল ভুনা ও জাফরানি পোলাও",
+      "nameEn": "Desi Mutton Bhuna with Saffron Pulao",
+      "categoryId": "meat-chicken",
+      "categoryNameBn": "মাংস ও মুরগি",
+      "shortDescBn": "খাঁটি সরিষার তেলে ধীরে ধীরে কষানো কচি খাসির মাংস ও সুগন্ধি পোলাও।",
+      "fullDescBn": "আড়াইহাজারের খাঁটি সরিষার তেলে পেঁয়াজ বেরেস্তা ও এলাচ-দারচিনির গাঢ় সুবাসে রান্না করা রসালো দেশি খাসির মাংসের ভুনা। সাথে সুগন্ধি জাফরানি গাওয়া ঘি পোলাও।",
+      "image": "/images/food_bengali_meat_curry_1791709480684.jpg",
+      "price": 480,
+      "salePrice": 450,
+      "portionBn": "১ জনের রাজকীয় ভোজ (৩ পিস কচি খাসি + পোলাও)",
+      "portionEn": "1 Royal Mutton Meal (3 pcs mutton + pulao)",
+      "prepTimeMinutes": 45,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 15,
+      "currentStock": 12,
+      "minOrderQty": 1,
+      "isFeatured": true,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 4,
+      "ingredientsBn": "কচি খাসির মাংস, বাটা পেঁয়াজ, গাওয়া ঘি, পোলাও চাল, লবঙ্গ, দারচিনি, জায়ফল-জয়ত্রী",
+      "variants": [
+        {
+          "id": "v6-pulao",
+          "nameBn": "জাফরানি পোলাও সাথে",
+          "nameEn": "With Saffron Pulao",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v6-khichuri",
+          "nameBn": "ভুনা খিচুড়ি সাথে",
+          "nameEn": "With Bhuna Khichuri",
+          "additionalPrice": 20
+        }
+      ],
+      "addons": [
+        {
+          "id": "a6-borhani",
+          "nameBn": "স্পেশাল টকদইয়ের বোরহানি (২৫০ মিলি)",
+          "nameEn": "Special Borhani 250ml",
+          "price": 60
+        }
+      ]
+    },
+    {
+      "id": "food-7",
+      "sku": "GS-OFFC-07",
+      "nameBn": "অফিস এক্সিকিউটিভ লাঞ্চ বক্স (চিকেন কারি, ভাত, ঘন ডাল ও ভাজি)",
+      "nameEn": "Executive Office Daily Lunch Box",
+      "categoryId": "office-daily-meals",
+      "categoryNameBn": "অফিস ও নিয়মিত মিল",
+      "shortDescBn": "অফিস ও কর্মজীবীদের জন্য সম্পূর্ণ স্বাস্থ্যসম্মত ও সাশ্রয়ী লাঞ্চ প্যাকেজ।",
+      "fullDescBn": "প্রতিদিনের স্বাস্থ্যকর খাবার: ভাত, দেশি স্টাইলের ঘরোয়া চিকেন কারি (২ পিস), ঘন মসুর ডাল, মিক্সড সবজি বা ভাজি এবং লেবুর ফালি। প্রিমিয়াম ডিসপোজেবল ফুড-গ্রেড বক্সে সরবরাহ।",
+      "image": "/images/hero_ghorer_shad_feast_1791709454258.jpg",
+      "price": 190,
+      "salePrice": 175,
+      "portionBn": "১ জনের অফিস দুপুরের মিল",
+      "portionEn": "1 Full Corporate Lunch Box",
+      "prepTimeMinutes": 30,
+      "spiceLevel": "Mild",
+      "isAvailable": true,
+      "dailyStock": 50,
+      "currentStock": 45,
+      "minOrderQty": 1,
+      "isFeatured": false,
+      "isBestseller": true,
+      "advanceNoticeRequiredHours": 3,
+      "ingredientsBn": "মুরগির মাংস, বাসমতী ভাত, মসুর ডাল, পটোল/আলু ভাজি, লেবু",
+      "variants": [
+        {
+          "id": "v7-chicken",
+          "nameBn": "চিকেন কারি মিল",
+          "nameEn": "Chicken Curry Meal",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v7-fish",
+          "nameBn": "মাছের কারি মিল",
+          "nameEn": "Fish Curry Meal",
+          "additionalPrice": 15
+        }
+      ],
+      "addons": [
+        {
+          "id": "a7-egg",
+          "nameBn": "ডিম অমলেট বা সিদ্ধ ডিম",
+          "nameEn": "Egg Omelette / Boiled",
+          "price": 25
+        }
+      ]
+    },
+    {
+      "id": "food-8",
+      "sku": "GS-CAT-08",
+      "nameBn": "প্রিমিয়াম ঘরোয়া ক্যাটারিং উৎসব প্যাকেজ (৫০-১০০ জন)",
+      "nameEn": "Royal Bengali Event Catering Feast Package",
+      "categoryId": "catering-bulk",
+      "categoryNameBn": "ক্যাটারিং ও বড় আয়োজন",
+      "shortDescBn": "যেকোনো পারিবারিক বা অফিসের বড় আয়োজনে খাঁটি ঘরোয়া স্বাদের ক্যাটারিং।",
+      "fullDescBn": "বিয়ে, সুন্নতে খৎনা, আকিকা, মিলাদ বা করপোরেট ইভেন্টে ঘরের স্বাদের স্পেশাল আয়োজন। মেনুতে থাকে: সুগন্ধি কাচ্চি বা মোরগ পোলাও, খাসির রেজালা/চিকেন রোস্ট, বোরহানি, জর্দা বা ফিরনি এবং চাটনি। পরিচ্ছন্ন ও হাইজিনিক পরিবেশে রান্না।",
+      "image": "/images/food_bengali_platter_snacks_1791709490645.jpg",
+      "price": 450,
+      "salePrice": 420,
+      "portionBn": "প্রতি প্লেট / জন হিসেবে হিসাব (ন্যূনতম ৩০ জন)",
+      "portionEn": "Per Person Plate Rate (Min 30 guests)",
+      "prepTimeMinutes": 120,
+      "spiceLevel": "Medium",
+      "isAvailable": true,
+      "dailyStock": 200,
+      "currentStock": 200,
+      "minOrderQty": 10,
+      "isFeatured": true,
+      "isBestseller": false,
+      "advanceNoticeRequiredHours": 24,
+      "ingredientsBn": "দেশি মুরগি/খাসি, বাসমতী চাল, জাফরান, গাওয়া ঘি, বাদাম-কিশমিশ, মিষ্টি ও বোরহানি উপাদান",
+      "variants": [
+        {
+          "id": "v8-morog-pulao",
+          "nameBn": "মোরগ পোলাও + চিকেন রোস্ট + বোরহানি + ফিরনি",
+          "nameEn": "Morog Pulao + Roast + Borhani",
+          "additionalPrice": 0
+        },
+        {
+          "id": "v8-kacchi",
+          "nameBn": "শাহি খাসির কাচ্চি + বোরহানি + জর্দা",
+          "nameEn": "Shahi Mutton Kacchi + Borhani",
+          "additionalPrice": 80
+        }
+      ],
+      "addons": [
+        {
+          "id": "a8-roast-extra",
+          "nameBn": "এক্সট্রা শাহি চিকেন রোস্ট প্রতি পিস",
+          "nameEn": "Extra Chicken Roast",
+          "price": 140
+        }
+      ]
     }
   ],
   "deliveryZones": [
     {
+      "id": "zone-1",
       "nameBn": "আড়াইহাজার সদর (পৌরসভা এলাকা)",
+      "nameEn": "Araihazar Sadar (Municipality Area)",
       "upazilaOrArea": "Araihazar Sadar",
       "charge": 40,
-      "id": "zone-1",
-      "freeDeliveryThreshold": 800,
-      "nameEn": "Araihazar Sadar (Municipality Area)",
       "minOrderAmount": 200,
-      "isActive": true,
-      "estimatedDeliveryMinutes": "30-45 মিনিট"
-    },
-    {
-      "nameBn": "দুপতারা ইউনিয়ন",
-      "charge": 50,
-      "minOrderAmount": 250,
-      "isActive": true,
-      "nameEn": "Duptara Union",
-      "freeDeliveryThreshold": 1000,
-      "estimatedDeliveryMinutes": "40-55 মিনিট",
-      "upazilaOrArea": "Duptara",
-      "id": "zone-2"
-    },
-    {
-      "estimatedDeliveryMinutes": "45-60 মিনিট",
-      "freeDeliveryThreshold": 1200,
-      "upazilaOrArea": "Gopaldi",
-      "id": "zone-3",
-      "charge": 60,
-      "nameBn": "গোপালদী পৌরসভা ও বাজার",
-      "nameEn": "Gopaldi Municipality & Bazar",
-      "minOrderAmount": 300,
+      "freeDeliveryThreshold": 800,
+      "estimatedDeliveryMinutes": "30-45 মিনিট",
       "isActive": true
     },
     {
-      "upazilaOrArea": "Uchitpur",
-      "freeDeliveryThreshold": 900,
-      "id": "zone-4",
+      "id": "zone-2",
+      "nameBn": "দুপতারা ইউনিয়ন",
+      "nameEn": "Duptara Union",
+      "upazilaOrArea": "Duptara",
       "charge": 50,
       "minOrderAmount": 250,
-      "estimatedDeliveryMinutes": "35-50 মিনিট",
-      "nameBn": "উচিতপুর (মেঘনা ঘাট রোড এলাকা)",
-      "isActive": true,
-      "nameEn": "Uchitpur (Meghna Ghat Area)"
+      "freeDeliveryThreshold": 1000,
+      "estimatedDeliveryMinutes": "40-55 মিনিট",
+      "isActive": true
     },
     {
+      "id": "zone-3",
+      "nameBn": "গোপালদী পৌরসভা ও বাজার",
+      "nameEn": "Gopaldi Municipality & Bazar",
+      "upazilaOrArea": "Gopaldi",
+      "charge": 60,
+      "minOrderAmount": 300,
+      "freeDeliveryThreshold": 1200,
+      "estimatedDeliveryMinutes": "45-60 মিনিট",
+      "isActive": true
+    },
+    {
+      "id": "zone-4",
+      "nameBn": "উচিতপুর (মেঘনা ঘাট রোড এলাকা)",
+      "nameEn": "Uchitpur (Meghna Ghat Area)",
+      "upazilaOrArea": "Uchitpur",
+      "charge": 50,
+      "minOrderAmount": 250,
+      "freeDeliveryThreshold": 900,
+      "estimatedDeliveryMinutes": "35-50 মিনিট",
+      "isActive": true
+    },
+    {
+      "id": "zone-5",
+      "nameBn": "ব্রাহ্মন্দী ইউনিয়ন",
       "nameEn": "Brahmandi Union",
       "upazilaOrArea": "Brahmandi",
       "charge": 50,
-      "estimatedDeliveryMinutes": "40-55 মিনিট",
-      "nameBn": "ব্রাহ্মন্দী ইউনিয়ন",
       "minOrderAmount": 300,
-      "id": "zone-5",
-      "isActive": true,
-      "freeDeliveryThreshold": 1000
+      "freeDeliveryThreshold": 1000,
+      "estimatedDeliveryMinutes": "40-55 মিনিট",
+      "isActive": true
     }
   ],
   "paymentMethods": [
     {
-      "instructionsBn": "খাবার বা পার্সেল হাতে পেয়ে রাইডারকে ক্যাশ টাকা পরিশোধ করুন।",
-      "type": "cod",
-      "accountNumber": "N/A",
       "id": "pm-cod",
-      "isActive": true,
+      "type": "cod",
+      "nameBn": "ক্যাশ অন ডেলিভারি (Cash on Delivery)",
       "nameEn": "Cash on Delivery (COD)",
-      "requiresTransactionId": false,
+      "accountNumber": "N/A",
+      "chargePercentage": 0,
+      "instructionsBn": "খাবার বা পার্সেল হাতে পেয়ে রাইডারকে ক্যাশ টাকা পরিশোধ করুন।",
       "instructionsEn": "Pay in cash directly to the delivery rider upon receiving your package.",
-      "sortOrder": 1,
-      "nameBn": "ক্যাশ অন ডেলিভারি (Cash on Delivery)"
+      "isActive": true,
+      "requiresTransactionId": false,
+      "sortOrder": 1
     },
     {
-      "instructionsBn": "বিকাশ অ্যাপ বা *247# ডায়াল করে Send Money করুন। রেফারেন্সে আপনার মোবাইল নম্বর দিন এবং নিচে TrxID লিখুন।",
-      "nameEn": "bKash (Personal - Send Money)",
-      "nameBn": "বিকাশ (Personal - Send Money)",
-      "chargePercentage": 1.5,
-      "accountNumber": "01912-838891",
       "id": "pm-bkash-personal",
-      "requiresTransactionId": true,
-      "isActive": true,
       "type": "bkash",
-      "sortOrder": 2,
+      "accountType": "Personal",
+      "nameBn": "বিকাশ (Personal - Send Money)",
+      "nameEn": "bKash (Personal - Send Money)",
+      "accountNumber": "01912-838891",
+      "chargePercentage": 1.5,
+      "instructionsBn": "বিকাশ অ্যাপ বা *247# ডায়াল করে Send Money করুন। রেফারেন্সে আপনার নাম বা মোবাইল নম্বর দিন এবং নিচে TrxID লিখুন।",
       "instructionsEn": "Send Money to our bKash Personal number and input your TrxID below.",
-      "accountType": "Personal"
-    },
-    {
-      "nameEn": "bKash (Merchant - Make Payment)",
-      "isActive": false,
-      "instructionsEn": "Use 'Make Payment' option in bKash app. No extra cash-out fee applies.",
-      "requiresTransactionId": true,
-      "nameBn": "বিকাশ (Merchant - Payment)",
-      "type": "bkash",
-      "accountNumber": "01857-220603",
-      "instructionsBn": "বিকাশ অ্যাপ থেকে 'Make Payment' অপশন ব্যবহার করুন। কোনো অতিরিক্ত ক্যাশ-আউট চার্জ প্রযোজ্য নয়।",
-      "id": "pm-bkash-merchant",
-      "sortOrder": 3,
-      "accountType": "Merchant",
-      "chargePercentage": 0
-    },
-    {
-      "chargePercentage": 1,
       "isActive": true,
-      "type": "nagad",
-      "sortOrder": 4,
-      "instructionsEn": "Send Money to our Nagad number and enter the Transaction ID.",
-      "id": "pm-nagad",
       "requiresTransactionId": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "pm-nagad",
+      "type": "nagad",
       "accountType": "Personal",
       "nameBn": "নগদ (Personal - Send Money)",
       "nameEn": "Nagad (Personal - Send Money)",
       "accountNumber": "01857-220603",
-      "instructionsBn": "নগদ অ্যাপ বা *167# ডায়াল করে Send Money করুন। সফল পেমেন্টের পর প্রাপ্ত TrxID নিচে লিখুন।"
+      "chargePercentage": 1,
+      "instructionsBn": "নগদ অ্যাপ বা *167# ডায়াল করে Send Money করুন। সফল পেমেন্টের পর প্রাপ্ত TrxID নিচে লিখুন।",
+      "instructionsEn": "Send Money to our Nagad number and enter the Transaction ID.",
+      "isActive": true,
+      "requiresTransactionId": true,
+      "sortOrder": 3
     },
     {
-      "nameBn": "রকেট (Personal - Send Money)",
-      "isActive": false,
-      "chargePercentage": 1,
-      "nameEn": "Rocket (Personal - Send Money)",
-      "instructionsBn": "ডাচ-বাংলা রকেটে Send Money করুন এবং ১২ ডিজিটের ট্রানজেকশন আইডি দিন।",
       "id": "pm-rocket",
-      "sortOrder": 5,
-      "requiresTransactionId": true,
-      "instructionsEn": "Send Money to our Rocket account and input the TrxID.",
       "type": "rocket",
-      "accountNumber": "01857-220603-9",
-      "accountType": "Personal"
-    },
-    {
-      "isActive": false,
-      "nameEn": "Upay (Send Money)",
-      "instructionsEn": "Send Money via Upay and provide the transaction ID.",
-      "requiresTransactionId": true,
-      "nameBn": "উপায় (Upay - Send Money)",
-      "chargePercentage": 1,
-      "id": "pm-upay",
-      "accountNumber": "01857-220603",
-      "sortOrder": 6,
       "accountType": "Personal",
-      "instructionsBn": "ইউসিবি উপায় একাউন্টে Send Money করে ট্রানজেকশন আইডি নিচে প্রদান করুন।",
-      "type": "upay"
+      "nameBn": "রকেট (Personal - Send Money)",
+      "nameEn": "Rocket (Personal - Send Money)",
+      "accountNumber": "01857-220603-9",
+      "chargePercentage": 1,
+      "instructionsBn": "ডাচ-বাংলা রকেটে Send Money করুন এবং ১২ ডিজিটের ট্রানজেকশন আইডি দিন।",
+      "instructionsEn": "Send Money to our Rocket account and input the TrxID.",
+      "isActive": true,
+      "requiresTransactionId": true,
+      "sortOrder": 4
     },
     {
-      "nameBn": "ব্যাংক ট্রান্সফার (Bank Deposit / EFT)",
-      "instructionsEn": "Islami Bank Bangladesh Ltd, Araihazar Branch. A/C: 205012345678. Routing: 125270189.",
-      "nameEn": "Bank Transfer (Islami Bank Bangladesh Ltd)",
       "id": "pm-bank",
-      "requiresTransactionId": true,
-      "isActive": false,
-      "instructionsBn": "ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, আড়াইহাজার শাখা। হিসাব নাম: Joynob Islam Kakoly। রাউটিং: 125270189। ট্রান্সফারের পর রেফারেন্স স্লট দিন।",
+      "type": "bank",
+      "nameBn": "ব্যাংক ট্রান্সফার (Bank Deposit / EFT)",
+      "nameEn": "Bank Transfer (Islami Bank Bangladesh Ltd)",
       "accountNumber": "205012345678",
-      "sortOrder": 7,
-      "type": "bank"
+      "instructionsBn": "ইসলামী ব্যাংক বাংলাদেশ লিমিটেড, আড়াইহাজার শাখা। হিসাব নাম: Joynob Islam Kakoly। হিসাব নং: 205012345678। রাউটিং: 125270189। ট্রান্সফারের পর রেফারেন্স ও স্লিপ আপলোড করুন।",
+      "instructionsEn": "Islami Bank Bangladesh Ltd, Araihazar Branch. A/C: 205012345678. Routing: 125270189.",
+      "isActive": false,
+      "requiresTransactionId": true,
+      "sortOrder": 5
     }
   ],
   "coupons": [
     {
       "code": "GHORER10",
-      "maxDiscountAmount": 150,
+      "discountType": "percentage",
       "discountValue": 10,
       "minOrderAmount": 350,
-      "usageCount": 14,
+      "maxDiscountAmount": 150,
       "expiresAt": "2026-12-31",
       "isActive": true,
-      "discountType": "percentage"
+      "usageCount": 14
     },
     {
       "code": "ARAIHAZAR50",
-      "usageCount": 22,
-      "expiresAt": "2026-12-31",
-      "minOrderAmount": 500,
       "discountType": "fixed",
       "discountValue": 50,
-      "isActive": true
+      "minOrderAmount": 500,
+      "expiresAt": "2026-12-31",
+      "isActive": true,
+      "usageCount": 22
     }
   ],
-  "orders": [
-    {
-      "id": "ord-1791740942000",
-      "orderNumber": "GS-2601",
-      "createdAt": "2026-10-11T17:49:02.000Z",
-      "customerName": "Rayhan",
-      "customerPhone": "01619415744",
-      "customerEmail": "ahmedskkawsar43@gmail.com",
-      "deliveryZoneId": "zone-1",
-      "deliveryZoneName": "আড়াইহাজার সদর (পৌরসভা এলাকা)",
-      "deliveryAddress": "Arihazar",
-      "requestedDate": "2026-10-11",
-      "requestedTimeSlot": "আজ দুপুর ১:৩০ - ২:৩০ (জরুরি অনুরোধ)",
-      "isUrgent": true,
-      "items": [
-        {
-          "foodId": "food-1791740792587",
-          "sku": "GS-3800",
-          "nameBn": "Octopus ",
-          "nameEn": "Octopus ",
-          "quantity": 1,
-          "selectedAddonsNames": [],
-          "unitPrice": 500,
-          "itemTotal": 500
-        }
-      ],
-      "subtotal": 500,
-      "discountAmount": 0,
-      "deliveryCharge": 40,
-      "totalAmount": 540,
-      "paymentMethod": "bkash",
-      "paymentStatus": "pending",
-      "paymentTransactionId": "Hekevg",
-      "orderStatus": "delivered",
-      "statusHistory": [
-        {
-          "status": "placed",
-          "timestamp": "2026-10-11T17:49:02.000Z",
-          "note": "ওয়েবসাইট থেকে নতুন অর্ডার গ্রহণ করা হয়েছে।"
-        },
-        {
-          "status": "preparing",
-          "timestamp": "2026-10-11T18:18:49.476Z",
-          "note": "Status updated to preparing"
-        },
-        {
-          "status": "ready",
-          "timestamp": "2026-10-11T18:18:55.856Z",
-          "note": "Status updated to ready"
-        },
-        {
-          "status": "out_for_delivery",
-          "timestamp": "2026-10-11T18:19:00.645Z",
-          "note": "Status updated to out_for_delivery"
-        },
-        {
-          "status": "delivered",
-          "timestamp": "2026-10-11T18:19:03.494Z",
-          "note": "Status updated to delivered"
-        }
-      ],
-      "kitchenStatus": "dispatched"
-    }
-  ],
+  "orders": [],
   "cateringInquiries": [],
   "customers": {
     "01619415744": {
       "phone": "01619415744",
-      "name": "Rayhan",
-      "email": "ahmedskkawsar43@gmail.com",
-      "firstOrderDate": "2026-10-11T17:49:02.000Z",
-      "lastOrderDate": "2026-10-11T17:49:02.000Z",
-      "totalOrders": 1,
-      "totalSpent": 540,
+      "name": "কাস্টমার",
+      "firstOrderDate": "2026-10-11T14:28:40.712Z",
+      "lastOrderDate": "2026-10-11T14:28:40.712Z",
+      "totalOrders": 0,
+      "totalSpent": 0,
       "addresses": [
-        "Arihazar"
+        "আড়াইহাজার, ঢাকা"
       ],
       "isBlocked": false,
       "tags": [
-        "New"
+        "Regular"
       ]
     }
   },
@@ -704,7 +740,7 @@
       "name": "Joynob Islam Kakoly",
       "email": "joynob.kakoly@ghorershad.com",
       "phone": "01857-220603",
-      "role": "customer",
+      "role": "owner",
       "isEmailVerified": true,
       "provider": "password",
       "createdAt": "2026-10-11T14:28:40.712Z",
@@ -712,31 +748,6 @@
         "আড়াইহাজার, ঢাকা"
       ],
       "passwordHash": "068a709bb759bdbd9380be7ce21fa639:b4dc9afea2320cbc8d308b5858500f9747c38e2c9571c6ef72adc104743ded60e5f350ed63c873d7b6f55e23efb6a99a718d7f60dd8e80cb6783b28ba1d95123"
-    },
-    "rayhanahamad50@gmail.com": {
-      "id": "usr-admin-owner",
-      "name": "Rayhan Ahamad",
-      "email": "rayhanahamad50@gmail.com",
-      "phone": "01857-220603",
-      "role": "customer",
-      "isEmailVerified": true,
-      "provider": "google",
-      "createdAt": "2026-10-11T14:28:40.772Z",
-      "addresses": [
-        "ঢাকা, বাংলাদেশ"
-      ],
-      "passwordHash": "3af3d9430b9fcf9a984e741e1e9340d8:ecc2bb2b85e5ac9fcba3c994d74431b6520b0ebd10350dee30d3b376dfbdee1600da243f71cdfd7523ff7563ee74e37c8570462463a58a1b9c8dc18ecd35ec2b"
-    },
-    "ahmedskkawsar43@gmail.com": {
-      "id": "usr-1791737729686-728",
-      "name": "Rayhan",
-      "email": "ahmedskkawsar43@gmail.com",
-      "role": "customer",
-      "isEmailVerified": true,
-      "provider": "email_otp",
-      "createdAt": "2026-10-11T16:55:29.686Z",
-      "addresses": [],
-      "passwordHash": "ee6f30d83dec039627425f42768239ea:8f6867708b2b483a34b3875faa696f03ef37a98bfe913827638ae8a0032c3eda074b5c3d3757e8f62379faec08967dc8c96f757fbdaacfb861c8f11dcdbf3532"
     },
     "rmartbdltd@gmail.com": {
       "id": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
@@ -749,12 +760,35 @@
       "addresses": [],
       "passwordHash": "f6f70b4a3a8ecf1f64d41ab920391d6b:f84b8f8bbd9a5687ae1f41b411e4042d5a1d8a7a5e9f571e8985b9b4f40dab7f6454f2e1527bc55beac03fe2e4c09626d1cdd1f7760610a31b6cbfcee43a0063"
     },
+    "rayhanahamad50@gmail.com": {
+      "id": "usr-admin-owner",
+      "name": "Rayhan Ahamad",
+      "email": "rayhanahamad50@gmail.com",
+      "phone": "01857-220603",
+      "role": "admin",
+      "isEmailVerified": true,
+      "provider": "google",
+      "createdAt": "2026-10-11T14:28:40.772Z",
+      "addresses": [
+        "ঢাকা, বাংলাদেশ"
+      ]
+    },
+    "ahmedskkawsar43@gmail.com": {
+      "id": "usr-1791737729686-728",
+      "name": "Rayhan",
+      "email": "ahmedskkawsar43@gmail.com",
+      "role": "admin",
+      "isEmailVerified": true,
+      "provider": "email_otp",
+      "createdAt": "2026-10-11T16:55:29.686Z",
+      "addresses": []
+    },
     "proxy6726@gmail.com": {
       "id": "usr-admin-proxy",
       "name": "Admin User",
       "email": "proxy6726@gmail.com",
       "phone": "01857-220603",
-      "role": "customer",
+      "role": "admin",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
@@ -767,7 +801,7 @@
       "name": "Ghorer Shad Admin",
       "email": "ghorershad.arai@gmail.com",
       "phone": "01857-220603",
-      "role": "customer",
+      "role": "admin",
       "isEmailVerified": true,
       "provider": "google",
       "createdAt": "2026-10-11T15:58:40.352Z",
@@ -814,277 +848,13 @@
   "expenses": [],
   "auditLogs": [
     {
-      "id": "log-1791737522771-946",
-      "timestamp": "2026-10-11T16:52:02.771Z",
-      "action": "CREATE_FOOD",
-      "details": "Created food স্পেশাল হাঁসের মাংস ভুনা (GS-9999)",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791737529235-474",
-      "timestamp": "2026-10-11T16:52:09.235Z",
-      "action": "DELETE_FOOD",
-      "details": "Deleted food item স্পেশাল হাঁসের মাংস ভুনা",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791737729687-54",
-      "timestamp": "2026-10-11T16:55:29.687Z",
-      "action": "USER_SIGNUP",
-      "details": "Customer account verified and created: ahmedskkawsar43@gmail.com",
-      "user": "Rayhan"
-    },
-    {
-      "id": "log-1791737868792-569",
-      "timestamp": "2026-10-11T16:57:48.792Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791737876393-700",
-      "timestamp": "2026-10-11T16:57:56.393Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791737880762-600",
-      "timestamp": "2026-10-11T16:58:00.762Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Rayhan (ahmedskkawsar43@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791737903849-434",
-      "timestamp": "2026-10-11T16:58:23.849Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791737906901-494",
-      "timestamp": "2026-10-11T16:58:26.901Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Admin User (proxy6726@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791737907819-777",
-      "timestamp": "2026-10-11T16:58:27.819Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Ghorer Shad Admin (ghorershad.arai@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791738105831-748",
-      "timestamp": "2026-10-11T17:01:45.831Z",
-      "action": "PAYMENT_METHOD_TOGGLED",
-      "details": "Toggled ব্যাংক ট্রান্সফার (Bank Deposit / EFT) to Inactive",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791738107698-94",
-      "timestamp": "2026-10-11T17:01:47.698Z",
-      "action": "PAYMENT_METHOD_TOGGLED",
-      "details": "Toggled উপায় (Upay - Send Money) to Inactive",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791738109496-378",
-      "timestamp": "2026-10-11T17:01:49.496Z",
-      "action": "PAYMENT_METHOD_TOGGLED",
-      "details": "Toggled রকেট (Personal - Send Money) to Inactive",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791740654061-578",
-      "timestamp": "2026-10-11T17:44:14.061Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
-      "user": "rmartbdltd@gmail.com"
-    },
-    {
-      "id": "log-1791740658032-567",
-      "timestamp": "2026-10-11T17:44:18.032Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Rayhan Ahamad (rayhanahamad50@gmail.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "rmartbdltd@gmail.com"
-    },
-    {
-      "id": "log-1791740661250-898",
-      "timestamp": "2026-10-11T17:44:21.250Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Rayhan (ahmedskkawsar43@gmail.com)-এর ভূমিকা \"subadmin\" করা হয়েছে।",
-      "user": "rmartbdltd@gmail.com"
-    },
-    {
-      "id": "log-1791740691269-836",
-      "timestamp": "2026-10-11T17:44:51.269Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"admin\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791740692697-167",
-      "timestamp": "2026-10-11T17:44:52.697Z",
-      "action": "UPDATE_USER_ROLE",
-      "details": "Joynob Islam Kakoly (joynob.kakoly@ghorershad.com)-এর ভূমিকা \"customer\" করা হয়েছে।",
-      "user": "ahmedskkawsar43@gmail.com"
-    },
-    {
-      "id": "log-1791740865720-473",
-      "timestamp": "2026-10-11T17:47:45.720Z",
-      "action": "CREATE_FOOD",
-      "details": "Created food Octopus  (GS-3800)",
-      "user": "Admin"
-    },
-    {
-      "id": "log-1791740942000-84",
-      "timestamp": "2026-10-11T17:49:02.000Z",
-      "action": "CREATE_ORDER",
-      "details": "New order created GS-2601 - ৳540",
-      "user": "Rayhan"
-    },
-    {
-      "id": "log-1791742729476-576",
-      "timestamp": "2026-10-11T18:18:49.476Z",
-      "action": "UPDATE_ORDER_STATUS",
-      "details": "Order GS-2601 changed to preparing",
-      "user": "Staff"
-    },
-    {
-      "id": "log-1791742735856-418",
-      "timestamp": "2026-10-11T18:18:55.856Z",
-      "action": "UPDATE_ORDER_STATUS",
-      "details": "Order GS-2601 changed to ready",
-      "user": "Staff"
-    },
-    {
-      "id": "log-1791742740645-564",
-      "timestamp": "2026-10-11T18:19:00.645Z",
-      "action": "UPDATE_ORDER_STATUS",
-      "details": "Order GS-2601 changed to out_for_delivery",
-      "user": "Staff"
-    },
-    {
-      "id": "log-1791742743494-655",
-      "timestamp": "2026-10-11T18:19:03.494Z",
-      "action": "UPDATE_ORDER_STATUS",
-      "details": "Order GS-2601 changed to delivered",
-      "user": "Staff"
-    },
-    {
-      "id": "log-1791829170889-361",
-      "timestamp": "2026-10-12T18:19:30.889Z",
-      "action": "UPDATE_CONFIG",
-      "details": "Updated business configurations",
-      "user": "Joynob Islam Kakoly"
+      "id": "log-init",
+      "timestamp": "2026-10-13T04:35:53.098Z",
+      "action": "INIT_DATABASE",
+      "details": "Database validated and synchronized with high-quality authentic food items and categories.",
+      "user": "System"
     }
   ],
   "ownerEmail": "rmartbdltd@gmail.com",
-  "sessions": {
-    "gs-tok-a224d1344600120031037e23269a38f3dce59260cc7961aa42ae11a7ff3ea00f": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794329509022
-    },
-    "gs-tok-a6fe24fdccbaff1354207856824522f4a75a46dc55b16c934a6b19422f156cb9": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794329514382
-    },
-    "gs-tok-235c3e66bb7716f9280dc4c4b4e5704e64fd2bace3fc6a85ed38bd5c0e8ae662": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794329522751
-    },
-    "gs-tok-8544cf722473b4c7c92a1f80ad8caa7935a012b7c6d95de3dad1344899f19606": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794329529216
-    },
-    "gs-tok-6fd15415390c060dfc7f0a4fd0d422e90da9862beed86332c80f028aedd7f073": {
-      "userId": "usr-1791737729686-728",
-      "role": "admin",
-      "email": "ahmedskkawsar43@gmail.com",
-      "expiresAt": 1794329729687
-    },
-    "gs-tok-c86433c5400f66e1fc61699b2fa2cb63d90aa793bd9e670af9909b79197cc02c": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "admin",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794330062917
-    },
-    "gs-tok-18ad8d86b5bb6e04d57ecbf3706d3055eb2ac4a57d945511d5dc3d9d6dc59199": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794330175891
-    },
-    "gs-tok-f9897849fbd35402012a2570d7e14e0692b9ae6628e229823e0114a65fc3c839": {
-      "userId": "usr-1791738196953-716",
-      "role": "customer",
-      "email": "user_test_999@gmail.com",
-      "expiresAt": 1794330196954
-    },
-    "gs-tok-607773d81d756b637fdb5ddf5933f202150e67a36d0ba7052e1d571dd7b27b66": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794332344956
-    },
-    "gs-tok-c0be8a1a755a7de5b5348c3af38182a06205cf2f8fda3c684e129fcd49f80a0e": {
-      "userId": "usr-1791737729686-728",
-      "role": "customer",
-      "email": "ahmedskkawsar43@gmail.com",
-      "expiresAt": 1794332357953
-    },
-    "gs-tok-e37a5249b75ef3f5c58f4968a99394f1192ece6994dc68f47ce9db09bffb9163": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794332370882
-    },
-    "gs-tok-b017db35d428bd6df4daae5ebc22ca2fc5c27d64859ab8aef241c6d7d60ad0ce": {
-      "userId": "usr-1791737729686-728",
-      "role": "subadmin",
-      "email": "ahmedskkawsar43@gmail.com",
-      "expiresAt": 1794332678956
-    },
-    "gs-tok-ca930fa08c567625262740de071841c42c2c8cf8e413a0541807483a8ce286e7": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794334699741
-    },
-    "gs-tok-86bf59fb829f6d2f195ac4724fd7ba924605371488811d352249d32bd2a74167": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794421140291
-    },
-    "gs-tok-6586b6f7d1c7e74b65a183439384c0f774422eb222ff26fdcca95efb16302161": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794422341164
-    },
-    "gs-tok-5ae244519e69117d15469f7e4802e90300c17cc259b82bc04a75e164a80c341c": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794422361597
-    },
-    "gs-tok-f54c3743be047e8f41360398f905cec6f220abaa1d6833cd0a26b84de8c2b912": {
-      "userId": "qEaFZDzP02O7kyUVpHNfM7FiZmz1",
-      "role": "owner",
-      "email": "rmartbdltd@gmail.com",
-      "expiresAt": 1794422370523
-    }
-  }
+  "sessions": {}
 }

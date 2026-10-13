@@ -272,14 +272,23 @@ export const Footer: React.FC<FooterProps> = ({ config, onNavigate }) => {
               ? `© 2026 ${config.brandNameEn} — All rights reserved.`
               : `© ২০২৬ ${config.brandNameBn} — সর্বস্বত্ব সংরক্ষিত।`}
           </p>
-          <p className="flex items-center gap-1.5">
-            <span>
-              {language === 'en'
-                ? 'Cooked with passion from Araihazar, Dhaka'
-                : 'আড়াইহাজার, ঢাকা থেকে ভালোবাসা সহকারে প্রস্তুত'}
-            </span>
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => onNavigate('admin')}
+              className="text-slate-500 hover:text-emerald-400 text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <Lock className="w-3 h-3" />
+              <span>{language === 'en' ? 'Admin Portal' : 'অ্যাডমিন পোর্টাল'}</span>
+            </button>
+            <p className="flex items-center gap-1.5">
+              <span>
+                {language === 'en'
+                  ? 'Cooked with passion from Araihazar, Dhaka'
+                  : 'আড়াইহাজার, ঢাকা থেকে ভালোবাসা সহকারে প্রস্তুত'}
+              </span>
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+            </p>
+          </div>
         </div>
       </div>
     </footer>

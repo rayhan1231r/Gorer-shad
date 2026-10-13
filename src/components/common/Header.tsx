@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="bg-emerald-800 text-white text-xs py-1.5 px-4 font-medium transition-colors">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <p className="truncate text-emerald-50">
-              {t('announcementText')}
+              {config.announcementBarBn || t('announcementText')}
             </p>
             <div className="flex items-center gap-3 shrink-0 text-emerald-100 text-xs">
               <a

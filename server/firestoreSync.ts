@@ -40,6 +40,13 @@ function getCloudDb() {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firestore connection timeout')), ms))
+  ]);
+}
+
 export interface CloudSyncStatus {
   isConfigured: boolean;
   projectId: string;
@@ -73,7 +80,7 @@ export const cloudSyncService = {
     }
 
     try {
-      const snapDoc = await getDoc(doc(db, 'system_store', 'snapshot'));
+      const snapDoc = await withTimeout(getDoc(doc(db, 'system_store', 'snapshot')));
       const exists = snapDoc.exists();
       const data = exists ? snapDoc.data() : null;
       return {
@@ -125,7 +132,7 @@ export const cloudSyncService = {
         ownerEmail: storeData.ownerEmail
       };
 
-      await setDoc(doc(db, 'system_store', 'snapshot'), payload);
+      await withTimeout(setDoc(doc(db, 'system_store', 'snapshot'), payload), 4000);
       lastSyncedTimestamp = now;
       lastSyncError = null;
 
@@ -138,7 +145,7 @@ export const cloudSyncService = {
             batch.set(doc(db, 'foods', f.id), { ...f, syncedAt: now }, { merge: true });
           }
         }
-        await batch.commit();
+        await withTimeout(batch.commit(), 4000);
       } catch (batchErr) {
         // Individual items batch error is non-fatal since snapshot is saved
         console.warn('Batch individual foods sync notice:', batchErr);
@@ -166,7 +173,7 @@ export const cloudSyncService = {
     }
 
     try {
-      const snapDoc = await getDoc(doc(db, 'system_store', 'snapshot'));
+      const snapDoc = await withTimeout(getDoc(doc(db, 'system_store', 'snapshot')), 3000);
       if (snapDoc.exists()) {
         const cloudData = snapDoc.data();
         if (cloudData && Array.isArray(cloudData.foods) && cloudData.foods.length > 0) {
@@ -190,7 +197,7 @@ export const cloudSyncService = {
       }
 
       // If snapshot wasn't found, try checking /foods collection
-      const foodsSnap = await getDocs(collection(db, 'foods'));
+      const foodsSnap = await withTimeout(getDocs(collection(db, 'foods')), 3000);
       if (!foodsSnap.empty) {
         const foodsList: any[] = [];
         foodsSnap.forEach(d => foodsList.push(d.data()));
